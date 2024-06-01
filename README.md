@@ -1,2 +1,1 @@
-# adf
-  Agriculture Data Format
+# Agriculture Data Format (ADF)
