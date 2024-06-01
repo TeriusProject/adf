@@ -32,13 +32,18 @@ typedef union real {
 	uint8_t bytes[4];
 } real_t;
 
+typedef union uint {
+	uint32_t val;
+	uint8_t bytes[4];
+} uint_t;
+
 /*
  *
  */
 typedef struct {
 	real_t *light_mask;
-	uint8_t *light_wavelenght;
-	real_t *temperatures_centigrades;
+	uint8_t *light_wavelength;
+	real_t *temperatures_cent;
 	real_t pH;
 	real_t pressure_pa;
 	uint8_t *water_use_ml;
@@ -59,7 +64,7 @@ typedef struct {
 	uint8_t signature;
 	uint8_t n;
 	uint8_t wavelength_n;
-	uint8_t n_iterations;
+	uint_t n_iterations;
 	iter_t *iterations;
 } __attribute__((packed)) adf_t;
 
@@ -81,6 +86,6 @@ adf_t *unmarshal(const uint8_t *);
 /*
  *
  */
-void append_iteration(adf_t *, iter_t);
+void append_iteration(const adf_t *, iter_t);
 
 #endif /* __ADF__ */
