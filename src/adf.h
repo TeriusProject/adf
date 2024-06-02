@@ -1,19 +1,19 @@
 /*
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
- * 
+ *
  * This file is part of Terius
- * 
+ *
  * ADF is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Teriusis distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define SIGNATURE 0xAD    /* 173 */
+#define SIGNATURE 0xAD /* 173 */
 
 typedef union real {
 	float val;
@@ -42,11 +42,11 @@ typedef union uint {
  */
 typedef struct {
 	real_t *light_mask;
+	real_t *temp_celsius;
 	uint8_t *light_wavelength;
-	real_t *temperatures_cent;
+	uint8_t *water_use_ml;
 	real_t pH;
 	real_t pressure_pa;
-	uint8_t *water_use_ml;
 	real_t soil_density_t_m3;
 	real_t nitrogen_g_m3;
 	real_t potassium_g_m3;

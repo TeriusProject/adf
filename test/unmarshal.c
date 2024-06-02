@@ -32,10 +32,11 @@ int main()
 		.iterations = NULL
 	};
 	uint8_t *bytes = marshal(format);
-	printf("%p\n", bytes);
-	printf("Size: %zu bytes\n", adf_size(format));
-	printf("signature: %x\n", bytes[0]);
-	printf("n: %x\n", bytes[1]);
-	printf("wavelength_n: %d\n", bytes[2]);
-	printf("%p\n", unmarshal(NULL));
+	adf_t *new = unmarshal(bytes);
+	printf("%p\n", new);
+	printf("Size: %zu bytes\n", adf_size(*new));
+	printf("signature: %x\n", new->signature);
+	printf("n: %d\n", new->n);
+	printf("wavelength_n: %d\n", new->wavelength_n);
+	printf("n_iterations: %d\n", new->n_iterations.val);
 }
