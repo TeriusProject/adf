@@ -31,7 +31,7 @@ int main()
 		.n_iterations = 0,
 		.iterations = NULL
 	};
-	adf_bytes res =marshal(format);
+	adf_bytes res = marshal(format);
 	if (res.code != OK) {
 		printf("%s", "An error occurred during marshal process\n_chunks");
 		return 1;

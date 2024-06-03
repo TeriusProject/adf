@@ -19,10 +19,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "../src/adf.h"
 #include "utils.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 #define FILE_PATH "sample.adf"
 
@@ -51,20 +51,6 @@ uint8_t *get_light_wavelengths()
 real_t *get_water_use()
 {
 	return get_light_mask();
-}
-
-void print_real_array(real_t *arr, uint8_t dim)
-{
-	for (uint8_t i = 0; i < dim; i++) {
-		printf("\t%d -> %f\n", i, arr[i].val);
-	}
-}
-
-void print_int_array(uint8_t *arr, uint8_t dim)
-{
-	for (uint8_t i = 0; i < dim; i++) {
-		printf("\t%d -> %d\n", i, arr[i]);
-	}
 }
 
 int main()
@@ -140,40 +126,15 @@ int main()
 
 	assert_true(new->signature == format.signature, "are signatures equals");
 	assert_true(new->version == format.version, "are versions equals");
-	assert_int_equal(new->n_wavelength, format.n_wavelength,"are n_wavelengths equal");
-	assert_int_equal(new->min_w_len_nm, format.min_w_len_nm,"are min_w_len_nms equal");
-	assert_int_equal(new->max_w_len_nm, format.max_w_len_nm,"are max_w_len_nms equal");
-	assert_int_equal(new->period, format.period,"are periods equal");
-	assert_int_equal(new->n_chunks, format.n_chunks,"are n_chunks equal");
-	assert_int_equal(new->n_iterations, format.n_iterations,"are n_iterations equal");
+	assert_int_equal(new->n_wavelength, format.n_wavelength, "are n_wavelengths equal");
+	assert_int_equal(new->min_w_len_nm, format.min_w_len_nm, "are min_w_len_nms equal");
+	assert_int_equal(new->max_w_len_nm, format.max_w_len_nm, "are max_w_len_nms equal");
+	assert_int_equal(new->period, format.period, "are periods equal");
+	assert_int_equal(new->n_chunks, format.n_chunks, "are n_chunks equal");
+	assert_int_equal(new->n_iterations, format.n_iterations, "are n_iterations equal");
+	if (new->n_iterations.val == 0)
+		return 0;
+	for (uint32_t i = 0; i < new->n_iterations.val; i++) {
+		assert_iter_equal(i, *new, new->iterations[i], format.iterations[i], "are iterations 0 equal");
+	}
 }
-
-// printf("new: %p\n", new);
-// printf("Size: %zu bytes\n", adf_size(*new));
-// printf("signature: %x\n", new->signature);
-// printf("version: %x\n", new->version);
-// printf("n: %d\n", new->n_chunks.val);
-// printf("n_wavelength: %d\n", new->n_wavelength.val);
-// printf("n_iterations: %d\n", new->n_iterations.val);
-// for (uint32_t i = 0; i < new->n_iterations.val; i++) {
-// 	iter_t iteration = new->iterations[i];
-// 	printf("(iteration %d)\n", i);
-// 	printf("%s:\n", "light mask");
-// 	print_real_array(iteration.light_exposure, new->n_chunks.val);
-// 	printf("%s:\n", "temperature");
-// 	print_real_array(iteration.temp_celsius, new->n_chunks.val);
-// 	printf("%s:\n", "water use");
-// 	print_real_array(iteration.water_use_ml, new->n_chunks.val);
-// 	printf("%s:\n", "light wavelength");
-// 	print_int_array(iteration.light_wavelength, new->n_wavelength.val);
-// 	printf("%s: %f\n", "pH", iteration.pH.val);
-// 	printf("%s: %f\n", "pressure_pa", iteration.pressure_pa.val);
-// 	printf("%s: %f\n", "soil_density_t_m3", iteration.soil_density_t_m3.val);
-// 	printf("%s: %f\n", "nitrogen_g_m3", iteration.nitrogen_g_m3.val);
-// 	printf("%s: %f\n", "potassium_g_m3", iteration.potassium_g_m3.val);
-// 	printf("%s: %f\n", "phosphorus_g_m3", iteration.phosphorus_g_m3.val);
-// 	printf("%s: %f\n", "iron_g_m3", iteration.iron_g_m3.val);
-// 	printf("%s: %f\n", "magnesium_g_m3", iteration.magnesium_g_m3.val);
-// 	printf("%s: %f\n", "sulfur_g_m3", iteration.sulfur_g_m3.val);
-// 	printf("%s: %f\n", "calcium_g_m3", iteration.calcium_g_m3.val);
-// }

@@ -145,7 +145,7 @@ adf_bytes marshal(adf_t data)
 		for (uint32_t wl_i = 0; wl_i < data.n_wavelength.val; wl_i++, byte_c += 1) {
 			*(bytes + byte_c) = current.light_wavelength[wl_i];
 		}
-		byte_c++;
+		// byte_c++;
 		marshal_fn((bytes + byte_c), current.pH.bytes);
 		byte_c += 4;
 		marshal_fn((bytes + byte_c), current.pressure_pa.bytes);
@@ -165,7 +165,7 @@ adf_bytes marshal(adf_t data)
 		marshal_fn((bytes + byte_c), current.sulfur_g_m3.bytes);
 		byte_c += 4;
 		marshal_fn((bytes + byte_c), current.calcium_g_m3.bytes);
-		byte_c += 4;
+		// byte_c += 4;
 	}
 	return (adf_bytes){
 		.bytes = bytes,
