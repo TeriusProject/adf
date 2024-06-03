@@ -71,7 +71,7 @@ size_t size_iter_t(adf_t data)
 
 size_t size_adf_t(adf_t data)
 {
-	return 1 +											/* signature */
+	return 4 +											/* signature */
 		   1 +											/* version */
 		   4 +											/* n_wavelength */
 		   4 +											/* min_w_len_nm */
@@ -96,8 +96,8 @@ long marshal(uint8_t *bytes, adf_t data)
 
 	if (!bytes)
 		return NOT_OK;
-	*(bytes + byte_c) = data.signature;
-	byte_c++;
+	marshal_fn((bytes + byte_c),data.signature.bytes);
+	byte_c += 4;
 	*(bytes + byte_c) = data.version;
 	byte_c++;
 	marshal_fn((bytes + byte_c), data.n_wavelength.bytes);
@@ -167,8 +167,8 @@ long unmarshal(adf_t *adf, const uint8_t *bytes)
 	if (!bytes || !adf)
 		return NOT_OK;
 
-	adf->signature = *(bytes + byte_c);
-	byte_c++;
+	unmarshal_fn(adf->signature.bytes,(bytes + byte_c));
+	byte_c += 4;
 	adf->version = *(bytes + byte_c);
 	byte_c++;
 	unmarshal_fn(adf->n_wavelength.bytes, (bytes + byte_c));

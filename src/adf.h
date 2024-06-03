@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define __ADF_SIGNATURE__ 0xAD /* 173 */
+#define __ADF_SIGNATURE__ 0x40414446
 #define __ADF_VERSION__ 0x01
 
 typedef enum code {
@@ -47,35 +47,92 @@ typedef union uint {
  *
  */
 typedef struct {
-	real_t *light_exposure;	   /*  */
-	real_t *temp_celsius;	   /*  */
-	real_t *water_use_ml;	   /*  */
-	uint8_t *light_wavelength; /*  */
-	real_t pH;				   /*  */
-	real_t pressure_pa;		   /*  */
-	real_t soil_density_t_m3;  /*  */
-	real_t nitrogen_g_m3;	   /*  */
-	real_t potassium_g_m3;	   /*  */
-	real_t phosphorus_g_m3;	   /*  */
-	real_t iron_g_m3;		   /*  */
-	real_t magnesium_g_m3;	   /*  */
-	real_t sulfur_g_m3;		   /*  */
-	real_t calcium_g_m3;	   /*  */
+
+	/*
+	*
+	*/
+	real_t *light_exposure;
+
+	/*  */
+	real_t *temp_celsius;
+
+	/*  */
+	real_t *water_use_ml;
+
+	/*  */
+	uint8_t *light_wavelength;
+
+	/*  */
+	real_t pH;
+
+	/*  */
+	real_t pressure_pa;
+
+	/*  */
+	real_t soil_density_t_m3;
+
+	/*  */
+	real_t nitrogen_g_m3;
+
+	/*  */
+	real_t potassium_g_m3;
+
+	/*  */
+	real_t phosphorus_g_m3;
+
+	/*  */
+	real_t iron_g_m3;
+
+	/*  */
+	real_t magnesium_g_m3;
+
+	/*  */
+	real_t sulfur_g_m3;
+
+	/*  */
+	real_t calcium_g_m3;
 } __attribute__((packed)) iter_t;
 
 /*
  *
  */
 typedef struct {
-	uint8_t signature;	 /*  */
-	uint8_t version;	 /*  */
-	uint_t n_wavelength; /*  */
-	uint_t min_w_len_nm; /*  */
-	uint_t max_w_len_nm; /*  */
-	uint_t period;		 /*  */
-	uint_t n_chunks;	 /*  */
-	uint_t n_iterations; /*  */
-	iter_t *iterations;	 /*  */
+	/*
+	 * Signature contains the following four bytes
+	 * 		0x40  0x41  0x44  0x46
+	 * Those bytes are contained in the macro __ADF_SIGNATURE__
+	 */
+	uint_t signature;
+
+	/*
+	 * Version is an 8-bit unsigned integer that contains the
+	 * (progressive) version of the format. Yhis byte is
+	 * contained in the macro __ADF_VERSION__
+	 */
+	uint8_t version;
+
+	/*
+	 * 
+	 */
+	uint_t n_wavelength;
+
+	/*  */
+	uint_t min_w_len_nm;
+
+	/*  */
+	uint_t max_w_len_nm;
+
+	/*  */
+	uint_t period;
+
+	/*  */
+	uint_t n_chunks;
+
+	/*  */
+	uint_t n_iterations;
+
+	/*  */
+	iter_t *iterations;
 } __attribute__((packed)) adf_t;
 
 /*

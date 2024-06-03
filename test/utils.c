@@ -1,11 +1,35 @@
+/*
+ * ADF - Agriculture Data Format
+ * Copyright (C) 2024 Matteo Nicoli
+ *
+ * This file is part of Terius
+ *
+ * ADF is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Teriusis distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "utils.h"
 
 void assert_true(bool condition, const char *label)
 {
-	if (condition)
+	if (condition) {
 		printf(GREEN "PASSED (\u2713): %s\n" RESET, label);
-	else
+	}
+	else {
 		printf(RED "FAILED (\u2A09): %s\n" RESET, label);
+		exit(1);
+	}
 }
 
 bool are_ints_equal(uint_t x, uint_t y)
@@ -100,7 +124,6 @@ static real_t *get_real_array()
 	return light_mask;
 }
 
-
 static uint8_t *get_int_array()
 {
 	uint8_t *light_wavelengths = malloc(10 * sizeof(uint8_t));
@@ -147,7 +170,7 @@ adf_t get_default_object(void)
 	*iterations = iter1;
 	*(iterations + 1) = iter2;
 	adf_t format = {
-		.signature = __ADF_SIGNATURE__,
+		.signature = {__ADF_SIGNATURE__},
 		.version = __ADF_VERSION__,
 		.min_w_len_nm = {0},
 		.max_w_len_nm = {10000},

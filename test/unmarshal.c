@@ -44,6 +44,8 @@ int main()
 	bytes = (uint8_t *)malloc(file_len * sizeof(uint8_t));
 	fread(bytes, file_len, 1, sample_file);
 	fclose(sample_file);
+	
+	assert_true(size_adf_t(expected) == (unsigned long)file_len, "are byte arrays of the same length");
 
 	printf("expected bytes: %zu\n", size_adf_t(expected));
 	printf("read bytes: %ld\n", file_len);
@@ -55,7 +57,7 @@ int main()
 		return 1;
 	}
 
-	assert_true(new.signature == expected.signature, "are signatures equals");
+	assert_int_equal(new.signature, expected.signature, "are signatures equals");
 	assert_true(new.version == expected.version, "are versions equals");
 	assert_int_equal(new.n_wavelength, expected.n_wavelength, "are n_wavelengths equal");
 	assert_int_equal(new.min_w_len_nm, expected.min_w_len_nm, "are min_w_len_nms equal");
