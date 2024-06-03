@@ -81,15 +81,12 @@ typedef struct {
 /*
  *
  */
-typedef struct {
-	uint8_t *bytes; /*  */
-	code_t code;	/*  */
-} __attribute__((packed)) adf_bytes;
+size_t size_iter_t(adf_t data);
 
 /*
  *
  */
-size_t adf_size(adf_t);
+size_t size_adf_t(adf_t);
 
 /*
  *
@@ -99,16 +96,11 @@ uint8_t *bytes_alloc(adf_t);
 /*
  *
  */
-adf_bytes marshal(adf_t);
+long marshal(uint8_t *, adf_t);
 
 /*
  *
  */
-adf_t *unmarshal(const uint8_t *);
-
-/*
- *
- */
-void append_iteration(const adf_t *, iter_t);
+long unmarshal(adf_t *, const uint8_t *);
 
 #endif /* __ADF__ */

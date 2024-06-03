@@ -20,27 +20,42 @@
  */
 
 #include "../src/adf.h"
+#include "utils.h"
 #include <stdio.h>
+
+#define FILE_PATH "sample.adf"
 
 int main()
 {
-	adf_t format = {
-		.signature = __ADF_SIGNATURE__,
-		.n_chunks = 10,
-		.n_wavelength = 10,
-		.n_iterations = 0,
-		.iterations = NULL
-	};
-	adf_bytes res = marshal(format);
-	if (res.code != OK) {
+	adf_t obj = get_default_object();
+	uint8_t *bytes = malloc(size_adf_t(obj) * sizeof(uint8_t));
+	FILE *sample_file;
+	uint8_t *file_bytes;
+	long res, file_len;
+
+	/* reading the file with expected bytes */
+	sample_file = fopen(FILE_PATH, "rb");
+	if (sample_file == NULL) {
+		printf("The file `%s` is not opened.", FILE_PATH);
+		exit(0);
+	}
+	fseek(sample_file, 0, SEEK_END);
+	file_len = ftell(sample_file);
+	rewind(sample_file);
+	file_bytes = (uint8_t *)malloc(file_len * sizeof(uint8_t));
+	fread(file_bytes, file_len, 1, sample_file);
+	fclose(sample_file);
+	free(file_bytes);
+
+	/* marshalling the object */
+	bytes = malloc(size_adf_t(obj) * sizeof(uint8_t));
+	res = marshal(bytes, obj);
+	if (res != OK) {
 		printf("%s", "An error occurred during marshal process\n_chunks");
 		return 1;
 	}
-	uint8_t *bytes = res.bytes;
-	printf("%p\n_chunks", bytes);
-	printf("Size: %zu bytes\n_chunks", adf_size(format));
-	printf("signature: %x\n_chunks", bytes[0]);
-	printf("n_chunks: %x\n_chunks", bytes[1]);
-	printf("n_wavelength: %d\n_chunks", bytes[2]);
-	printf("%p\n_chunks", unmarshal(NULL));
+
+	/* compare byte arrays */
+	assert_long_equal(file_len, size_adf_t(obj), "are byte arrays of the same length");
+	assert_uint8_arrays_equal(file_bytes, bytes, file_len, "are byte arrays equal");
 }

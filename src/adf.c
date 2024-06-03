@@ -51,7 +51,7 @@ static void to_little_endian(uint8_t *dest, const uint8_t *source)
 	*(dest + 3) = *source;
 }
 
-static size_t iter_t_size(adf_t data)
+size_t size_iter_t(adf_t data)
 {
 	return (data.n_chunks.val * 4) + /* light_exposure */
 		   (data.n_chunks.val * 4) + /* temp_celsius */
@@ -69,7 +69,7 @@ static size_t iter_t_size(adf_t data)
 		   4;						 /* calcium_g_m3 */
 }
 
-size_t adf_size(adf_t data)
+size_t size_adf_t(adf_t data)
 {
 	return 1 +											/* signature */
 		   1 +											/* version */
@@ -79,22 +79,23 @@ size_t adf_size(adf_t data)
 		   4 +											/* period */
 		   4 +											/* n_chunks */
 		   4 +											/* n_iterations */
-		   (data.n_iterations.val * iter_t_size(data)); /* iterations size */
+		   (data.n_iterations.val * size_iter_t(data)); /* iterations size */
 }
 
 uint8_t *bytes_alloc(adf_t data)
 {
-	return (uint8_t *)malloc(adf_size(data));
+	return (uint8_t *)malloc(size_adf_t(data));
 }
 
-adf_bytes marshal(adf_t data)
+long marshal(uint8_t *bytes, adf_t data)
 {
-	size_t size_data = adf_size(data);
 	size_t byte_c = 0;
-	uint8_t *bytes = (uint8_t *)malloc(size_data);
 	marshal_number marshal_fn = is_big_endian()
 									? &to_big_endian
 									: &to_little_endian;
+
+	if (!bytes)
+		return NOT_OK;
 	*(bytes + byte_c) = data.signature;
 	byte_c++;
 	*(bytes + byte_c) = data.version;
@@ -114,38 +115,25 @@ adf_bytes marshal(adf_t data)
 	for (uint32_t i = 0, n_iter = data.n_iterations.val; i < n_iter; i++) {
 		iter_t current = data.iterations[i];
 		if (!current.light_exposure)
-			return (adf_bytes){
-				.bytes = NULL,
-				.code = NOT_OK
-			};
+			return NOT_OK;
 		for (uint32_t mask_i = 0; mask_i < data.n_chunks.val; mask_i++, byte_c += 4) {
 			marshal_fn((bytes + byte_c), current.light_exposure[mask_i].bytes);
 		}
 		if (!current.temp_celsius)
-			return (adf_bytes){
-				.bytes = NULL,
-				.code = NOT_OK
-			};
+			return NOT_OK;
 		for (uint32_t temp_i = 0; temp_i < data.n_chunks.val; temp_i++, byte_c += 4) {
 			marshal_fn((bytes + byte_c), current.temp_celsius[temp_i].bytes);
 		}
 		if (!current.water_use_ml)
-			return (adf_bytes){
-				.bytes = NULL,
-				.code = NOT_OK
-			};
+			return NOT_OK;
 		for (uint32_t w_i = 0; w_i < data.n_chunks.val; w_i++, byte_c += 4) {
 			marshal_fn((bytes + byte_c), current.water_use_ml[w_i].bytes);
 		}
 		if (!current.light_wavelength)
-			return (adf_bytes){
-				.bytes = NULL,
-				.code = NOT_OK
-			};
+			return NOT_OK;
 		for (uint32_t wl_i = 0; wl_i < data.n_wavelength.val; wl_i++, byte_c += 1) {
 			*(bytes + byte_c) = current.light_wavelength[wl_i];
 		}
-		// byte_c++;
 		marshal_fn((bytes + byte_c), current.pH.bytes);
 		byte_c += 4;
 		marshal_fn((bytes + byte_c), current.pressure_pa.bytes);
@@ -165,25 +153,19 @@ adf_bytes marshal(adf_t data)
 		marshal_fn((bytes + byte_c), current.sulfur_g_m3.bytes);
 		byte_c += 4;
 		marshal_fn((bytes + byte_c), current.calcium_g_m3.bytes);
-		// byte_c += 4;
+		byte_c += 4;
 	}
-	return (adf_bytes){
-		.bytes = bytes,
-		.code = OK
-	};
+	return OK;
 }
 
-adf_t *unmarshal(const uint8_t *bytes)
+long unmarshal(adf_t *adf, const uint8_t *bytes)
 {
-	adf_t *adf;
 	size_t byte_c = 0;
 	unmarshal_number unmarshal_fn = is_big_endian()
 										? &to_big_endian
 										: &to_little_endian;
-	if (!bytes)
-		return NULL;
-	if (!(adf = malloc(sizeof(adf_t))))
-		return NULL;
+	if (!bytes || !adf)
+		return NOT_OK;
 
 	adf->signature = *(bytes + byte_c);
 	byte_c++;
@@ -202,7 +184,7 @@ adf_t *unmarshal(const uint8_t *bytes)
 	unmarshal_fn(adf->n_iterations.bytes, (bytes + byte_c));
 	byte_c += 4;
 	if (!(adf->iterations = malloc(adf->n_iterations.val * sizeof(iter_t))))
-		return NULL;
+		return NOT_OK;
 
 	for (uint32_t i = 0, n_iter = adf->n_iterations.val; i < n_iter; i++) {
 		iter_t current;
@@ -223,7 +205,6 @@ adf_t *unmarshal(const uint8_t *bytes)
 		for (u_int32_t wl_i = 0; wl_i < adf->n_wavelength.val; wl_i++, byte_c += 1) {
 			current.light_wavelength[wl_i] = *(bytes + byte_c);
 		}
-		byte_c++;
 		unmarshal_fn(current.pH.bytes, (bytes + byte_c));
 		byte_c += 4;
 		unmarshal_fn(current.pressure_pa.bytes, (bytes + byte_c));
@@ -246,5 +227,5 @@ adf_t *unmarshal(const uint8_t *bytes)
 		byte_c += 4;
 		adf->iterations[i] = current;
 	}
-	return adf;
+	return OK;
 }
