@@ -25,17 +25,22 @@
 int main()
 {
 	adf_t format = {
-		.signature = SIGNATURE,
-		.n = 10,
-		.wavelength_n = 10,
+		.signature = __ADF_SIGNATURE__,
+		.n_chunks = 10,
+		.n_wavelength = 10,
 		.n_iterations = 0,
 		.iterations = NULL
 	};
-	uint8_t *bytes = marshal(format);
-	printf("%p\n", bytes);
-	printf("Size: %zu bytes\n", adf_size(format));
-	printf("signature: %x\n", bytes[0]);
-	printf("n: %x\n", bytes[1]);
-	printf("wavelength_n: %d\n", bytes[2]);
-	printf("%p\n", unmarshal(NULL));
+	adf_bytes res =marshal(format);
+	if (res.code != OK) {
+		printf("%s", "An error occurred during marshal process\n_chunks");
+		return 1;
+	}
+	uint8_t *bytes = res.bytes;
+	printf("%p\n_chunks", bytes);
+	printf("Size: %zu bytes\n_chunks", adf_size(format));
+	printf("signature: %x\n_chunks", bytes[0]);
+	printf("n_chunks: %x\n_chunks", bytes[1]);
+	printf("n_wavelength: %d\n_chunks", bytes[2]);
+	printf("%p\n_chunks", unmarshal(NULL));
 }

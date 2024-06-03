@@ -53,42 +53,97 @@ static void to_little_endian(uint8_t *dest, const uint8_t *source)
 
 static size_t iter_t_size(adf_t data)
 {
-	return 41 + (data.wavelength_n * 4) + (data.n * 8) + 24;
+	return (data.n_chunks.val * 4) + /* light_exposure */
+		   (data.n_chunks.val * 4) + /* temp_celsius */
+		   (data.n_chunks.val * 4) + /* water_use_ml */
+		   (data.n_wavelength.val) + /* light_wavelengt */
+		   4 +						 /* pH */
+		   4 +						 /* pressure_pa */
+		   4 +						 /* soil_density_t_m3 */
+		   4 +						 /* nitrogen_g_m3 */
+		   4 +						 /* potassium_g_m3 */
+		   4 +						 /* phosphorus_g_m3 */
+		   4 +						 /* iron_g_m3 */
+		   4 +						 /* magnesium_g_m3 */
+		   4 +						 /* sulfur_g_m3 */
+		   4;						 /* calcium_g_m3 */
 }
 
 size_t adf_size(adf_t data)
 {
-	return 3 + /*  */
-		   4 +
+	return 1 +											/* signature */
+		   1 +											/* version */
+		   4 +											/* n_wavelength */
+		   4 +											/* min_w_len_nm */
+		   4 +											/* max_w_len_nm */
+		   4 +											/* period */
+		   4 +											/* n_chunks */
+		   4 +											/* n_iterations */
 		   (data.n_iterations.val * iter_t_size(data)); /* iterations size */
 }
 
-uint8_t *marshal(adf_t data)
+uint8_t *bytes_alloc(adf_t data)
+{
+	return (uint8_t *)malloc(adf_size(data));
+}
+
+adf_bytes marshal(adf_t data)
 {
 	size_t size_data = adf_size(data);
-	size_t byte_c;
+	size_t byte_c = 0;
 	uint8_t *bytes = (uint8_t *)malloc(size_data);
 	marshal_number marshal_fn = is_big_endian()
 									? &to_big_endian
 									: &to_little_endian;
-	*(bytes) = data.signature;
-	*(bytes + 1) = data.n;
-	*(bytes + 2) = data.wavelength_n;
-	marshal_fn((bytes + 3), data.n_iterations.bytes);
-	byte_c = 7;
+	*(bytes + byte_c) = data.signature;
+	byte_c++;
+	*(bytes + byte_c) = data.version;
+	byte_c++;
+	marshal_fn((bytes + byte_c), data.n_wavelength.bytes);
+	byte_c += 4;
+	marshal_fn((bytes + byte_c), data.min_w_len_nm.bytes);
+	byte_c += 4;
+	marshal_fn((bytes + byte_c), data.max_w_len_nm.bytes);
+	byte_c += 4;
+	marshal_fn((bytes + byte_c), data.period.bytes);
+	byte_c += 4;
+	marshal_fn((bytes + byte_c), data.n_chunks.bytes);
+	byte_c += 4;
+	marshal_fn((bytes + byte_c), data.n_iterations.bytes);
+	byte_c += 4;
 	for (uint32_t i = 0, n_iter = data.n_iterations.val; i < n_iter; i++) {
 		iter_t current = data.iterations[i];
-		for (uint8_t mask_i = 0; mask_i < data.n; mask_i++, byte_c += 4) {
-			marshal_fn((bytes + byte_c), current.light_mask[mask_i].bytes);
+		if (!current.light_exposure)
+			return (adf_bytes){
+				.bytes = NULL,
+				.code = NOT_OK
+			};
+		for (uint32_t mask_i = 0; mask_i < data.n_chunks.val; mask_i++, byte_c += 4) {
+			marshal_fn((bytes + byte_c), current.light_exposure[mask_i].bytes);
 		}
-		for (uint8_t temp_i = 0; temp_i < data.n; temp_i++, byte_c += 4) {
+		if (!current.temp_celsius)
+			return (adf_bytes){
+				.bytes = NULL,
+				.code = NOT_OK
+			};
+		for (uint32_t temp_i = 0; temp_i < data.n_chunks.val; temp_i++, byte_c += 4) {
 			marshal_fn((bytes + byte_c), current.temp_celsius[temp_i].bytes);
 		}
-		for (uint8_t wl_i = 0; wl_i < data.wavelength_n; wl_i++, byte_c += 1) {
-			*(bytes + byte_c) = current.light_wavelength[wl_i];
+		if (!current.water_use_ml)
+			return (adf_bytes){
+				.bytes = NULL,
+				.code = NOT_OK
+			};
+		for (uint32_t w_i = 0; w_i < data.n_chunks.val; w_i++, byte_c += 4) {
+			marshal_fn((bytes + byte_c), current.water_use_ml[w_i].bytes);
 		}
-		for (uint8_t w_i = 0; w_i < data.wavelength_n; w_i++, byte_c += 1) {
-			*(bytes + byte_c) = current.water_use_ml[w_i];
+		if (!current.light_wavelength)
+			return (adf_bytes){
+				.bytes = NULL,
+				.code = NOT_OK
+			};
+		for (uint32_t wl_i = 0; wl_i < data.n_wavelength.val; wl_i++, byte_c += 1) {
+			*(bytes + byte_c) = current.light_wavelength[wl_i];
 		}
 		byte_c++;
 		marshal_fn((bytes + byte_c), current.pH.bytes);
@@ -112,14 +167,16 @@ uint8_t *marshal(adf_t data)
 		marshal_fn((bytes + byte_c), current.calcium_g_m3.bytes);
 		byte_c += 4;
 	}
-	return bytes;
+	return (adf_bytes){
+		.bytes = bytes,
+		.code = OK
+	};
 }
 
 adf_t *unmarshal(const uint8_t *bytes)
 {
 	adf_t *adf;
-	iter_t *iterations;
-	size_t byte_c;
+	size_t byte_c = 0;
 	unmarshal_number unmarshal_fn = is_big_endian()
 										? &to_big_endian
 										: &to_little_endian;
@@ -128,21 +185,66 @@ adf_t *unmarshal(const uint8_t *bytes)
 	if (!(adf = malloc(sizeof(adf_t))))
 		return NULL;
 
-	adf->signature = *bytes;
-	adf->n = *(bytes + 1);
-	adf->wavelength_n = *(bytes + 2);
-	unmarshal_fn(adf->n_iterations.bytes, (bytes + 3));
-	byte_c = 7;
-	if (!(iterations = malloc(adf->n_iterations.val * sizeof(iter_t))))
+	adf->signature = *(bytes + byte_c);
+	byte_c++;
+	adf->version = *(bytes + byte_c);
+	byte_c++;
+	unmarshal_fn(adf->n_wavelength.bytes, (bytes + byte_c));
+	byte_c += 4;
+	unmarshal_fn(adf->min_w_len_nm.bytes, (bytes + byte_c));
+	byte_c += 4;
+	unmarshal_fn(adf->max_w_len_nm.bytes, (bytes + byte_c));
+	byte_c += 4;
+	unmarshal_fn(adf->period.bytes, (bytes + byte_c));
+	byte_c += 4;
+	unmarshal_fn(adf->n_chunks.bytes, (bytes + byte_c));
+	byte_c += 4;
+	unmarshal_fn(adf->n_iterations.bytes, (bytes + byte_c));
+	byte_c += 4;
+	if (!(adf->iterations = malloc(adf->n_iterations.val * sizeof(iter_t))))
 		return NULL;
 
 	for (uint32_t i = 0, n_iter = adf->n_iterations.val; i < n_iter; i++) {
-		//TODO: deserialize iterations
 		iter_t current;
-		for (uint8_t mask_i = 0; mask_i < adf->n; mask_i++, byte_c += 4) {
-			marshal_fn(current.light_mask[mask_i].bytes, (bytes + byte_c));
-		}
-	}
+		current.light_exposure = malloc(adf->n_chunks.val * sizeof(real_t));
+		current.temp_celsius = malloc(adf->n_chunks.val * sizeof(real_t));
+		current.water_use_ml = malloc(adf->n_chunks.val * sizeof(real_t));
+		current.light_wavelength = malloc(adf->n_wavelength.val * sizeof(uint8_t));
 
+		for (u_int32_t mask_i = 0; mask_i < adf->n_chunks.val; mask_i++, byte_c += 4) {
+			unmarshal_fn(current.light_exposure[mask_i].bytes, (bytes + byte_c));
+		}
+		for (u_int32_t temp_i = 0; temp_i < adf->n_chunks.val; temp_i++, byte_c += 4) {
+			unmarshal_fn(current.temp_celsius[temp_i].bytes, (bytes + byte_c));
+		}
+		for (u_int32_t w_i = 0; w_i < adf->n_chunks.val; w_i++, byte_c += 4) {
+			unmarshal_fn(current.water_use_ml[w_i].bytes, (bytes + byte_c));
+		}
+		for (u_int32_t wl_i = 0; wl_i < adf->n_wavelength.val; wl_i++, byte_c += 1) {
+			current.light_wavelength[wl_i] = *(bytes + byte_c);
+		}
+		byte_c++;
+		unmarshal_fn(current.pH.bytes, (bytes + byte_c));
+		byte_c += 4;
+		unmarshal_fn(current.pressure_pa.bytes, (bytes + byte_c));
+		byte_c += 4;
+		unmarshal_fn(current.soil_density_t_m3.bytes, (bytes + byte_c));
+		byte_c += 4;
+		unmarshal_fn(current.nitrogen_g_m3.bytes, (bytes + byte_c));
+		byte_c += 4;
+		unmarshal_fn(current.potassium_g_m3.bytes, (bytes + byte_c));
+		byte_c += 4;
+		unmarshal_fn(current.phosphorus_g_m3.bytes, (bytes + byte_c));
+		byte_c += 4;
+		unmarshal_fn(current.iron_g_m3.bytes, (bytes + byte_c));
+		byte_c += 4;
+		unmarshal_fn(current.magnesium_g_m3.bytes, (bytes + byte_c));
+		byte_c += 4;
+		unmarshal_fn(current.sulfur_g_m3.bytes, (bytes + byte_c));
+		byte_c += 4;
+		unmarshal_fn(current.calcium_g_m3.bytes, (bytes + byte_c));
+		byte_c += 4;
+		adf->iterations[i] = current;
+	}
 	return adf;
 }

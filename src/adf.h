@@ -25,7 +25,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define SIGNATURE 0xAD /* 173 */
+#define __ADF_SIGNATURE__ 0xAD /* 173 */
+#define __ADF_VERSION__ 0x01
+
+typedef enum code {
+	OK = 0,
+	NOT_OK = 1
+} code_t;
 
 typedef union real {
 	float val;
@@ -41,32 +47,44 @@ typedef union uint {
  *
  */
 typedef struct {
-	real_t *light_mask;
-	real_t *temp_celsius;
-	uint8_t *light_wavelength;
-	uint8_t *water_use_ml;
-	real_t pH;
-	real_t pressure_pa;
-	real_t soil_density_t_m3;
-	real_t nitrogen_g_m3;
-	real_t potassium_g_m3;
-	real_t phosphorus_g_m3;
-	real_t iron_g_m3;
-	real_t magnesium_g_m3;
-	real_t sulfur_g_m3;
-	real_t calcium_g_m3;
+	real_t *light_exposure;	   /*  */
+	real_t *temp_celsius;	   /*  */
+	real_t *water_use_ml;	   /*  */
+	uint8_t *light_wavelength; /*  */
+	real_t pH;				   /*  */
+	real_t pressure_pa;		   /*  */
+	real_t soil_density_t_m3;  /*  */
+	real_t nitrogen_g_m3;	   /*  */
+	real_t potassium_g_m3;	   /*  */
+	real_t phosphorus_g_m3;	   /*  */
+	real_t iron_g_m3;		   /*  */
+	real_t magnesium_g_m3;	   /*  */
+	real_t sulfur_g_m3;		   /*  */
+	real_t calcium_g_m3;	   /*  */
 } __attribute__((packed)) iter_t;
 
 /*
  *
  */
 typedef struct {
-	uint8_t signature;
-	uint8_t n;
-	uint8_t wavelength_n;
-	uint_t n_iterations;
-	iter_t *iterations;
+	uint8_t signature;	 /*  */
+	uint8_t version;	 /*  */
+	uint_t n_wavelength; /*  */
+	uint_t min_w_len_nm; /*  */
+	uint_t max_w_len_nm; /*  */
+	uint_t period;		 /*  */
+	uint_t n_chunks;	 /*  */
+	uint_t n_iterations; /*  */
+	iter_t *iterations;	 /*  */
 } __attribute__((packed)) adf_t;
+
+/*
+ *
+ */
+typedef struct {
+	uint8_t *bytes; /*  */
+	code_t code;	/*  */
+} __attribute__((packed)) adf_bytes;
 
 /*
  *
@@ -76,7 +94,12 @@ size_t adf_size(adf_t);
 /*
  *
  */
-uint8_t *marshal(adf_t);
+uint8_t *bytes_alloc(adf_t);
+
+/*
+ *
+ */
+adf_bytes marshal(adf_t);
 
 /*
  *
