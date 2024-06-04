@@ -62,7 +62,7 @@ int main()
 	assert_int_equal(new.n_wavelength, expected.n_wavelength, "are n_wavelengths equal");
 	assert_int_equal(new.min_w_len_nm, expected.min_w_len_nm, "are min_w_len_nms equal");
 	assert_int_equal(new.max_w_len_nm, expected.max_w_len_nm, "are max_w_len_nms equal");
-	assert_int_equal(new.period, expected.period, "are periods equal");
+	assert_int_equal(new.period_sec, expected.period_sec, "are periods equal");
 	assert_int_equal(new.n_chunks, expected.n_chunks, "are n_chunks equal");
 	assert_int_equal(new.n_iterations, expected.n_iterations, "are n_iterations equal");
 	if (new.n_iterations.val == 0)

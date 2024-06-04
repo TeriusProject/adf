@@ -57,3 +57,6 @@ test/unmarshal
 
 # VS code conf
 .vscode/
+
+# Java classes
+*.class

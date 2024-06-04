@@ -76,7 +76,7 @@ size_t size_adf_t(adf_t data)
 		   4 +											/* n_wavelength */
 		   4 +											/* min_w_len_nm */
 		   4 +											/* max_w_len_nm */
-		   4 +											/* period */
+		   4 +											/* period_sec */
 		   4 +											/* n_chunks */
 		   4 +											/* n_iterations */
 		   (data.n_iterations.val * size_iter_t(data)); /* iterations size */
@@ -106,7 +106,7 @@ long marshal(uint8_t *bytes, adf_t data)
 	byte_c += 4;
 	marshal_fn((bytes + byte_c), data.max_w_len_nm.bytes);
 	byte_c += 4;
-	marshal_fn((bytes + byte_c), data.period.bytes);
+	marshal_fn((bytes + byte_c), data.period_sec.bytes);
 	byte_c += 4;
 	marshal_fn((bytes + byte_c), data.n_chunks.bytes);
 	byte_c += 4;
@@ -177,7 +177,7 @@ long unmarshal(adf_t *adf, const uint8_t *bytes)
 	byte_c += 4;
 	unmarshal_fn(adf->max_w_len_nm.bytes, (bytes + byte_c));
 	byte_c += 4;
-	unmarshal_fn(adf->period.bytes, (bytes + byte_c));
+	unmarshal_fn(adf->period_sec.bytes, (bytes + byte_c));
 	byte_c += 4;
 	unmarshal_fn(adf->n_chunks.bytes, (bytes + byte_c));
 	byte_c += 4;

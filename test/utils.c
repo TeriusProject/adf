@@ -174,7 +174,7 @@ adf_t get_default_object(void)
 		.version = __ADF_VERSION__,
 		.min_w_len_nm = {0},
 		.max_w_len_nm = {10000},
-		.period = {1245637},
+		.period_sec = {1245637},
 		.n_chunks = {10},
 		.n_wavelength = {10},
 		.n_iterations = {2},
