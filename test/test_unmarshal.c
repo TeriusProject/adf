@@ -64,10 +64,10 @@ int main()
 	assert_int_equal(new.max_w_len_nm, expected.max_w_len_nm, "are max_w_len_nms equal");
 	assert_int_equal(new.period_sec, expected.period_sec, "are periods equal");
 	assert_int_equal(new.n_chunks, expected.n_chunks, "are n_chunks equal");
-	assert_int_equal(new.n_iterations, expected.n_iterations, "are n_iterations equal");
-	if (new.n_iterations.val == 0)
+	assert_int_equal(new.n_series, expected.n_series, "are n_series equal");
+	if (new.n_series.val == 0)
 		return 0;
-	for (uint32_t i = 0; i < new.n_iterations.val; i++) {
+	for (uint32_t i = 0; i < new.n_series.val; i++) {
 		assert_iter_equal(i, new, new.iterations[i], expected.iterations[i]);
 	}
 }

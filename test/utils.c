@@ -96,7 +96,7 @@ void assert_uint8_arrays_equal(uint8_t *x, uint8_t *y, uint32_t size, const char
 	assert_true(are_uint8_arrays_equal(x, y, size), label);
 }
 
-void assert_iter_equal(uint32_t n, adf_t data, iter_t x, iter_t y)
+void assert_iter_equal(uint32_t n, adf_t data, series_t x, series_t y)
 {
 	printf("(iteration %u)\n", n);
 	assert_real_arrays_equal(x.light_exposure, y.light_exposure, data.n_chunks.val, "are light_exposures equal");
@@ -104,7 +104,7 @@ void assert_iter_equal(uint32_t n, adf_t data, iter_t x, iter_t y)
 	assert_real_arrays_equal(x.water_use_ml, y.water_use_ml, data.n_chunks.val, "are water_use_mls equal");
 	assert_uint8_arrays_equal(x.light_wavelength, y.light_wavelength, data.n_wavelength.val, "are light_wavelengths equal");
 	assert_real_equal(x.pH, y.pH, "are pHs equal");
-	assert_real_equal(x.pressure_pa, y.pressure_pa, "are pressure_pas equal");
+	assert_real_equal(x.p_bar, y.p_bar, "are pressure_pas equal");
 	assert_real_equal(x.soil_density_t_m3, y.soil_density_t_m3, "are soil_density_t_m3s equal");
 	assert_real_equal(x.nitrogen_g_m3, y.nitrogen_g_m3, "are nitrogen_g_m3s equal");
 	assert_real_equal(x.potassium_g_m3, y.potassium_g_m3, "are potassium_g_m3s equal");
@@ -134,13 +134,13 @@ static uint8_t *get_int_array()
 
 adf_t get_default_object(void)
 {
-	iter_t iter1 = {
+	series_t iter1 = {
 		.light_exposure = get_real_array(),
 		.temp_celsius = get_real_array(),
 		.water_use_ml = get_real_array(),
 		.light_wavelength = get_int_array(),
 		.pH = {11.0},
-		.pressure_pa = {0},
+		.p_bar = {0},
 		.soil_density_t_m3 = {0},
 		.nitrogen_g_m3 = {0},
 		.potassium_g_m3 = {3.8},
@@ -150,13 +150,13 @@ adf_t get_default_object(void)
 		.sulfur_g_m3 = {5.5},
 		.calcium_g_m3 = {0},
 	};
-	iter_t iter2 = {
+	series_t iter2 = {
 		.light_exposure = get_real_array(),
 		.temp_celsius = get_real_array(),
 		.water_use_ml = get_real_array(),
 		.light_wavelength = get_int_array(),
 		.pH = {8.0},
-		.pressure_pa = {0},
+		.p_bar = {0},
 		.soil_density_t_m3 = {0},
 		.nitrogen_g_m3 = {0},
 		.potassium_g_m3 = {3.8},
@@ -166,7 +166,7 @@ adf_t get_default_object(void)
 		.sulfur_g_m3 = {5.5},
 		.calcium_g_m3 = {6.23567},
 	};
-	iter_t *iterations = malloc(2 * sizeof(iter_t));
+	series_t *iterations = malloc(2 * sizeof(series_t));
 	*iterations = iter1;
 	*(iterations + 1) = iter2;
 	adf_t format = {
@@ -177,7 +177,7 @@ adf_t get_default_object(void)
 		.period_sec = {1245637},
 		.n_chunks = {10},
 		.n_wavelength = {10},
-		.n_iterations = {2},
+		.n_series = {2},
 		.iterations = iterations
 	};
 	return format;

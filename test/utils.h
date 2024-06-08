@@ -39,5 +39,5 @@ void assert_long_equal(long x, long y, const char *label);
 void assert_real_equal(real_t x, real_t y, const char *label);
 void assert_real_arrays_equal(real_t *x, real_t *y, uint32_t size, const char *label);
 void assert_uint8_arrays_equal(uint8_t *x, uint8_t *y, uint32_t size, const char *label);
-void assert_iter_equal(uint32_t n, adf_t data, iter_t x, iter_t y);
+void assert_iter_equal(uint32_t n, adf_t data, series_t x, series_t y);
 adf_t get_default_object(void);

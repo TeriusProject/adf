@@ -29,8 +29,11 @@
 #define __ADF_VERSION__ 0x01
 
 typedef enum code {
+
+	/* No errors detected */
 	OK = 0,
-	NOT_OK = 1
+
+	NOT_OK = 1000
 } code_t;
 
 typedef union real {
@@ -43,97 +46,111 @@ typedef union uint {
 	uint8_t bytes[4];
 } uint_t;
 
+typedef union usmallint {
+	uint16_t val;
+	uint8_t bytes[4];
+} uint_small_t;
+
+typedef struct {
+	uint_small_t code;
+	real_t concentration;
+} additive_t;
+
 /*
  * A structure that contains the data series of each iteration
  */
 typedef struct {
 
 	/*
-	 * It represents the series of data collecting the energy flux 
+	 * It represents the series of data collecting the energy flux
 	 * of light radiation measured in W/m2 and divided in n_chunks
 	 */
 	real_t *light_exposure;
 
 	/*
-	 * It represents the series of data collecting the temperature 
+	 * It represents the series of data collecting the temperature
 	 * measured in ºC and divided in n_chunks
 	 */
 	real_t *temp_celsius;
 
 	/*
-	 * It represents the series of data collecting the water use 
+	 * It represents the series of data collecting the water use
 	 * measured in milliliters and divided in n_chunks
 	 */
 	real_t *water_use_ml;
 
 	/*
-	 * 
-	 */
-	uint8_t *light_wavelength;
-
-	/*
 	 * pH of the soil measured once per iteration.
 	 */
-	real_t pH;
+	uint8_t pH;
 
 	/*
-	 * Atmosferic pressure measured in Pascal, once per iteration.
+	 * Atmosferic pressure measured in bar, once per iteration.
 	 */
-	real_t pressure_pa;
+	real_t p_bar;
 
 	/*
-	 * Soil density measured in t/m3, once per iteration.
+	 *
 	 */
-	real_t soil_density_t_m3;
+	real_t soil_density;
 
 	/*
-	 * Nitrogen concentration measured in g/m3, once per
-	 * iteration.
+	 *
 	 */
-	real_t nitrogen_g_m3;
+	uint_small_t n_soil_adds;
 
 	/*
-	 * Potassium concentration measured in g/m3, once per
-	 * iteration
+	 *
 	 */
-	real_t potassium_g_m3;
+	uint_small_t n_atm_adds;
 
 	/*
-	 * Phoshorus concentration measured in g/m3, once per
-	 * iteration
+	 *
 	 */
-	real_t phosphorus_g_m3;
+	additive_t *soil_additives;
 
 	/*
-	 * Iron concentration measured in g/m3, once per
-	 * iteration
+	 *
 	 */
-	real_t iron_g_m3;
+	additive_t *atm_additives;
 
 	/*
-	 * Magnesium concentration measured in g/m3, once per
-	 * iteration
+	 *
 	 */
-	real_t magnesium_g_m3;
+	uint_t repeated;
+} __attribute__((packed)) series_t;
+
+typedef struct {
 
 	/*
-	 * Sulfur concentration measured in g/m3, once per
-	 * iteration
+	 * The number of iterations registered. 0 is allowed
 	 */
-	real_t sulfur_g_m3;
+	uint_t n_series;
 
 	/*
-	 * Calcium concentration measured in g/m3, once per
-	 * iteration
+	 * It represents the time (measured in seconds) period to
+	 * which the data refer.
+	 *         0 <= period_sec <= 49,640 days
 	 */
-	real_t calcium_g_m3;
-} __attribute__((packed)) iter_t;
+	uint_t period_sec;
+
+	/*
+	 *
+	 */
+	uint_small_t n_additives;
+
+	/*
+	 *
+	 */
+	uint_t *additive_codes;
+} adf_meta_t;
 
 /*
  * The structure that contains all the data referred to a
  * fixed period of time.
  */
 typedef struct {
+
 	/*
 	 * Signature contains the following four bytes
 	 * 		0x40  0x41  0x44  0x46
@@ -147,6 +164,11 @@ typedef struct {
 	 * contained in the macro __ADF_VERSION__
 	 */
 	uint8_t version;
+
+	/*
+	 *
+	 */
+	uint8_t farming_tecnique;
 
 	/*
 	 * A 4 byte unsigned integer that represents the number
@@ -167,32 +189,30 @@ typedef struct {
 	uint_t max_w_len_nm;
 
 	/*
-	 * It represents the time (measured in seconds) period to
-	 * which the data refer.
-	 *         0 <= period_sec <= 49,640 days
-	 */
-	uint_t period_sec;
-
-	/*
 	 * The number of chunks in which each data series is
 	 * (equally) divided
 	 */
 	uint_t n_chunks;
 
 	/*
-	 * The number of iterations registered. 0 is allowed
+	 *
 	 */
-	uint_t n_iterations;
+	uint_small_t crc;
+
+	/*
+	 *
+	 */
+	adf_meta_t metadata;
 
 	/*
 	 * The array of the iterations of size `n_iterations`.
-	 * If n_iterations == 0, then iterations is NULL.
+	 * If n_series == 0, then iterations is NULL.
 	 */
-	iter_t *iterations;
+	iter_t *series;
 } __attribute__((packed)) adf_t;
 
 /*
- * All iterations have the same size, as the series all have 
+ * All iterations have the same size, as the series all have
  * the same length
  */
 size_t size_iter_t(adf_t);
@@ -203,10 +223,15 @@ size_t size_iter_t(adf_t);
 size_t size_adf_t(adf_t);
 
 /*
- * It returns a pointer to a chunk of memory that could contain 
- * the bytes serialization of an adf object. 
+ * It returns a pointer to a chunk of memory that could contain
+ * the bytes serialization of an adf object.
  */
 uint8_t *bytes_alloc(adf_t);
+
+/*
+ *
+ */
+long add_series(adf_t *, const series_t *);
 
 /*
  *
