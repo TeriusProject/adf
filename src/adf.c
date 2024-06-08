@@ -67,20 +67,20 @@ static void to_little_endian_2_bytes(uint8_t *dest, const uint8_t *source)
 
 size_t size_iter_t(adf_t data)
 {
-	return (data.n_chunks.val * 4) + /* light_exposure */
-		   (data.n_chunks.val * 4) + /* temp_celsius */
-		   (data.n_chunks.val * 4) + /* water_use_ml */
-		   (data.n_wavelength.val) + /* light_wavelengt */
-		   4 +						 /* pH */
-		   4 +						 /* p_bar */
-		   4 +						 /* soil_density_t_m3 */
-		   4 +						 /* nitrogen_g_m3 */
-		   4 +						 /* potassium_g_m3 */
-		   4 +						 /* phosphorus_g_m3 */
-		   4 +						 /* iron_g_m3 */
-		   4 +						 /* magnesium_g_m3 */
-		   4 +						 /* sulfur_g_m3 */
-		   4;						 /* calcium_g_m3 */
+	return (data.n_chunks.val * 4) +	 /* light_exposure */
+		   (data.n_chunks.val * 4) +	 /* temp_celsius */
+		   (data.n_chunks.val * 4) +	 /* water_use_ml */
+		   (data.n_wavelength.val * 4) + /* light_wavelengt */
+		   4 +							 /* pH */
+		   4 +							 /* pressure_pa */
+		   4 +							 /* soil_density_t_m3 */
+		   4 +							 /* nitrogen_g_m3 */
+		   4 +							 /* potassium_g_m3 */
+		   4 +							 /* phosphorus_g_m3 */
+		   4 +							 /* iron_g_m3 */
+		   4 +							 /* magnesium_g_m3 */
+		   4 +							 /* sulfur_g_m3 */
+		   4;							 /* calcium_g_m3 */
 }
 
 size_t size_adf_t(adf_t data)

@@ -24,6 +24,9 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif /* __EMSCRIPTEN__ */
 
 #define __ADF_SIGNATURE__ 0x40414446
 #define __ADF_VERSION__ 0x01
@@ -212,20 +215,55 @@ typedef struct {
 } __attribute__((packed)) adf_t;
 
 /*
- * All iterations have the same size, as the series all have
+ * Returns the current version of ADF.
+ */
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif /* __EMSCRIPTEN__ */
+int get_version(void) { return __ADF_VERSION__; }
+
+
+
+
+
+
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif /* __EMSCRIPTEN__ */
+adf_t get_adf(void) { return (adf_t){.signature= __ADF_SIGNATURE__}; }
+
+
+
+
+
+
+
+
+
+/*
+ * All iterations have the same size, as the series all have 
  * the same length
  */
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif /* __EMSCRIPTEN__ */
 size_t size_iter_t(adf_t);
 
 /*
  * The size of the adf object
  */
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif /* __EMSCRIPTEN__ */
 size_t size_adf_t(adf_t);
 
 /*
  * It returns a pointer to a chunk of memory that could contain
  * the bytes serialization of an adf object.
  */
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif /* __EMSCRIPTEN__ */
 uint8_t *bytes_alloc(adf_t);
 
 /*
@@ -236,11 +274,17 @@ long add_series(adf_t *, const series_t *);
 /*
  *
  */
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif /* __EMSCRIPTEN__ */
 long marshal(uint8_t *, adf_t);
 
 /*
  *
  */
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif /* __EMSCRIPTEN__ */
 long unmarshal(adf_t *, const uint8_t *);
 
 #endif /* __ADF__ */

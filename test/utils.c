@@ -102,7 +102,7 @@ void assert_iter_equal(uint32_t n, adf_t data, series_t x, series_t y)
 	assert_real_arrays_equal(x.light_exposure, y.light_exposure, data.n_chunks.val, "are light_exposures equal");
 	assert_real_arrays_equal(x.temp_celsius, y.temp_celsius, data.n_chunks.val, "are temp_celsiuss equal");
 	assert_real_arrays_equal(x.water_use_ml, y.water_use_ml, data.n_chunks.val, "are water_use_mls equal");
-	assert_uint8_arrays_equal(x.light_wavelength, y.light_wavelength, data.n_wavelength.val, "are light_wavelengths equal");
+	assert_real_arrays_equal(x.light_wavelength, y.light_wavelength, data.n_wavelength.val, "are light_wavelengths equal");
 	assert_real_equal(x.pH, y.pH, "are pHs equal");
 	assert_real_equal(x.p_bar, y.p_bar, "are pressure_pas equal");
 	assert_real_equal(x.soil_density_t_m3, y.soil_density_t_m3, "are soil_density_t_m3s equal");
@@ -124,21 +124,13 @@ static real_t *get_real_array()
 	return light_mask;
 }
 
-static uint8_t *get_int_array()
-{
-	uint8_t *light_wavelengths = malloc(10 * sizeof(uint8_t));
-	for (uint8_t i = 0; i < 10; i++)
-		light_wavelengths[i] = i;
-	return light_wavelengths;
-}
-
 adf_t get_default_object(void)
 {
 	series_t iter1 = {
 		.light_exposure = get_real_array(),
 		.temp_celsius = get_real_array(),
 		.water_use_ml = get_real_array(),
-		.light_wavelength = get_int_array(),
+		.light_wavelength = get_real_array(),
 		.pH = {11.0},
 		.p_bar = {0},
 		.soil_density_t_m3 = {0},
@@ -154,7 +146,7 @@ adf_t get_default_object(void)
 		.light_exposure = get_real_array(),
 		.temp_celsius = get_real_array(),
 		.water_use_ml = get_real_array(),
-		.light_wavelength = get_int_array(),
+		.light_wavelength = get_real_array(),
 		.pH = {8.0},
 		.p_bar = {0},
 		.soil_density_t_m3 = {0},
