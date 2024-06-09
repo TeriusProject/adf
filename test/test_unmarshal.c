@@ -20,7 +20,7 @@
  */
 
 #include "../src/adf.h"
-#include "utils.h"
+#include "test.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -44,7 +44,7 @@ int main()
 	bytes = (uint8_t *)malloc(file_len * sizeof(uint8_t));
 	fread(bytes, file_len, 1, sample_file);
 	fclose(sample_file);
-	
+
 	assert_true(size_adf_t(expected) == (unsigned long)file_len, "are byte arrays of the same length");
 
 	printf("expected bytes: %zu\n", size_adf_t(expected));
@@ -57,17 +57,23 @@ int main()
 		return 1;
 	}
 
-	assert_int_equal(new.signature, expected.signature, "are signatures equals");
-	assert_true(new.version == expected.version, "are versions equals");
-	assert_int_equal(new.n_wavelength, expected.n_wavelength, "are n_wavelengths equal");
-	assert_int_equal(new.min_w_len_nm, expected.min_w_len_nm, "are min_w_len_nms equal");
-	assert_int_equal(new.max_w_len_nm, expected.max_w_len_nm, "are max_w_len_nms equal");
-	assert_int_equal(new.period_sec, expected.period_sec, "are periods equal");
-	assert_int_equal(new.n_chunks, expected.n_chunks, "are n_chunks equal");
-	assert_int_equal(new.n_series, expected.n_series, "are n_series equal");
-	if (new.n_series.val == 0)
+	/* Header */
+	assert_int_equal(new.header.signature, expected.header.signature, "are signatures equals");
+	assert_true(new.header.version == expected.header.version, "are versions equals");
+	assert_true(new.header.farming_tec == expected.header.farming_tec, "are farming tecniques equals");
+	assert_int_equal(new.header.n_wavelength, expected.header.n_wavelength, "are n_wavelengths equal");
+	assert_int_equal(new.header.min_w_len_nm, expected.header.min_w_len_nm, "are min_w_len_nms equal");
+	assert_int_equal(new.header.max_w_len_nm, expected.header.max_w_len_nm, "are max_w_len_nms equal");
+	assert_int_equal(new.header.n_chunks, expected.header.n_chunks, "are n_chunks equal");
+
+	/* Metadata */
+	assert_int_equal(new.metadata.n_series, expected.metadata.n_series, "are n_series equal");
+	assert_int_equal(new.metadata.period_sec, expected.metadata.period_sec, "are periods equal");
+	assert_small_int_equal(new.metadata.n_additives, expected.metadata.n_additives, "are number of additive codes equal");
+	assert_int_arrays_equal(new.metadata.additive_codes, expected.metadata.additive_codes, new.metadata.n_additives.val, "are additive codes equal");
+	if (new.metadata.n_series.val == 0)
 		return 0;
-	for (uint32_t i = 0; i < new.n_series.val; i++) {
-		assert_iter_equal(i, new, new.iterations[i], expected.iterations[i]);
+	for (uint32_t i = 0; i < new.metadata.n_series.val; i++) {
+		assert_series_equal(i, new, new.series[i], expected.series[i]);
 	}
 }

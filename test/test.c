@@ -19,7 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "utils.h"
+#include "test.h"
 
 void assert_true(bool condition, const char *label)
 {
@@ -33,6 +33,11 @@ void assert_true(bool condition, const char *label)
 }
 
 bool are_ints_equal(uint_t x, uint_t y)
+{
+	return x.val == y.val;
+}
+
+bool are_small_ints_equal(uint_small_t x, uint_small_t y)
 {
 	return x.val == y.val;
 }
@@ -71,6 +76,16 @@ bool are_real_arrays_equal(real_t *x, real_t *y, size_t size)
 	return true;
 }
 
+bool are_additive_arrays_equal(additive_t *x, additive_t *y, size_t size)
+{
+	for (size_t i = 0; i < size; i++) {
+		if (!are_small_ints_equal(x[i].code, y[i].code) ||
+			!are_reals_equal(x[i].concentration, y[i].concentration))
+			return false;
+	}
+	return true;
+}
+
 void assert_int_equal(uint_t x, uint_t y, const char *label)
 {
 	assert_true(x.val == y.val, label);
@@ -86,6 +101,16 @@ void assert_real_equal(real_t x, real_t y, const char *label)
 	assert_true(are_reals_equal(x, y), label);
 }
 
+void assert_small_int_equal(uint_small_t x, uint_small_t y, const char *label)
+{
+	assert_true(are_small_ints_equal(x, y), label);
+}
+
+void assert_int_arrays_equal(uint_t *x, uint_t *y, uint32_t size, const char *label)
+{
+	assert_true(are_int_arrays_equal(x, y, size), label);
+}
+
 void assert_real_arrays_equal(real_t *x, real_t *y, uint32_t size, const char *label)
 {
 	assert_true(are_real_arrays_equal(x, y, size), label);
@@ -96,23 +121,25 @@ void assert_uint8_arrays_equal(uint8_t *x, uint8_t *y, uint32_t size, const char
 	assert_true(are_uint8_arrays_equal(x, y, size), label);
 }
 
-void assert_iter_equal(uint32_t n, adf_t data, series_t x, series_t y)
+void assert_additive_arrays_equal(additive_t *x, additive_t *y, uint32_t size, const char *label)
+{
+	assert_true(are_additive_arrays_equal(x, y, size), label);
+}
+
+void assert_series_equal(uint32_t n, adf_t data, series_t x, series_t y)
 {
 	printf("(iteration %u)\n", n);
-	assert_real_arrays_equal(x.light_exposure, y.light_exposure, data.n_chunks.val, "are light_exposures equal");
-	assert_real_arrays_equal(x.temp_celsius, y.temp_celsius, data.n_chunks.val, "are temp_celsiuss equal");
-	assert_real_arrays_equal(x.water_use_ml, y.water_use_ml, data.n_chunks.val, "are water_use_mls equal");
-	assert_real_arrays_equal(x.light_wavelength, y.light_wavelength, data.n_wavelength.val, "are light_wavelengths equal");
-	assert_real_equal(x.pH, y.pH, "are pHs equal");
+	assert_real_arrays_equal(x.light_exposure, y.light_exposure, data.header.n_chunks.val, "are light_exposures equal");
+	assert_real_arrays_equal(x.temp_celsius, y.temp_celsius, data.header.n_chunks.val, "are temp_celsiuss equal");
+	assert_real_arrays_equal(x.water_use_ml, y.water_use_ml, data.header.n_chunks.val, "are water_use_mls equal");
+	assert_true(x.pH == y.pH, "are pHs equal");
 	assert_real_equal(x.p_bar, y.p_bar, "are pressure_pas equal");
-	assert_real_equal(x.soil_density_t_m3, y.soil_density_t_m3, "are soil_density_t_m3s equal");
-	assert_real_equal(x.nitrogen_g_m3, y.nitrogen_g_m3, "are nitrogen_g_m3s equal");
-	assert_real_equal(x.potassium_g_m3, y.potassium_g_m3, "are potassium_g_m3s equal");
-	assert_real_equal(x.phosphorus_g_m3, y.phosphorus_g_m3, "are phosphorus_g_m3s equal");
-	assert_real_equal(x.iron_g_m3, y.iron_g_m3, "are iron_g_m3s equal");
-	assert_real_equal(x.magnesium_g_m3, y.magnesium_g_m3, "are magnesium_g_m3s equal");
-	assert_real_equal(x.sulfur_g_m3, y.sulfur_g_m3, "are sulfur_g_m3s equal");
-	assert_real_equal(x.calcium_g_m3, y.calcium_g_m3, "are calcium_g_m3s equal");
+	assert_real_equal(x.soil_density_kg_m3, y.soil_density_kg_m3, "are soil_density_t_m3s equal");
+	assert_small_int_equal(x.n_soil_adds, y.n_soil_adds, "are numbers of soil additives equal");
+	assert_small_int_equal(x.n_atm_adds, y.n_atm_adds, "are numbers of atmosphere additives equal");
+	assert_additive_arrays_equal(x.soil_additives, y.soil_additives, x.n_soil_adds.val, "are soil additives equal");
+	assert_additive_arrays_equal(x.atm_additives, y.atm_additives, x.n_atm_adds.val, "are atmosphere additives equal");
+	assert_int_equal(x.repeated, y.repeated, "are repeated equal");
 }
 
 static real_t *get_real_array()
@@ -126,51 +153,58 @@ static real_t *get_real_array()
 
 adf_t get_default_object(void)
 {
+	additive_t *add_code = malloc(sizeof(additive_t));
+	additive_t add_1 = {.code = {2345}, .concentration = {1.234}};
+	*add_code = add_1;
 	series_t iter1 = {
 		.light_exposure = get_real_array(),
 		.temp_celsius = get_real_array(),
 		.water_use_ml = get_real_array(),
-		.light_wavelength = get_real_array(),
-		.pH = {11.0},
+		.pH = 7,
 		.p_bar = {0},
-		.soil_density_t_m3 = {0},
-		.nitrogen_g_m3 = {0},
-		.potassium_g_m3 = {3.8},
-		.phosphorus_g_m3 = {0},
-		.iron_g_m3 = {0},
-		.magnesium_g_m3 = {0},
-		.sulfur_g_m3 = {5.5},
-		.calcium_g_m3 = {0},
+		.soil_density_kg_m3 = {0.345},
+		.n_soil_adds = {1},
+		.n_atm_adds = {0},
+		.soil_additives = add_code,
+		.atm_additives = NULL,
+		.repeated = {1}
 	};
 	series_t iter2 = {
 		.light_exposure = get_real_array(),
 		.temp_celsius = get_real_array(),
 		.water_use_ml = get_real_array(),
-		.light_wavelength = get_real_array(),
-		.pH = {8.0},
-		.p_bar = {0},
-		.soil_density_t_m3 = {0},
-		.nitrogen_g_m3 = {0},
-		.potassium_g_m3 = {3.8},
-		.phosphorus_g_m3 = {0},
-		.iron_g_m3 = {1},
-		.magnesium_g_m3 = {0},
-		.sulfur_g_m3 = {5.5},
-		.calcium_g_m3 = {6.23567},
+		.pH = 7,
+		.p_bar = {0.4567},
+		.soil_density_kg_m3 = {678.345},
+		.n_soil_adds = {1},
+		.n_atm_adds = {0},
+		.soil_additives = add_code,
+		.atm_additives = NULL,
+		.repeated = {3}
 	};
-	series_t *iterations = malloc(2 * sizeof(series_t));
-	*iterations = iter1;
-	*(iterations + 1) = iter2;
-	adf_t format = {
+	series_t *series = malloc(2 * sizeof(series_t));
+	*series = iter1;
+	*(series + 1) = iter2;
+	uint_t codes[1] = {{2345}};
+	adf_meta_t metadata = {
+		.period_sec = {1345},
+		.n_additives = {1},
+		.n_series = {2},
+		.additive_codes = codes
+	};
+	adf_header_t header = {
 		.signature = {__ADF_SIGNATURE__},
 		.version = __ADF_VERSION__,
+		.farming_tec = 3,
 		.min_w_len_nm = {0},
 		.max_w_len_nm = {10000},
-		.period_sec = {1245637},
 		.n_chunks = {10},
-		.n_wavelength = {10},
-		.n_series = {2},
-		.iterations = iterations
+		.n_wavelength = {10}
+	};
+	adf_t format = {
+		.header = header,
+		.metadata = metadata,
+		.series = series
 	};
 	return format;
 }

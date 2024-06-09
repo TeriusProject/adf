@@ -20,7 +20,7 @@
  */
 
 #include "../src/adf.h"
-#include "utils.h"
+#include "test.h"
 #include <stdio.h>
 
 #define FILE_PATH "sample.adf"

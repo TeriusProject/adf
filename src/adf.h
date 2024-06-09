@@ -19,8 +19,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __ADF__
-#define __ADF__
+#ifndef __ADF_H__
+#define __ADF_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -33,10 +37,24 @@
 
 typedef enum code {
 
-	/* No errors detected */
-	OK = 0,
+	/*
+	 * No errors detected
+	 */
+	OK = 0x00,
 
-	NOT_OK = 1000
+	/*
+	 *
+	 */
+	HEADER_CORRUPTED = 0x01,
+	/*
+	 *
+	 */
+	SERIES_CORRUPTED = 0x02,
+
+	/*
+	 * The most generic error code.
+	 */
+	RUNTIME_ERROR = 1000
 } code_t;
 
 typedef union real {
@@ -83,19 +101,19 @@ typedef struct {
 	real_t *water_use_ml;
 
 	/*
-	 * pH of the soil measured once per iteration.
+	 * pH of the soil. The data is stored as an 8-byte integer.
 	 */
 	uint8_t pH;
 
 	/*
-	 * Atmosferic pressure measured in bar, once per iteration.
+	 * Atmosferic pressure measured in bar.
 	 */
 	real_t p_bar;
 
 	/*
 	 *
 	 */
-	real_t soil_density;
+	real_t soil_density_kg_m3;
 
 	/*
 	 *
@@ -121,6 +139,11 @@ typedef struct {
 	 *
 	 */
 	uint_t repeated;
+
+	/*
+	 *
+	 */
+	uint_small_t crc;
 } __attribute__((packed)) series_t;
 
 typedef struct {
@@ -148,12 +171,7 @@ typedef struct {
 	uint_t *additive_codes;
 } adf_meta_t;
 
-/*
- * The structure that contains all the data referred to a
- * fixed period of time.
- */
 typedef struct {
-
 	/*
 	 * Signature contains the following four bytes
 	 * 		0x40  0x41  0x44  0x46
@@ -171,7 +189,7 @@ typedef struct {
 	/*
 	 *
 	 */
-	uint8_t farming_tecnique;
+	uint8_t farming_tec;
 
 	/*
 	 * A 4 byte unsigned integer that represents the number
@@ -196,11 +214,18 @@ typedef struct {
 	 * (equally) divided
 	 */
 	uint_t n_chunks;
+} adf_header_t;
+
+/*
+ * The structure that contains all the data referred to a
+ * fixed period of time.
+ */
+typedef struct {
 
 	/*
 	 *
 	 */
-	uint_small_t crc;
+	adf_header_t header;
 
 	/*
 	 *
@@ -211,43 +236,40 @@ typedef struct {
 	 * The array of the iterations of size `n_iterations`.
 	 * If n_series == 0, then iterations is NULL.
 	 */
-	iter_t *series;
+	series_t *series;
 } __attribute__((packed)) adf_t;
 
 /*
  * Returns the current version of ADF.
  */
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif /* __EMSCRIPTEN__ */
-int get_version(void) { return __ADF_VERSION__; }
+// #ifdef __EMSCRIPTEN__
+// EMSCRIPTEN_KEEPALIVE
+// #endif /* __EMSCRIPTEN__ */
+// int get_version(void) { return __ADF_VERSION__; }
 
-
-
-
-
-
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif /* __EMSCRIPTEN__ */
-adf_t get_adf(void) { return (adf_t){.signature= __ADF_SIGNATURE__}; }
-
-
-
-
-
-
-
-
+// #ifdef __EMSCRIPTEN__
+// EMSCRIPTEN_KEEPALIVE
+// #endif /* __EMSCRIPTEN__ */
+// adf_t get_adf(void) { return (adf_t){.signature = {__ADF_SIGNATURE__}}; }
 
 /*
- * All iterations have the same size, as the series all have 
+ * All iterations have the same size, as the series all have
  * the same length
  */
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif /* __EMSCRIPTEN__ */
-size_t size_iter_t(adf_t);
+size_t size_series_t(uint32_t, series_t);
+
+/*
+ *
+ */
+size_t size_medatata_t(adf_meta_t);
+
+/*
+ *
+ */
+size_t size_header(void);
 
 /*
  * The size of the adf object
@@ -269,7 +291,7 @@ uint8_t *bytes_alloc(adf_t);
 /*
  *
  */
-long add_series(adf_t *, const series_t *);
+long add_multiple_series(adf_t *, const series_t *, size_t);
 
 /*
  *
@@ -287,4 +309,8 @@ EMSCRIPTEN_KEEPALIVE
 #endif /* __EMSCRIPTEN__ */
 long unmarshal(adf_t *, const uint8_t *);
 
-#endif /* __ADF__ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __ADF_H__ */

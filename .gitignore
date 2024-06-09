@@ -52,8 +52,10 @@ Mkfile.old
 dkms.conf
 
 # Test bin
-test/marshal
-test/unmarshal
+test/test_marshal
+test/test_unmarshal
+test/generate_sample.c
+test/generate_sample
 
 # VS code conf
 .vscode/
