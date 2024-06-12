@@ -5,9 +5,9 @@ AccessModifierOffset: -2
 AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: None
 AlignConsecutiveAssignments:
-  Enabled:         false
+  Enabled:         true
   AcrossEmptyLines: false
-  AcrossComments:  false
+  AcrossComments:  true
   AlignCompound:   false
   AlignFunctionPointers: false
   PadOperators:    true
