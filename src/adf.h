@@ -32,29 +32,35 @@ extern "C" {
 #include <emscripten/emscripten.h>
 #endif /* __EMSCRIPTEN__ */
 
-#define __ADF_SIGNATURE__ 0x40414446
-#define __ADF_VERSION__ 0x01
+#define __ADF_SIGNATURE__ 0x40414446u
+#define __ADF_VERSION__ 0x01u
 
 typedef enum code {
 
 	/*
 	 * No errors detected
 	 */
-	OK = 0x00,
+	OK = 0x00u,
 
 	/*
 	 *
 	 */
-	HEADER_CORRUPTED = 0x01,
+	HEADER_CORRUPTED = 0x01u,
+
 	/*
 	 *
 	 */
-	SERIES_CORRUPTED = 0x02,
+	METADATA_CORRUPTED = 0x02u,
+
+	/*
+	 *
+	 */
+	SERIES_CORRUPTED = 0x03u,
 
 	/*
 	 * The most generic error code.
 	 */
-	RUNTIME_ERROR = 1000
+	RUNTIME_ERROR = 0xFFFFFFFFu
 } code_t;
 
 typedef union real {
@@ -253,8 +259,25 @@ typedef struct {
 // adf_t get_adf(void) { return (adf_t){.signature = {__ADF_SIGNATURE__}}; }
 
 /*
- * All iterations have the same size, as the series all have
- * the same length
+ * The size (bytes) of the adf header, including its crc field
+ */
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif /* __EMSCRIPTEN__ */
+size_t size_header(void);
+
+/*
+ * The size (bytes) of the adf metadata section, including
+ * its crc field
+ */
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif /* __EMSCRIPTEN__ */
+size_t size_medatata_t(adf_meta_t);
+
+/*
+ * The size (bytes) of *one* adf series, including the crc field.
+ * Since all the series have the same size, 
  */
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
@@ -262,17 +285,7 @@ EMSCRIPTEN_KEEPALIVE
 size_t size_series_t(uint32_t, series_t);
 
 /*
- *
- */
-size_t size_medatata_t(adf_meta_t);
-
-/*
- *
- */
-size_t size_header(void);
-
-/*
- * The size of the adf object
+ * The size (bytes) of the adf object, including all the crc fields
  */
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
@@ -291,7 +304,7 @@ uint8_t *bytes_alloc(adf_t);
 /*
  *
  */
-long add_multiple_series(adf_t *, const series_t *, size_t);
+long add_series(adf_t *, series_t *, size_t);
 
 /*
  *

@@ -32,6 +32,7 @@ int main()
 	uint8_t *bytes;
 	FILE *sample_file = fopen(FILE_PATH, "rb");
 	long file_len;
+	size_t series_size, h_and_meta_size;
 
 	if (sample_file == NULL) {
 		printf("The file `%s` is not opened.", FILE_PATH);
@@ -45,19 +46,19 @@ int main()
 	fread(bytes, file_len, 1, sample_file);
 	fclose(sample_file);
 
-	assert_true(size_adf_t(expected) == (unsigned long)file_len, "are byte arrays of the same length");
-
 	printf("expected bytes: %zu\n", size_adf_t(expected));
 	printf("read bytes: %ld\n", file_len);
+	assert_true(size_adf_t(expected) == (unsigned long)file_len, "are byte arrays of the same length");
 
 	adf_t new;
 	long res = unmarshal(&new, bytes);
 	if (res != OK) {
-		printf("%s", "An error occurred during unmarshal process\n");
+		printf("[%ld] %s", res, "An error occurred during unmarshal process\n");
 		return 1;
 	}
 
 	/* Header */
+	printf("%s\n", "(header - from byte 0)");
 	assert_int_equal(new.header.signature, expected.header.signature, "are signatures equals");
 	assert_true(new.header.version == expected.header.version, "are versions equals");
 	assert_true(new.header.farming_tec == expected.header.farming_tec, "are farming tecniques equals");
@@ -67,13 +68,20 @@ int main()
 	assert_int_equal(new.header.n_chunks, expected.header.n_chunks, "are n_chunks equal");
 
 	/* Metadata */
+	printf("%s\n", "(metadata - from byte 24)");
 	assert_int_equal(new.metadata.n_series, expected.metadata.n_series, "are n_series equal");
 	assert_int_equal(new.metadata.period_sec, expected.metadata.period_sec, "are periods equal");
 	assert_small_int_equal(new.metadata.n_additives, expected.metadata.n_additives, "are number of additive codes equal");
 	assert_int_arrays_equal(new.metadata.additive_codes, expected.metadata.additive_codes, new.metadata.n_additives.val, "are additive codes equal");
+
+	/* Series */
 	if (new.metadata.n_series.val == 0)
 		return 0;
+
+	h_and_meta_size = size_header() + size_medatata_t(new.metadata);
+	series_size		= size_series_t(new.header.n_chunks.val, new.series[0]);
 	for (uint32_t i = 0; i < new.metadata.n_series.val; i++) {
-		assert_series_equal(i, new, new.series[i], expected.series[i]);
+		printf("(iteration %u - from byte %lu)\n", i, h_and_meta_size + (i * series_size));
+		assert_series_equal(new, new.series[i], expected.series[i]);
 	}
 }
