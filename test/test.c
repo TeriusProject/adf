@@ -126,9 +126,8 @@ void assert_additive_arrays_equal(additive_t *x, additive_t *y, uint32_t size, c
 	assert_true(are_additive_arrays_equal(x, y, size), label);
 }
 
-void assert_series_equal(uint32_t n, adf_t data, series_t x, series_t y)
+void assert_series_equal(adf_t data, series_t x, series_t y)
 {
-	printf("(iteration %u)\n", n);
 	assert_real_arrays_equal(x.light_exposure, y.light_exposure, data.header.n_chunks.val, "are light_exposures equal");
 	assert_real_arrays_equal(x.temp_celsius, y.temp_celsius, data.header.n_chunks.val, "are temp_celsiuss equal");
 	assert_real_arrays_equal(x.water_use_ml, y.water_use_ml, data.header.n_chunks.val, "are water_use_mls equal");
