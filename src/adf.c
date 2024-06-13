@@ -373,7 +373,7 @@ static size_t series_to_add(series_t *series, size_t n_series)
 	return count == 0 ? 1 : count;
 }
 
-long add_multiple_series(adf_t *adf, series_t *series, size_t n_series)
+long add_series(adf_t *adf, series_t *series, size_t n_series)
 {
 	size_t unique_series_size = series_to_add(series, n_series);
 	uint32_t start_series	  = adf->metadata.n_series.val;
