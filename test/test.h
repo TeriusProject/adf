@@ -48,6 +48,7 @@ void assert_real_arrays_equal(real_t *x, real_t *y, uint32_t size, const char *l
 void assert_additive_arrays_equal(additive_t *x, additive_t *y, uint32_t size, const char *label);
 void assert_uint8_arrays_equal(uint8_t *x, uint8_t *y, uint32_t size, const char *label);
 void assert_series_equal(adf_t data, series_t x, series_t y);
+series_t get_series(void);
 
 adf_t get_default_object(void);
 

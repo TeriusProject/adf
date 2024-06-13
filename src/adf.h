@@ -79,7 +79,8 @@ typedef union usmallint {
 } uint_small_t;
 
 typedef struct {
-	uint_small_t code;
+	uint_small_t code_idx;
+	uint_t code;
 	real_t concentration;
 } additive_t;
 
@@ -248,15 +249,10 @@ typedef struct {
 /*
  * Returns the current version of ADF.
  */
-// #ifdef __EMSCRIPTEN__
-// EMSCRIPTEN_KEEPALIVE
-// #endif /* __EMSCRIPTEN__ */
-// int get_version(void) { return __ADF_VERSION__; }
-
-// #ifdef __EMSCRIPTEN__
-// EMSCRIPTEN_KEEPALIVE
-// #endif /* __EMSCRIPTEN__ */
-// adf_t get_adf(void) { return (adf_t){.signature = {__ADF_SIGNATURE__}}; }
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif /* __EMSCRIPTEN__ */
+unsigned get_version(void);
 
 /*
  * The size (bytes) of the adf header, including its crc field
@@ -277,7 +273,7 @@ size_t size_medatata_t(adf_meta_t);
 
 /*
  * The size (bytes) of *one* adf series, including the crc field.
- * Since all the series have the same size, 
+ * Since all the series have the same size,
  */
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
@@ -304,7 +300,12 @@ uint8_t *bytes_alloc(adf_t);
 /*
  *
  */
-long add_series_batch(adf_t *, series_t *, size_t);
+int add_series_batch(adf_t *, series_t *, size_t);
+
+/*
+ *
+ */
+int add_series(adf_t *, series_t);
 
 /*
  *
@@ -312,7 +313,7 @@ long add_series_batch(adf_t *, series_t *, size_t);
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif /* __EMSCRIPTEN__ */
-long marshal(uint8_t *, adf_t);
+int marshal(uint8_t *, adf_t);
 
 /*
  *
@@ -320,7 +321,7 @@ long marshal(uint8_t *, adf_t);
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif /* __EMSCRIPTEN__ */
-long unmarshal(adf_t *, const uint8_t *);
+int unmarshal(adf_t *, const uint8_t *);
 
 #ifdef __cplusplus
 }

@@ -68,6 +68,8 @@ static void to_little_endian_2_bytes(uint8_t *dest, const uint8_t *source)
 	*(dest + 1) = *source;
 }
 
+unsigned get_version(void) { return __ADF_VERSION__; }
+
 size_t size_series_t(uint32_t n_chunks, series_t series)
 {
 	return (n_chunks * 4) +				  /* light_exposure */
@@ -120,7 +122,16 @@ uint8_t *bytes_alloc(adf_t data)
 	return (uint8_t *)malloc(size_adf_t(data));
 }
 
-long marshal(uint8_t *bytes, adf_t data)
+static int get_add_code_idx(uint_t *codes, uint_small_t n_codes, uint_t code_idx)
+{
+	for (uint16_t i = 0; i < n_codes.val; i++) {
+		if ((codes + i)->val == code_idx.val)
+			return i;
+	}
+	return -1;
+}
+
+int marshal(uint8_t *bytes, adf_t data)
 {
 	size_t byte_c			= 0;
 	uint_small_t crc_16bits = {0xFFFF};
@@ -193,13 +204,13 @@ long marshal(uint8_t *bytes, adf_t data)
 		cpy_2_bytes_fn((bytes + byte_c), current.n_atm_adds.bytes);
 		SHIFT_COUNTER(2);
 		for (uint16_t j = 0, l = current.n_soil_adds.val; j < l; j++) {
-			cpy_2_bytes_fn((bytes + byte_c), current.soil_additives[j].code.bytes);
+			cpy_2_bytes_fn((bytes + byte_c), current.soil_additives[j].code_idx.bytes);
 			SHIFT_COUNTER(2);
 			cpy_4_bytes_fn((bytes + byte_c), current.soil_additives[j].concentration.bytes);
 			SHIFT_COUNTER(4);
 		}
 		for (uint16_t j = 0, l = current.n_atm_adds.val; j < l; j++) {
-			cpy_2_bytes_fn((bytes + byte_c), current.atm_additives[j].code.bytes);
+			cpy_2_bytes_fn((bytes + byte_c), current.atm_additives[j].code_idx.bytes);
 			SHIFT_COUNTER(2);
 			cpy_4_bytes_fn((bytes + byte_c), current.atm_additives[j].concentration.bytes);
 			SHIFT_COUNTER(4);
@@ -214,7 +225,7 @@ long marshal(uint8_t *bytes, adf_t data)
 	return OK;
 }
 
-long unmarshal(adf_t *adf, const uint8_t *bytes)
+int unmarshal(adf_t *adf, const uint8_t *bytes)
 {
 	size_t byte_c = 0;
 	uint_small_t expected_crc;
@@ -312,14 +323,19 @@ long unmarshal(adf_t *adf, const uint8_t *bytes)
 		if (!(current.atm_additives = malloc(current.n_atm_adds.val * sizeof(additive_t))))
 			return RUNTIME_ERROR;
 
+		uint16_t code_idx;
 		for (uint16_t j = 0, l = current.n_soil_adds.val; j < l; j++) {
-			cpy_2_bytes_fn(current.soil_additives[j].code.bytes, (bytes + byte_c));
+			cpy_2_bytes_fn(current.soil_additives[j].code_idx.bytes, (bytes + byte_c));
+			code_idx						   = current.soil_additives[j].code_idx.val;
+			current.soil_additives[j].code.val = adf->metadata.additive_codes[code_idx].val;
 			SHIFT_COUNTER(2);
 			cpy_4_bytes_fn(current.soil_additives[j].concentration.bytes, (bytes + byte_c));
 			SHIFT_COUNTER(4);
 		}
 		for (uint16_t j = 0, l = current.n_atm_adds.val; j < l; j++) {
-			cpy_2_bytes_fn(current.atm_additives[j].code.bytes, (bytes + byte_c));
+			cpy_2_bytes_fn(current.atm_additives[j].code_idx.bytes, (bytes + byte_c));
+			code_idx						  = current.atm_additives[j].code_idx.val;
+			current.atm_additives[j].code.val = adf->metadata.additive_codes[code_idx].val;
 			SHIFT_COUNTER(2);
 			cpy_4_bytes_fn(current.atm_additives[j].concentration.bytes, (bytes + byte_c));
 			SHIFT_COUNTER(4);
@@ -336,7 +352,6 @@ long unmarshal(adf_t *adf, const uint8_t *bytes)
 
 		adf->series[i] = current;
 	}
-
 	return OK;
 }
 
@@ -348,7 +363,7 @@ typedef struct {
 static series_list_t init_series_list(series_t *series, size_t n_series)
 {
 	size_t *r_vals = malloc(n_series * sizeof(size_t));
-	for (int i = 0; i < n_series; i++)
+	for (size_t i = 0; i < n_series; i++)
 		r_vals[i] = 0;
 
 	return (series_list_t){
@@ -391,7 +406,7 @@ static series_list_t series_to_add(series_t *series, size_t n_series)
 	return series_to_add;
 }
 
-long add_series_batch(adf_t *adf, series_t *series, size_t n_series)
+int add_series_batch(adf_t *adf, series_t *series, size_t n_series)
 {
 	// size_t unique_series_size = series_to_add(series, n_series);
 	// uint32_t start_series	  = adf->metadata.n_series.val;
@@ -401,42 +416,52 @@ long add_series_batch(adf_t *adf, series_t *series, size_t n_series)
 	// for (size_t i = 0; i < n_series; i++, start_series++) {
 	// 	adf->series[start_series] = *(series + i);
 	// }
-	series_list_t a = series_to_add(series, n_series);
-	for (int i = 0; i < n_series; i++) {
-		printf("%d ", a.series[i].crc.val);
-	}
-	printf("\n");
-	for (int i = 0; i < n_series; i++) {
-		printf("%d ", a.repeated_values[i]);
-	}
+
 	return 0;
 }
 
-long add_series(adf_t *adf, series_t series)
+int add_series(adf_t *adf, series_t series)
 {
 	series_t *last = adf->series + (adf->metadata.n_series.val - 1);
+	cpy_2_bytes_fn = is_big_endian()
+						 ? &to_big_endian_2_bytes
+						 : &to_little_endian_2_bytes;
+
+	// Sistemare equivalenza...
+	// fare a meno di crc
 	if (last->crc.val == series.crc.val) {
 		last->repeated.val++;
 		return OK;
 	}
 
-	if (!realloc(adf->series, adf->metadata.n_series.val + 1)){
+	if (!realloc(adf->series, adf->metadata.n_series.val + 1)) {
 		return RUNTIME_ERROR;
 	}
 
 	uint32_t avg_series_sec = adf->metadata.period_sec.val / adf->metadata.n_series.val;
 	adf->metadata.period_sec.val += avg_series_sec;
+
 	for (uint16_t i = 0; i < adf->metadata.n_additives.val; i++) {
 		uint32_t add_code = adf->metadata.additive_codes[i].val;
 
-		for(uint16_t n_soil = 0; n_soil < adf->metadata.n_additives.val; n_soil++){
+		for (uint16_t n_soil = 0; n_soil < adf->metadata.n_additives.val; n_soil++) {
 			if (series.soil_additives[n_soil].code.val != add_code) {
-				
+				adf->metadata.n_additives.val++;
+				if (!realloc(adf->metadata.additive_codes, adf->metadata.n_additives.val))
+					return RUNTIME_ERROR;
+				adf->metadata.additive_codes[adf->metadata.n_additives.val - 1] = series.soil_additives[n_soil].code;
+				cpy_2_bytes_fn(series.soil_additives[n_soil].code_idx.bytes, adf->metadata.n_additives.bytes);
 			}
 		}
 
-		for(uint16_t n_atm = 0;n_atm < adf->metadata.n_additives.val; n_atm++) {
-
+		for (uint16_t n_atm = 0; n_atm < adf->metadata.n_additives.val; n_atm++) {
+			if (series.atm_additives[n_atm].code.val != add_code) {
+				adf->metadata.n_additives.val++;
+				if (!realloc(adf->metadata.additive_codes, adf->metadata.n_additives.val))
+					return RUNTIME_ERROR;
+				adf->metadata.additive_codes[adf->metadata.n_additives.val - 1] = series.atm_additives[n_atm].code;
+				cpy_2_bytes_fn(series.atm_additives[n_atm].code_idx.bytes, adf->metadata.n_additives.bytes);
+			}
 		}
 	}
 	adf->series[++(adf->metadata.n_series.val)] = series;

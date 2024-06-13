@@ -25,5 +25,11 @@
 #include <stdlib.h>
 
 int main() {
-	adf_t expected = get_default_object();
+	series_t series = get_series();
+	adf_t adf = get_default_object();
+	int res = add_series(&adf, series);
+	(void) res;
+	uint_t expected_n_series = {3};
+	printf("%d\n",adf.metadata.n_series.val);
+	assert_int_equal(adf.metadata.n_series, expected_n_series, "are n_series equal");
 }

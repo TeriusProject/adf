@@ -79,7 +79,7 @@ bool are_real_arrays_equal(real_t *x, real_t *y, size_t size)
 bool are_additive_arrays_equal(additive_t *x, additive_t *y, size_t size)
 {
 	for (size_t i = 0; i < size; i++) {
-		if (!are_small_ints_equal(x[i].code, y[i].code) ||
+		if (!are_small_ints_equal(x[i].code_idx, y[i].code_idx) ||
 			!are_reals_equal(x[i].concentration, y[i].concentration))
 			return false;
 	}
@@ -150,10 +150,30 @@ static real_t *get_real_array()
 	return light_mask;
 }
 
+series_t get_series(void)
+{
+	additive_t *add_code = malloc(sizeof(additive_t));
+	additive_t add_1 = {.code_idx = {2395}, .concentration = {1.234}};
+	*add_code = add_1;
+	return (series_t) {
+		.light_exposure = get_real_array(),
+		.temp_celsius = get_real_array(),
+		.water_use_ml = get_real_array(),
+		.pH = 11,
+		.p_bar = {13.56789},
+		.soil_density_kg_m3 = {123.345},
+		.n_soil_adds = {1},
+		.n_atm_adds = {0},
+		.soil_additives = add_code,
+		.atm_additives = NULL,
+		.repeated = {1}
+	};
+}
+
 adf_t get_default_object(void)
 {
 	additive_t *add_code = malloc(sizeof(additive_t));
-	additive_t add_1 = {.code = {2345}, .concentration = {1.234}};
+	additive_t add_1 = {.code_idx = {2345}, .concentration = {1.234}};
 	*add_code = add_1;
 	series_t iter1 = {
 		.light_exposure = get_real_array(),
