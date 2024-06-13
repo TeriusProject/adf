@@ -146,7 +146,7 @@ long marshal(uint8_t *bytes, adf_t data)
 	SHIFT_COUNTER(4);
 	cpy_4_bytes_fn((bytes + byte_c), data.header.n_chunks.bytes);
 	SHIFT_COUNTER(4);
-	crc_16bits.val = crc16(crc_16bits.val, bytes, byte_c);
+	crc_16bits.val = crc16(bytes, byte_c);
 	cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
 	SHIFT_COUNTER(2);
 	cpy_4_bytes_fn((bytes + byte_c), data.metadata.n_series.bytes);
@@ -160,7 +160,7 @@ long marshal(uint8_t *bytes, adf_t data)
 		cpy_4_bytes_fn((bytes + byte_c), data.metadata.additive_codes[i].bytes);
 	}
 
-	crc_16bits.val = crc16(0xFFFF, (bytes + size_header()), byte_c - size_header());
+	crc_16bits.val = crc16((bytes + size_header()), byte_c - size_header());
 	cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
 	SHIFT_COUNTER(2);
 
@@ -207,7 +207,7 @@ long marshal(uint8_t *bytes, adf_t data)
 		cpy_4_bytes_fn((bytes + byte_c), current.repeated.bytes);
 		SHIFT_COUNTER(4);
 
-		crc_16bits.val = crc16(0xFFFF, (bytes + starting_byte), byte_c - starting_byte);
+		crc_16bits.val = crc16((bytes + starting_byte), byte_c - starting_byte);
 		cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
 		SHIFT_COUNTER(2);
 	}
@@ -242,7 +242,7 @@ long unmarshal(adf_t *adf, const uint8_t *bytes)
 	SHIFT_COUNTER(4);
 	cpy_4_bytes_fn(adf->header.n_chunks.bytes, (bytes + byte_c));
 	SHIFT_COUNTER(4);
-	uint16_t header_crc = crc16(0xFFFF, bytes, byte_c);
+	uint16_t header_crc = crc16(bytes, byte_c);
 	cpy_2_bytes_fn(expected_crc.bytes, (bytes + byte_c));
 	SHIFT_COUNTER(2);
 
@@ -263,7 +263,7 @@ long unmarshal(adf_t *adf, const uint8_t *bytes)
 		cpy_4_bytes_fn(adf->metadata.additive_codes[i].bytes, (bytes + byte_c));
 	}
 
-	uint16_t meta_crc = crc16(0xFFFF, (bytes + size_header()), byte_c - size_header());
+	uint16_t meta_crc = crc16((bytes + size_header()), byte_c - size_header());
 	cpy_2_bytes_fn(expected_crc.bytes, (bytes + byte_c));
 	SHIFT_COUNTER(2);
 
@@ -327,7 +327,7 @@ long unmarshal(adf_t *adf, const uint8_t *bytes)
 		cpy_4_bytes_fn(current.repeated.bytes, (bytes + byte_c));
 		SHIFT_COUNTER(4);
 
-		uint16_t series_crc = crc16(0xFFFF, (bytes + starting_byte), byte_c - starting_byte);
+		uint16_t series_crc = crc16((bytes + starting_byte), byte_c - starting_byte);
 		cpy_2_bytes_fn(expected_crc.bytes, (bytes + byte_c));
 		SHIFT_COUNTER(2);
 
@@ -341,9 +341,21 @@ long unmarshal(adf_t *adf, const uint8_t *bytes)
 }
 
 typedef struct {
-	const series_t *series;
-	unsigned long index;
+	series_t *series;
+	size_t *repeated_values;
 } series_list_t;
+
+static series_list_t init_series_list(series_t *series, size_t n_series)
+{
+	size_t *r_vals = malloc(n_series * sizeof(size_t));
+	for (int i = 0; i < n_series; i++)
+		r_vals[i] = 0;
+
+	return (series_list_t){
+		.series			 = series,
+		.repeated_values = r_vals
+	};
+}
 
 // static long add_series(adf_t *adf, series_t series)
 // {
@@ -357,31 +369,77 @@ typedef struct {
 // 	return 0;
 // }
 
-static size_t series_to_add(series_t *series, size_t n_series)
+static series_list_t series_to_add(series_t *series, size_t n_series)
 {
-	series_t *current = (series_t *)series;
-	(void)current;
-	size_t index = 0UL,
-		   count = 0UL;
-	while (index < n_series) {
-		// if (current->crc.val != series[index].crc.val) {
-		// 	count++;
-		// 	current = (series + index);
-		// }
-		// index++;
-	}
-	return count == 0 ? 1 : count;
+	series_list_t series_to_add = init_series_list(series, n_series);
+	size_t index				= 0ul,
+		   successor			= index + 1,
+		   count				= 0ul;
+
+	do {
+		if (series_to_add.series[index].crc.val == series_to_add.series[successor].crc.val) {
+			series_to_add.repeated_values[index]++;
+			successor++;
+		}
+		else {
+			series_to_add.repeated_values[index] = 1;
+			index++;
+			successor++;
+		}
+	} while (successor < n_series);
+
+	return series_to_add;
 }
 
-long add_series(adf_t *adf, series_t *series, size_t n_series)
+long add_series_batch(adf_t *adf, series_t *series, size_t n_series)
 {
-	size_t unique_series_size = series_to_add(series, n_series);
-	uint32_t start_series	  = adf->metadata.n_series.val;
+	// size_t unique_series_size = series_to_add(series, n_series);
+	// uint32_t start_series	  = adf->metadata.n_series.val;
 
-	if (!realloc(adf->series, unique_series_size))
-		return RUNTIME_ERROR;
-	for (size_t i = 0; i < n_series; i++, start_series++) {
-		adf->series[start_series] = *(series + i);
+	// if (!realloc(adf->series, unique_series_size))
+	// 	return RUNTIME_ERROR;
+	// for (size_t i = 0; i < n_series; i++, start_series++) {
+	// 	adf->series[start_series] = *(series + i);
+	// }
+	series_list_t a = series_to_add(series, n_series);
+	for (int i = 0; i < n_series; i++) {
+		printf("%d ", a.series[i].crc.val);
+	}
+	printf("\n");
+	for (int i = 0; i < n_series; i++) {
+		printf("%d ", a.repeated_values[i]);
 	}
 	return 0;
+}
+
+long add_series(adf_t *adf, series_t series)
+{
+	series_t *last = adf->series + (adf->metadata.n_series.val - 1);
+	if (last->crc.val == series.crc.val) {
+		last->repeated.val++;
+		return OK;
+	}
+
+	if (!realloc(adf->series, adf->metadata.n_series.val + 1)){
+		return RUNTIME_ERROR;
+	}
+
+	uint32_t avg_series_sec = adf->metadata.period_sec.val / adf->metadata.n_series.val;
+	adf->metadata.period_sec.val += avg_series_sec;
+	for (uint16_t i = 0; i < adf->metadata.n_additives.val; i++) {
+		uint32_t add_code = adf->metadata.additive_codes[i].val;
+
+		for(uint16_t n_soil = 0; n_soil < adf->metadata.n_additives.val; n_soil++){
+			if (series.soil_additives[n_soil].code.val != add_code) {
+				
+			}
+		}
+
+		for(uint16_t n_atm = 0;n_atm < adf->metadata.n_additives.val; n_atm++) {
+
+		}
+	}
+	adf->series[++(adf->metadata.n_series.val)] = series;
+
+	return OK;
 }

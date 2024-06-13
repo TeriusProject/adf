@@ -57,10 +57,11 @@ static uint16_t table[] = {
 	0x8201, 0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040
 };
 
-uint16_t crc16(uint16_t crc, const uint8_t *buf, size_t size)
+uint16_t crc16(const uint8_t *buf, size_t size)
 {
 	const uint8_t *p = buf;
-
+	uint16_t crc = 0xFFFF;
+	
 	while (size--)
 		crc = table[(crc ^ (*p++)) & 0xFF] ^ (crc >> 8);
 

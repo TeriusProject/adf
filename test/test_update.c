@@ -19,12 +19,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __CRC_H__
-#define __CRC_H__
-
-#include <stdint.h>
+#include "../src/adf.h"
+#include "test.h"
+#include <stdio.h>
 #include <stdlib.h>
 
-uint16_t crc16(const uint8_t *, size_t);
-
-#endif /* __CRC_H__ */
+int main() {
+	adf_t expected = get_default_object();
+}

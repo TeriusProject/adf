@@ -304,7 +304,7 @@ uint8_t *bytes_alloc(adf_t);
 /*
  *
  */
-long add_series(adf_t *, series_t *, size_t);
+long add_series_batch(adf_t *, series_t *, size_t);
 
 /*
  *
