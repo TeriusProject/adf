@@ -87,7 +87,7 @@ typedef union usmallint {
 } uint_small_t;
 
 /*
- * 
+ *
  */
 typedef struct {
 	uint_small_t code_idx;
@@ -165,7 +165,16 @@ typedef struct {
 	 * indicate that there are no series. In that case, the `series`
 	 * array could be NULL.
 	 */
-	uint_t n_series;
+	uint_t size_series;
+
+	/*
+	 * The main difference between size_series and n_series is that
+	 * size_series contains the size of the array `series`, while n_series
+	 * contains the overall number of series (counting duplicates as well).
+	 * This fiels won't be marshalled; it's computed on the fly during the
+	 * unmarshalling procedure.
+	 */
+	size_t n_series;
 
 	/*
 	 * It represents the time (measured in seconds) period to
@@ -248,7 +257,7 @@ typedef struct {
 
 	/*
 	 * The array of the iterations of size `n_iterations`.
-	 * If n_series == 0, then iterations is NULL.
+	 * If size_series == 0, then iterations is NULL.
 	 */
 	series_t *series;
 } __attribute__((packed)) adf_t;

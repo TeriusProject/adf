@@ -36,7 +36,7 @@ void test_add_series(void)
 	}
 	uint_t expected_n_series = {3};
 	assert_int_equal(
-		adf.metadata.n_series,
+		adf.metadata.size_series,
 		expected_n_series,
 		"There are 3 series"
 	);
@@ -52,13 +52,13 @@ void test_add_repeated_series(void)
 	}
 	uint_t expected_n_series = {2};
 	assert_int_equal(
-		adf.metadata.n_series,
+		adf.metadata.size_series,
 		expected_n_series,
 		"There are 2 series"
 	);
 
 	uint_t expected_repeated_last_series = {5};
-	series_t last = adf.series[adf.metadata.n_series.val - 1];
+	series_t last = adf.series[adf.metadata.size_series.val - 1];
 	assert_int_equal(
 		last.repeated,
 		expected_repeated_last_series,
@@ -81,13 +81,13 @@ void test_add_repeated_and_non_repeated_series(void)
 	}
 	uint_t expected_n_series = {4};
 	assert_int_equal(
-		adf.metadata.n_series,
+		adf.metadata.size_series,
 		expected_n_series,
 		"There are 4 series"
 	);
 
 	uint_t expected_repeated_last_series = {2};
-	series_t last = adf.series[adf.metadata.n_series.val - 1];
+	series_t last = adf.series[adf.metadata.size_series.val - 1];
 	assert_int_equal(
 		last.repeated,
 		expected_repeated_last_series,

@@ -90,7 +90,7 @@ size_t size_series_t(uint32_t n_chunks, series_t series)
 
 size_t size_medatata_t(adf_meta_t metadata)
 {
-	return 4								/* n_series */
+	return 4								/* size_series */
 		   + 4								/* period_sec */
 		   + 2								/* n_additives */
 		   + (metadata.n_additives.val * 4) /* additive_codes */
@@ -113,7 +113,7 @@ size_t size_adf_t(adf_t data)
 {
 	const size_t head_metadata_size = size_header() + size_medatata_t(data.metadata);
 	size_t series_size = 0;
-	for (uint32_t i = 0, l = data.metadata.n_series.val; i < l; i++) {
+	for (uint32_t i = 0, l = data.metadata.size_series.val; i < l; i++) {
 		series_size += size_series_t(data.header.n_chunks.val, data.series[i]);
 	}
 	return head_metadata_size + series_size;
@@ -153,7 +153,7 @@ int marshal(uint8_t *bytes, adf_t data)
 	crc_16bits.val = crc16(bytes, byte_c);
 	cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
 	SHIFT_COUNTER(2);
-	cpy_4_bytes_fn((bytes + byte_c), data.metadata.n_series.bytes);
+	cpy_4_bytes_fn((bytes + byte_c), data.metadata.size_series.bytes);
 	SHIFT_COUNTER(4);
 	cpy_4_bytes_fn((bytes + byte_c), data.metadata.period_sec.bytes);
 	SHIFT_COUNTER(4);
@@ -168,7 +168,7 @@ int marshal(uint8_t *bytes, adf_t data)
 	cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
 	SHIFT_COUNTER(2);
 
-	for (uint32_t i = 0, n_iter = data.metadata.n_series.val; i < n_iter; i++) {
+	for (uint32_t i = 0, n_iter = data.metadata.size_series.val; i < n_iter; i++) {
 		series_t current = data.series[i];
 		size_t starting_byte = byte_c;
 		if (!current.light_exposure)
@@ -253,7 +253,7 @@ int unmarshal(adf_t *adf, const uint8_t *bytes)
 	if (header_crc != expected_crc.val)
 		return HEADER_CORRUPTED;
 
-	cpy_4_bytes_fn(adf->metadata.n_series.bytes, (bytes + byte_c));
+	cpy_4_bytes_fn(adf->metadata.size_series.bytes, (bytes + byte_c));
 	SHIFT_COUNTER(4);
 	cpy_4_bytes_fn(adf->metadata.period_sec.bytes, (bytes + byte_c));
 	SHIFT_COUNTER(4);
@@ -274,10 +274,10 @@ int unmarshal(adf_t *adf, const uint8_t *bytes)
 	if (meta_crc != expected_crc.val)
 		return METADATA_CORRUPTED;
 
-	if (!(adf->series = malloc(adf->metadata.n_series.val * sizeof(series_t))))
+	if (!(adf->series = malloc(adf->metadata.size_series.val * sizeof(series_t))))
 		return RUNTIME_ERROR;
 
-	for (uint32_t i = 0, n_iter = adf->metadata.n_series.val; i < n_iter; i++) {
+	for (uint32_t i = 0, n_iter = adf->metadata.size_series.val; i < n_iter; i++) {
 		series_t current;
 		size_t starting_byte = byte_c;
 		if (!(current.light_exposure = malloc(adf->header.n_chunks.val * sizeof(real_t))))
@@ -407,7 +407,7 @@ static _Bool is_additive_new(uint_t *additives, uint16_t n_additives, additive_t
 
 int add_series(adf_t *adf, series_t series_to_add)
 {
-	series_t *last = adf->series + (adf->metadata.n_series.val - 1);
+	series_t *last = adf->series + (adf->metadata.size_series.val - 1);
 	cpy_2_bytes_fn = is_big_endian()
 						 ? &to_big_endian_2_bytes
 						 : &to_little_endian_2_bytes;
@@ -417,13 +417,13 @@ int add_series(adf_t *adf, series_t series_to_add)
 		return OK;
 	}
 
-	size_t new_size_series = (adf->metadata.n_series.val + 1) * sizeof(series_t);
+	size_t new_size_series = (adf->metadata.size_series.val + 1) * sizeof(series_t);
 	adf->series = realloc(adf->series, new_size_series);
 	if (!adf->series) {
 		return RUNTIME_ERROR;
 	}
 
-	uint32_t avg_series_sec = adf->metadata.period_sec.val / adf->metadata.n_series.val;
+	uint32_t avg_series_sec = adf->metadata.period_sec.val / adf->metadata.size_series.val;
 	adf->metadata.period_sec.val += avg_series_sec;
 
 	additive_t *soil_add = malloc(series_to_add.n_soil_adds.val * sizeof(additive_t));
@@ -472,8 +472,8 @@ int add_series(adf_t *adf, series_t series_to_add)
 		atm_add[j].code_idx.val = i;
 	}
 	adf->metadata.n_additives.val += items_to_add;
-	adf->series[adf->metadata.n_series.val] = series_to_add;
-	adf->metadata.n_series.val++;
+	adf->series[adf->metadata.size_series.val] = series_to_add;
+	adf->metadata.size_series.val++;
 
 	free(soil_add);
 	free(atm_add);
@@ -481,7 +481,15 @@ int add_series(adf_t *adf, series_t series_to_add)
 	return OK;
 }
 
-int remove_series(adf_t *)
+int remove_series(adf_t *adf)
 {
+	series_t *last = adf->series + (adf->metadata.size_series.val - 1);
+	
+	if (last->repeated.val > 1) {
+		adf->metadata.n_series--;
+		last->repeated.val--;
+		return OK;
+	}
+
 	
 }

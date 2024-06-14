@@ -229,7 +229,7 @@ adf_t get_default_object(void)
 	adf_meta_t metadata = {
 		.period_sec = {1345},
 		.n_additives = {1},
-		.n_series = {2},
+		.size_series = {2},
 		.additive_codes = codes
 	};
 	adf_header_t header = {
