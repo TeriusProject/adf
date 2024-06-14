@@ -1,4 +1,5 @@
 /*
+ * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
  *
@@ -79,8 +80,7 @@ bool are_real_arrays_equal(real_t *x, real_t *y, size_t size)
 bool are_additive_arrays_equal(additive_t *x, additive_t *y, size_t size)
 {
 	for (size_t i = 0; i < size; i++) {
-		if (!are_small_ints_equal(x[i].code_idx, y[i].code_idx) ||
-			!are_reals_equal(x[i].concentration, y[i].concentration))
+		if (!are_small_ints_equal(x[i].code_idx, y[i].code_idx) || !are_reals_equal(x[i].concentration, y[i].concentration))
 			return false;
 	}
 	return true;
@@ -155,7 +155,7 @@ series_t get_series(void)
 	additive_t *add_code = malloc(sizeof(additive_t));
 	additive_t add_1 = {.code_idx = {2395}, .concentration = {1.234}};
 	*add_code = add_1;
-	return (series_t) {
+	return (series_t){
 		.light_exposure = get_real_array(),
 		.temp_celsius = get_real_array(),
 		.water_use_ml = get_real_array(),
@@ -167,6 +167,26 @@ series_t get_series(void)
 		.soil_additives = add_code,
 		.atm_additives = NULL,
 		.repeated = {1}
+	};
+}
+
+series_t get_repeated_series(void)
+{
+	additive_t *add_code = malloc(sizeof(additive_t));
+	additive_t add_1 = {.code_idx = {2345}, .concentration = {1.234}};
+	*add_code = add_1;
+	return (series_t){
+		.light_exposure = get_real_array(),
+		.temp_celsius = get_real_array(),
+		.water_use_ml = get_real_array(),
+		.pH = 7,
+		.p_bar = {0.4567},
+		.soil_density_kg_m3 = {678.345},
+		.n_soil_adds = {1},
+		.n_atm_adds = {0},
+		.soil_additives = add_code,
+		.atm_additives = NULL,
+		.repeated = {2}
 	};
 }
 
@@ -204,7 +224,8 @@ adf_t get_default_object(void)
 	series_t *series = malloc(2 * sizeof(series_t));
 	*series = iter1;
 	*(series + 1) = iter2;
-	uint_t codes[1] = {{2345}};
+	uint_t *codes = malloc(sizeof(uint_t));
+	*codes = (uint_t){2345};
 	adf_meta_t metadata = {
 		.period_sec = {1345},
 		.n_additives = {1},

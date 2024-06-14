@@ -1,4 +1,5 @@
 /*
+ * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
  *
@@ -33,10 +34,17 @@ extern "C" {
 #endif /* __EMSCRIPTEN__ */
 
 #define __ADF_SIGNATURE__ 0x40414446u
+
+/* Versions are numbered in progressive way. */
 #define __ADF_VERSION__ 0x01u
 
-typedef enum code {
+/* Used for the comparison of floating point numbers */
+#define EPSILON 1e-6
 
+/*
+ * It represents the exit code of ...
+ */
+typedef enum code {
 	/*
 	 * No errors detected
 	 */
@@ -78,6 +86,9 @@ typedef union usmallint {
 	uint8_t bytes[4];
 } uint_small_t;
 
+/*
+ * 
+ */
 typedef struct {
 	uint_small_t code_idx;
 	uint_t code;
@@ -146,17 +157,13 @@ typedef struct {
 	 *
 	 */
 	uint_t repeated;
-
-	/*
-	 *
-	 */
-	uint_small_t crc;
 } __attribute__((packed)) series_t;
 
 typedef struct {
-
 	/*
-	 * The number of iterations registered. 0 is allowed
+	 * The number of series registered. The number 0 is used to
+	 * indicate that there are no series. In that case, the `series`
+	 * array could be NULL.
 	 */
 	uint_t n_series;
 
@@ -300,12 +307,12 @@ uint8_t *bytes_alloc(adf_t);
 /*
  *
  */
-int add_series_batch(adf_t *, series_t *, size_t);
+int add_series(adf_t *, series_t);
 
 /*
  *
  */
-int add_series(adf_t *, series_t);
+int remove_series(adf_t *);
 
 /*
  *

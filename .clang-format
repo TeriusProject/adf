@@ -5,7 +5,7 @@ AccessModifierOffset: -2
 AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: None
 AlignConsecutiveAssignments:
-  Enabled:         true
+  Enabled:         false
   AcrossEmptyLines: false
   AcrossComments:  true
   AlignCompound:   false
@@ -45,17 +45,17 @@ AlignTrailingComments:
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowBreakBeforeNoexceptSpecifier: Never
-AllowShortBlocksOnASingleLine: Never
+AllowShortBlocksOnASingleLine: Always
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortCompoundRequirementOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: All
-AllowShortIfStatementsOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
-AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakBeforeMultilineStrings: true
 AlwaysBreakTemplateDeclarations: MultiLine
 AttributeMacros:
   - __capability
@@ -85,7 +85,7 @@ BreakAdjacentStringLiterals: true
 BreakAfterAttributes: Leave
 BreakAfterJavaFieldAnnotations: false
 BreakArrays:     true
-BreakBeforeBinaryOperators: None
+BreakBeforeBinaryOperators: All
 BreakBeforeConceptDeclarations: Always
 BreakBeforeBraces: Stroustrup
 BreakBeforeInlineASMColon: OnlyMultiline
