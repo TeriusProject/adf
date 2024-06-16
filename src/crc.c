@@ -62,7 +62,7 @@ uint16_t crc16(const uint8_t *buf, size_t size)
 {
 	const uint8_t *p = buf;
 	uint16_t crc = 0xFFFF;
-	
+
 	while (size--)
 		crc = table[(crc ^ (*p++)) & 0xFF] ^ (crc >> 8);
 

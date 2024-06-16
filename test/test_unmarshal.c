@@ -20,6 +20,7 @@
  */
 
 #include "../src/adf.h"
+#include "mock.h"
 #include "test.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,27 +60,18 @@ int main()
 
 	/* Header */
 	printf("%s\n", "(header - from byte 0)");
-	assert_int_equal(new.header.signature, expected.header.signature, "are signatures equals");
-	assert_true(new.header.version == expected.header.version, "are versions equals");
-	assert_true(new.header.farming_tec == expected.header.farming_tec, "are farming tecniques equals");
-	assert_int_equal(new.header.n_wavelength, expected.header.n_wavelength, "are n_wavelengths equal");
-	assert_int_equal(new.header.min_w_len_nm, expected.header.min_w_len_nm, "are min_w_len_nms equal");
-	assert_int_equal(new.header.max_w_len_nm, expected.header.max_w_len_nm, "are max_w_len_nms equal");
-	assert_int_equal(new.header.n_chunks, expected.header.n_chunks, "are n_chunks equal");
+	assert_header_equal(new.header, expected.header);
 
 	/* Metadata */
 	printf("%s\n", "(metadata - from byte 24)");
-	assert_int_equal(new.metadata.size_series, expected.metadata.size_series, "are size_series equal");
-	assert_int_equal(new.metadata.period_sec, expected.metadata.period_sec, "are periods equal");
-	assert_small_int_equal(new.metadata.n_additives, expected.metadata.n_additives, "are number of additive codes equal");
-	assert_int_arrays_equal(new.metadata.additive_codes, expected.metadata.additive_codes, new.metadata.n_additives.val, "are additive codes equal");
+	assert_metadata_equal(new.metadata, expected.metadata);
 
 	/* Series */
 	if (new.metadata.size_series.val == 0)
 		return 0;
 
 	h_and_meta_size = size_header() + size_medatata_t(new.metadata);
-	series_size		= size_series_t(new.header.n_chunks.val, new.series[0]);
+	series_size = size_series_t(new.header.n_chunks.val, new.series[0]);
 	for (uint32_t i = 0; i < new.metadata.size_series.val; i++) {
 		printf("(iteration %u - from byte %lu)\n", i, h_and_meta_size + (i * series_size));
 		assert_series_equal(new, new.series[i], expected.series[i]);

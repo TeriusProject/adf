@@ -49,11 +49,8 @@ void assert_int_arrays_equal(uint_t *x, uint_t *y, uint32_t size, const char *la
 void assert_real_arrays_equal(real_t *x, real_t *y, uint32_t size, const char *label);
 void assert_additive_arrays_equal(additive_t *x, additive_t *y, uint32_t size, const char *label);
 void assert_uint8_arrays_equal(uint8_t *x, uint8_t *y, uint32_t size, const char *label);
+void assert_header_equal(adf_header_t target, adf_header_t expected);
+void assert_metadata_equal(adf_meta_t target, adf_meta_t expected);
 void assert_series_equal(adf_t data, series_t x, series_t y);
-
-/* Utils */
-series_t get_series(void);
-series_t get_repeated_series(void);
-adf_t get_default_object(void);
 
 #endif /* __UTILS_H__ */

@@ -66,22 +66,32 @@ typedef enum code {
 	SERIES_CORRUPTED = 0x03u,
 
 	/*
+	 *
+	 */
+	ZERO_REPEATED_SERIES = 0x04u,
+
+	/*
+	 *
+	 */
+	EMPTY_SERIES = 0x05u,
+
+	/*
 	 * The most generic error code.
 	 */
 	RUNTIME_ERROR = 0xFFFFFFFFu
 } code_t;
 
-typedef union real {
+typedef union {
 	float val;
 	uint8_t bytes[4];
 } real_t;
 
-typedef union uint {
+typedef union {
 	uint32_t val;
 	uint8_t bytes[4];
 } uint_t;
 
-typedef union usmallint {
+typedef union {
 	uint16_t val;
 	uint8_t bytes[4];
 } uint_small_t;
@@ -171,7 +181,7 @@ typedef struct {
 	 * The main difference between size_series and n_series is that
 	 * size_series contains the size of the array `series`, while n_series
 	 * contains the overall number of series (counting duplicates as well).
-	 * This fiels won't be marshalled; it's computed on the fly during the
+	 * This field won't be marshalled; it's computed on the fly during the
 	 * unmarshalling procedure.
 	 */
 	size_t n_series;

@@ -407,14 +407,22 @@ static _Bool is_additive_new(uint_t *additives, uint16_t n_additives, additive_t
 
 int add_series(adf_t *adf, series_t series_to_add)
 {
-	series_t *last = adf->series + (adf->metadata.size_series.val - 1);
+	series_t *last;
 	cpy_2_bytes_fn = is_big_endian()
 						 ? &to_big_endian_2_bytes
 						 : &to_little_endian_2_bytes;
 
-	if (are_series_equal(*last, series_to_add, adf->header.n_chunks.val)) {
-		last->repeated.val += series_to_add.repeated.val;
-		return OK;
+	if (series_to_add.repeated.val == 0) {
+		return ZERO_REPEATED_SERIES;
+	}
+
+	if (adf->metadata.size_series.val > 0) {
+		last = adf->series + (adf->metadata.size_series.val - 1);
+		if (are_series_equal(*last, series_to_add, adf->header.n_chunks.val)) {
+			last->repeated.val += series_to_add.repeated.val;
+			adf->metadata.n_series += series_to_add.repeated.val;
+			return OK;
+		}
 	}
 
 	size_t new_size_series = (adf->metadata.size_series.val + 1) * sizeof(series_t);
@@ -475,6 +483,8 @@ int add_series(adf_t *adf, series_t series_to_add)
 	adf->series[adf->metadata.size_series.val] = series_to_add;
 	adf->metadata.size_series.val++;
 
+	adf->metadata.n_series += series_to_add.repeated.val;
+
 	free(soil_add);
 	free(atm_add);
 
@@ -483,13 +493,49 @@ int add_series(adf_t *adf, series_t series_to_add)
 
 int remove_series(adf_t *adf)
 {
-	series_t *last = adf->series + (adf->metadata.size_series.val - 1);
-	
+	series_t *last;
+
+	if (adf->metadata.size_series.val == 0) {
+		/* nothing to do here, just return an error code */
+		return EMPTY_SERIES;
+	}
+
+	last = adf->series + (adf->metadata.size_series.val - 1);
+
 	if (last->repeated.val > 1) {
 		adf->metadata.n_series--;
 		last->repeated.val--;
 		return OK;
 	}
 
-	
+	adf->metadata.n_series--;
+	adf->metadata.size_series.val--;
+	uint32_t new_size = adf->metadata.size_series.val;
+
+	if (new_size == 0) {
+		free(adf->series);
+		adf->series = NULL;
+		return OK;
+	}
+
+	adf->series = realloc(adf->series, new_size * sizeof(series_t));
+	if (!adf->series) return RUNTIME_ERROR;
+
+	return OK;
+}
+
+adf_header_t create_header()
+{
+	return (adf_header_t){
+		.signature = {__ADF_SIGNATURE__},
+		.version = __ADF_VERSION__,
+
+	};
+}
+
+adf_meta_t creat_metadata()
+{
+	return (adf_meta_t){
+
+	};
 }

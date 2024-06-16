@@ -126,6 +126,25 @@ void assert_additive_arrays_equal(additive_t *x, additive_t *y, uint32_t size, c
 	assert_true(are_additive_arrays_equal(x, y, size), label);
 }
 
+void assert_header_equal(adf_header_t target, adf_header_t expected)
+{
+	assert_int_equal(target.signature, expected.signature, "are signatures equals");
+	assert_true(target.version == expected.version, "are versions equals");
+	assert_true(target.farming_tec == expected.farming_tec, "are farming tecniques equals");
+	assert_int_equal(target.n_wavelength, expected.n_wavelength, "are n_wavelengths equal");
+	assert_int_equal(target.min_w_len_nm, expected.min_w_len_nm, "are min_w_len_nms equal");
+	assert_int_equal(target.max_w_len_nm, expected.max_w_len_nm, "are max_w_len_nms equal");
+	assert_int_equal(target.n_chunks, expected.n_chunks, "are n_chunks equal");
+}
+
+void assert_metadata_equal(adf_meta_t target, adf_meta_t expected)
+{
+	assert_int_equal(target.size_series, expected.size_series, "are size_series equal");
+	assert_int_equal(target.period_sec, expected.period_sec, "are periods equal");
+	assert_small_int_equal(target.n_additives, expected.n_additives, "are number of additive codes equal");
+	assert_int_arrays_equal(target.additive_codes, expected.additive_codes, target.n_additives.val, "are additive codes equal");
+}
+
 void assert_series_equal(adf_t data, series_t x, series_t y)
 {
 	assert_real_arrays_equal(x.light_exposure, y.light_exposure, data.header.n_chunks.val, "are light_exposures equal");
@@ -139,112 +158,4 @@ void assert_series_equal(adf_t data, series_t x, series_t y)
 	assert_additive_arrays_equal(x.soil_additives, y.soil_additives, x.n_soil_adds.val, "are soil additives equal");
 	assert_additive_arrays_equal(x.atm_additives, y.atm_additives, x.n_atm_adds.val, "are atmosphere additives equal");
 	assert_int_equal(x.repeated, y.repeated, "are repeated equal");
-}
-
-static real_t *get_real_array()
-{
-	real_t *light_mask = malloc(10 * sizeof(real_t));
-	float f = 0.0;
-	for (int i = 0; i < 10; i++, f += 0.25)
-		light_mask[i].val = f;
-	return light_mask;
-}
-
-series_t get_series(void)
-{
-	additive_t *add_code = malloc(sizeof(additive_t));
-	additive_t add_1 = {.code_idx = {2395}, .concentration = {1.234}};
-	*add_code = add_1;
-	return (series_t){
-		.light_exposure = get_real_array(),
-		.temp_celsius = get_real_array(),
-		.water_use_ml = get_real_array(),
-		.pH = 11,
-		.p_bar = {13.56789},
-		.soil_density_kg_m3 = {123.345},
-		.n_soil_adds = {1},
-		.n_atm_adds = {0},
-		.soil_additives = add_code,
-		.atm_additives = NULL,
-		.repeated = {1}
-	};
-}
-
-series_t get_repeated_series(void)
-{
-	additive_t *add_code = malloc(sizeof(additive_t));
-	additive_t add_1 = {.code_idx = {2345}, .concentration = {1.234}};
-	*add_code = add_1;
-	return (series_t){
-		.light_exposure = get_real_array(),
-		.temp_celsius = get_real_array(),
-		.water_use_ml = get_real_array(),
-		.pH = 7,
-		.p_bar = {0.4567},
-		.soil_density_kg_m3 = {678.345},
-		.n_soil_adds = {1},
-		.n_atm_adds = {0},
-		.soil_additives = add_code,
-		.atm_additives = NULL,
-		.repeated = {2}
-	};
-}
-
-adf_t get_default_object(void)
-{
-	additive_t *add_code = malloc(sizeof(additive_t));
-	additive_t add_1 = {.code_idx = {2345}, .concentration = {1.234}};
-	*add_code = add_1;
-	series_t iter1 = {
-		.light_exposure = get_real_array(),
-		.temp_celsius = get_real_array(),
-		.water_use_ml = get_real_array(),
-		.pH = 7,
-		.p_bar = {0},
-		.soil_density_kg_m3 = {0.345},
-		.n_soil_adds = {1},
-		.n_atm_adds = {0},
-		.soil_additives = add_code,
-		.atm_additives = NULL,
-		.repeated = {1}
-	};
-	series_t iter2 = {
-		.light_exposure = get_real_array(),
-		.temp_celsius = get_real_array(),
-		.water_use_ml = get_real_array(),
-		.pH = 7,
-		.p_bar = {0.4567},
-		.soil_density_kg_m3 = {678.345},
-		.n_soil_adds = {1},
-		.n_atm_adds = {0},
-		.soil_additives = add_code,
-		.atm_additives = NULL,
-		.repeated = {3}
-	};
-	series_t *series = malloc(2 * sizeof(series_t));
-	*series = iter1;
-	*(series + 1) = iter2;
-	uint_t *codes = malloc(sizeof(uint_t));
-	*codes = (uint_t){2345};
-	adf_meta_t metadata = {
-		.period_sec = {1345},
-		.n_additives = {1},
-		.size_series = {2},
-		.additive_codes = codes
-	};
-	adf_header_t header = {
-		.signature = {__ADF_SIGNATURE__},
-		.version = __ADF_VERSION__,
-		.farming_tec = 3,
-		.min_w_len_nm = {0},
-		.max_w_len_nm = {10000},
-		.n_chunks = {10},
-		.n_wavelength = {10}
-	};
-	adf_t format = {
-		.header = header,
-		.metadata = metadata,
-		.series = series
-	};
-	return format;
 }

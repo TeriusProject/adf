@@ -20,6 +20,7 @@
  */
 
 #include "../src/adf.h"
+#include "mock.h"
 #include "test.h"
 #include <stdio.h>
 
