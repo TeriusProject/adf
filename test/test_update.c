@@ -35,7 +35,7 @@ void test_add_series(void)
 	if (res != OK) {
 		printf("Error during update. Error code [%u]", res);
 	}
-	uint_t expected_series_size = {3};
+	uint_t expected_series_size = { 3 };
 	assert_int_equal(
 		adf.metadata.size_series,
 		expected_series_size,
@@ -57,14 +57,14 @@ void test_add_repeated_series(void)
 	if (res != OK) {
 		printf("Error during update. Error code [%u]", res);
 	}
-	uint_t expected_series_size = {2};
+	uint_t expected_series_size = { 2 };
 	assert_int_equal(
 		adf.metadata.size_series,
 		expected_series_size,
 		"The size of series array is 2"
 	);
 
-	uint_t expected_repeated_last_series = {5};
+	uint_t expected_repeated_last_series = { 5 };
 	series_t last = adf.series[adf.metadata.size_series.val - 1];
 	assert_int_equal(
 		last.repeated,
@@ -93,14 +93,14 @@ void test_add_repeated_and_non_repeated_series(void)
 		printf("Error during update. Error code [%u]", res);
 	}
 
-	uint_t expected_series_size = {4};
+	uint_t expected_series_size = { 4 };
 	assert_int_equal(
 		adf.metadata.size_series,
 		expected_series_size,
 		"The size of series array is 4"
 	);
 
-	uint_t expected_repeated_last_series = {2};
+	uint_t expected_repeated_last_series = { 2 };
 	series_t last = adf.series[adf.metadata.size_series.val - 1];
 	assert_int_equal(
 		last.repeated,
@@ -123,7 +123,7 @@ void test_add_to_empty_series(void)
 	if (res != OK) {
 		printf("Error during update. Error code [%u]", res);
 	}
-	uint_t expected_series_size = {1};
+	uint_t expected_series_size = { 1 };
 	assert_int_equal(
 		adf.metadata.size_series,
 		expected_series_size,
@@ -145,7 +145,7 @@ void test_delete_repeated_series(void)
 		printf("Error during delete. Error code [%u]", res);
 	}
 
-	uint_t expected_series_size = {2};
+	uint_t expected_series_size = { 2 };
 	assert_int_equal(
 		adf.metadata.size_series,
 		expected_series_size,
@@ -166,7 +166,7 @@ void test_delete(void)
 		printf("Error during delete. Error code [%u]", res);
 	}
 
-	uint_t expected_size_series = {2};
+	uint_t expected_size_series = { 2 };
 	assert_int_equal(
 		adf.metadata.size_series,
 		expected_size_series,
@@ -202,7 +202,7 @@ void test_delete_last_series(void)
 		}
 	}
 
-	uint_t expected_size_series = {0};
+	uint_t expected_size_series = { 0 };
 	assert_int_equal(
 		adf.metadata.size_series,
 		expected_size_series,

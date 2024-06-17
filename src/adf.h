@@ -1,4 +1,5 @@
 /*
+ * adf.h
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -10,7 +11,7 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * Teriusis distributed in the hope that it will be useful,
+ * Terius is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -44,7 +45,7 @@ extern "C" {
 /*
  * It represents the exit code of ...
  */
-typedef enum code {
+typedef enum {
 	/*
 	 * No errors detected
 	 */
@@ -76,10 +77,21 @@ typedef enum code {
 	EMPTY_SERIES = 0x05u,
 
 	/*
+	 *
+	 */
+	ZERO_PERIOD_ERROR = 0x06,
+
+	/*
 	 * The most generic error code.
 	 */
 	RUNTIME_ERROR = 0xFFFFFFFFu
 } code_t;
+
+typedef struct {
+	char *msg;
+	size_t len_msg;
+	code_t code;
+} return_code_t;
 
 typedef union {
 	float val;
@@ -184,14 +196,15 @@ typedef struct {
 	 * This field won't be marshalled; it's computed on the fly during the
 	 * unmarshalling procedure.
 	 */
-	size_t n_series;
+	uint32_t n_series;
 
 	/*
-	 * It represents the time (measured in seconds) period to
-	 * which the data refer.
-	 *         0 <= period_sec <= 49,640 days
+	 * It represents the time (measured in seconds) that each series last. The
+	 * total time elapsed (in seconds) is given by the period multiplied by
+	 * the number of the series, including each repetition. Each seriescan last
+	 * up to 65,535 seconds (approx. 18 hours)
 	 */
-	uint_t period_sec;
+	uint_small_t period_sec;
 
 	/*
 	 *
@@ -202,7 +215,7 @@ typedef struct {
 	 *
 	 */
 	uint_t *additive_codes;
-} adf_meta_t;
+} __attribute__((packed)) adf_meta_t;
 
 typedef struct {
 	/*
