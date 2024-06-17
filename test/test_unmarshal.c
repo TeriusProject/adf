@@ -50,7 +50,10 @@ int main()
 
 	printf("expected bytes: %zu\n", size_adf_t(expected));
 	printf("read bytes: %ld\n", file_len);
-	assert_true(size_adf_t(expected) == (unsigned long)file_len, "are byte arrays of the same length");
+	assert_true(
+		size_adf_t(expected) == (unsigned long)file_len,
+		"are byte arrays of the same length"
+	);
 
 	adf_t new;
 	long res = unmarshal(&new, bytes);
@@ -68,13 +71,15 @@ int main()
 	assert_metadata_equal(new.metadata, expected.metadata);
 
 	/* Series */
-	if (new.metadata.size_series.val == 0)
-		return 0;
+	if (new.metadata.size_series.val == 0) return 0;
 
 	h_and_meta_size = size_header() + size_medatata_t(new.metadata);
 	series_size = size_series_t(new.header.n_chunks.val, new.series[0]);
 	for (uint32_t i = 0; i < new.metadata.size_series.val; i++) {
-		printf("(iteration %u - from byte %lu)\n", i, h_and_meta_size + (i * series_size));
+		printf(
+			"(iteration %u - from byte %lu)\n", i,
+			h_and_meta_size + (i * series_size)
+		);
 		assert_series_equal(new, new.series[i], expected.series[i]);
 	}
 }

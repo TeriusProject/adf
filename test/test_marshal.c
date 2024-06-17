@@ -58,6 +58,10 @@ int main()
 	}
 
 	/* compare byte arrays */
-	assert_long_equal(file_len, size_adf_t(obj), "are byte arrays of the same length");
-	assert_uint8_arrays_equal(file_bytes, bytes, file_len, "are byte arrays equal");
+	assert_long_equal(
+		file_len, size_adf_t(obj), "are byte arrays of the same length"
+	);
+	assert_uint8_arrays_equal(
+		file_bytes, bytes, file_len, "are byte arrays equal"
+	);
 }
