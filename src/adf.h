@@ -30,20 +30,21 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdlib.h>
-#ifdef __EMSCRIPTEN__
-#include <emscripten/emscripten.h>
-#endif /* __EMSCRIPTEN__ */
 
+/* The (hex) bytes of `@ADF` */
 #define __ADF_SIGNATURE__ 0x40414446u
 
-/* Versions are numbered in progressive way. */
+/*
+ * Version is an unsigned int between 0 and 255. Versions are numbered in
+ * progressive way, without any distinction between major and minor releases.
+ */
 #define __ADF_VERSION__ 0x01u
 
 /* Used for the comparison of floating point numbers */
 #define EPSILON 1e-6
 
 /*
- * It represents the exit code of ...
+ * It contains the exit code of the functions that handle the adf_t structure.
  */
 typedef enum {
 	/*
@@ -52,34 +53,33 @@ typedef enum {
 	OK = 0x00u,
 
 	/*
-	 *
+	 * Returned during unmarshalling, when the checksum included in the last
+	 * two bytes of the header doesn't match with that calculated on the fly.
 	 */
 	HEADER_CORRUPTED = 0x01u,
 
 	/*
-	 *
+	 * Returned during unmarshalling, when the checksum included in the last
+	 * two bytes of the metadata doesn't match with that calculated on the fly.
 	 */
 	METADATA_CORRUPTED = 0x02u,
 
 	/*
-	 *
+	 * Returned during unmarshalling, when the checksum included in the last
+	 * two bytes of the header doesn't match with that calculated on the fly.
 	 */
 	SERIES_CORRUPTED = 0x03u,
 
 	/*
-	 *
+	 * Returned when the field `repeated` in type series_t is set to 0.
 	 */
 	ZERO_REPEATED_SERIES = 0x04u,
 
 	/*
-	 *
+	 * Returned in the delete_series function, when you are trying to delete
+	 * a series, but the collection is empty.
 	 */
 	EMPTY_SERIES = 0x05u,
-
-	/*
-	 *
-	 */
-	ZERO_PERIOD_ERROR = 0x06,
 
 	/*
 	 * The most generic error code.
@@ -118,55 +118,55 @@ typedef struct {
 } additive_t;
 
 /*
- * A structure that contains the data series of each iteration
+ * A structure that contains the data series.
  */
 typedef struct {
 
 	/*
 	 * It represents the series of data collecting the energy flux
-	 * of light radiation measured in W/m2 and divided in n_chunks
+	 * of light radiation measured in W/m2 and divided in n_chunks.
 	 */
 	real_t *light_exposure;
 
 	/*
 	 * It represents the series of data collecting the temperature
-	 * measured in ºC and divided in n_chunks
+	 * measured in ºC and divided in n_chunks.
 	 */
 	real_t *temp_celsius;
 
 	/*
 	 * It represents the series of data collecting the water use
-	 * measured in milliliters and divided in n_chunks
+	 * measured in milliliters and divided in n_chunks.
 	 */
 	real_t *water_use_ml;
 
 	/*
-	 * pH of the soil. The data is stored as an 8-byte integer.
+	 * *Average* pH of the soil. The data is stored as an 8-byte integer.
 	 */
 	uint8_t pH;
 
 	/*
-	 * Atmosferic pressure measured in bar.
+	 * *Average* atmosferic pressure measured in bar.
 	 */
 	real_t p_bar;
 
 	/*
-	 *
+	 * *Average* soil density measured in kg/m3
 	 */
 	real_t soil_density_kg_m3;
 
 	/*
-	 *
+	 * The number of elements of the array `soil_additives`.
 	 */
 	uint_small_t n_soil_adds;
 
 	/*
-	 *
+	 * The number of elements of the array ``atm_additives`.
 	 */
 	uint_small_t n_atm_adds;
 
 	/*
-	 *
+	 * 
 	 */
 	additive_t *soil_additives;
 
@@ -176,7 +176,9 @@ typedef struct {
 	additive_t *atm_additives;
 
 	/*
-	 *
+	 * The number of times this series is repeated consecutively. The number 0
+	 * is not allowed. Set this field to 0 cause the ZERO_REPEATED_SERIES to
+	 * be returned.
 	 */
 	uint_t repeated;
 } __attribute__((packed)) series_t;
@@ -201,18 +203,18 @@ typedef struct {
 	/*
 	 * It represents the time (measured in seconds) that each series last. The
 	 * total time elapsed (in seconds) is given by the period multiplied by
-	 * the number of the series, including each repetition. Each seriescan last
+	 * the number of the series, including each repetition. Each series can last
 	 * up to 65,535 seconds (approx. 18 hours)
 	 */
 	uint_small_t period_sec;
 
 	/*
-	 *
+	 * Contains the number of elements of the array `additive_codes`.
 	 */
 	uint_small_t n_additives;
 
 	/*
-	 *
+	 * Contains the code of 
 	 */
 	uint_t *additive_codes;
 } __attribute__((packed)) adf_meta_t;
@@ -238,9 +240,9 @@ typedef struct {
 	uint8_t farming_tec;
 
 	/*
-	 * A 4 byte unsigned integer that represents the number
-	 * of steps in which the light spectrum is divided. The
-	 * spectrum represented here is bounded between:
+	 * A 4 byte unsigned integer that represents the number of steps in which
+	 * the light spectrum is (equally) divided. The spectrum represented here
+	 * is bounded between:
 	 *         [min_w_len_nm, max_w_len_nm]
 	 */
 	uint_t n_wavelength;
@@ -256,26 +258,16 @@ typedef struct {
 	uint_t max_w_len_nm;
 
 	/*
-	 * The number of chunks in which each data series is
-	 * (equally) divided
+	 * The number of chunks in which each data series is (equally) divided
 	 */
 	uint_t n_chunks;
-} adf_header_t;
+} __attribute__((packed)) adf_header_t;
 
 /*
- * The structure that contains all the data referred to a
- * fixed period of time.
+ * The structure that contains all the ADF data.
  */
 typedef struct {
-
-	/*
-	 *
-	 */
 	adf_header_t header;
-
-	/*
-	 *
-	 */
 	adf_meta_t metadata;
 
 	/*
@@ -288,56 +280,58 @@ typedef struct {
 /*
  * Returns the current version of ADF.
  */
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif /* __EMSCRIPTEN__ */
-unsigned get_version(void);
+uint8_t get_version(void);
 
 /*
- * The size (bytes) of the adf header, including its crc field
+ * The size (bytes) of the adf header, including its crc field.
+ * IMPORTANT: This is *not* the size of the struct adf_header_t; this is the
+ * size of the serialized header data. The actual size in memory of the
+ * adf_header_t structure may be bigger, due to some redundant fields that
+ * speed up the mashalling and unmarshalling process. 
  */
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif /* __EMSCRIPTEN__ */
 size_t size_header(void);
-
+	
 /*
- * The size (bytes) of the adf metadata section, including
- * its crc field
+ * The size (bytes) of the adf metadata section, including its crc field.
+ * IMPORTANT: This is *not* the size of the struct adf_meta_t; this is the
+ * size of the serialized metadata section. The actual size in memory of the
+ * adf_meta_t structure may be bigger, due to some redundant fields that
+ * speed up the mashalling and unmarshalling process. 
  */
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif /* __EMSCRIPTEN__ */
 size_t size_medatata_t(adf_meta_t);
 
 /*
- * The size (bytes) of *one* adf series, including the crc field.
- * Since all the series have the same size,
+ * The size (bytes) of *one* adf series, including the crc field. It takes the
+ * number of chunks (i.e. the number of iterations in which some measures are
+ * taken in the series) as the first parameter, and a series as the second.
+ * Since all the series have the same size, we can get the size of all the
+ * series block by multiplying this value with the field `size_series` in
+ * metadata.  
+ * IMPORTANT: This is *not* the size of the struct series_t; this is the
+ * size of each serialized series. The actual size in memory of the series_t
+ * structure may be bigger, due to some redundant fields that speed up the
+ * mashalling and unmarshalling process. 
  */
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif /* __EMSCRIPTEN__ */
 size_t size_series_t(uint32_t, series_t);
 
 /*
- * The size (bytes) of the adf object, including all the crc fields
+ * The size (bytes) of the adf object, including all the crc fields.
+ * IMPORTANT: This is *not* the size of the struct adf_t; this is the size of
+ * the serialized object as a whole. The actual size in memory of the adf_t
+ * structure may be bigger, due to some redundant fields that speed up
+ * the mashalling and unmarshalling process. 
  */
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif /* __EMSCRIPTEN__ */
 size_t size_adf_t(adf_t);
 
 /*
- * It returns a pointer to a chunk of memory that could contain
- * the bytes serialization of an adf object.
+ * It returns a pointer to a chunk of memory that could contain the bytes
+ * serialization of an adf object. The size of the returned byte array is
+ * `size_adf_t`.
  */
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif /* __EMSCRIPTEN__ */
 uint8_t *bytes_alloc(adf_t);
 
 /*
- *
+ * 
  */
 int add_series(adf_t *, series_t);
 
@@ -349,34 +343,26 @@ int remove_series(adf_t *);
 /*
  *
  */
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif /* __EMSCRIPTEN__ */
 int marshal(uint8_t *, adf_t);
 
 /*
  *
  */
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif /* __EMSCRIPTEN__ */
 int unmarshal(adf_t *, const uint8_t *);
 
 /*
  *
  */
-adf_header_t create_header(
-	uint8_t farming_tec, uint32_t n_chunks, uint32_t min_w_len_nm,
-	uint32_t max_w_len_nm, uint32_t n_wavelrngth
-);
+adf_header_t create_header(uint8_t farming_tec, uint32_t n_chunks,
+						   uint32_t min_w_len_nm, uint32_t max_w_len_nm,
+						   uint32_t n_wavelrngth);
 
 /*
  *
  */
-adf_meta_t create_metadata(
-	uint32_t *additive_codes, uint16_t n_additives, uint32_t size_series,
-	uint32_t n_series, uint16_t period_sec
-);
+adf_meta_t create_metadata(uint32_t *additive_codes, uint16_t n_additives,
+						   uint32_t size_series, uint32_t n_series,
+						   uint16_t period_sec);
 
 /*
  *

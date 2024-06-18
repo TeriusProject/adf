@@ -71,7 +71,7 @@ static void to_little_endian_2_bytes(uint8_t *dest, const uint8_t *source)
 	*(dest + 1) = *source;
 }
 
-unsigned get_version(void) { return __ADF_VERSION__; }
+uint8_t get_version(void) { return __ADF_VERSION__; }
 
 size_t size_series_t(uint32_t n_chunks, series_t series)
 {
@@ -126,7 +126,7 @@ uint8_t *bytes_alloc(adf_t data) { return (uint8_t *)malloc(size_adf_t(data)); }
 int marshal(uint8_t *bytes, adf_t data)
 {
 	size_t byte_c = 0;
-	uint_small_t crc_16bits = { 0xFFFF };
+	uint_small_t crc_16bits;
 	cpy_4_bytes_fn = is_big_endian() ? &to_big_endian_4_bytes
 									 : &to_little_endian_4_bytes;
 	cpy_2_bytes_fn = is_big_endian() ? &to_big_endian_2_bytes
