@@ -112,8 +112,8 @@ size_t size_header(void)
 
 size_t size_adf_t(adf_t data)
 {
-	const size_t head_metadata_size = size_header()
-									  + size_medatata_t(data.metadata);
+	const size_t head_metadata_size
+		= size_header() + size_medatata_t(data.metadata);
 	size_t series_size = 0;
 	for (uint32_t i = 0, l = data.metadata.size_series.val; i < l; i++) {
 		series_size += size_series_t(data.header.n_chunks.val, data.series[i]);
@@ -127,10 +127,10 @@ int marshal(uint8_t *bytes, adf_t data)
 {
 	size_t byte_c = 0;
 	uint_small_t crc_16bits;
-	cpy_4_bytes_fn = is_big_endian() ? &to_big_endian_4_bytes
-									 : &to_little_endian_4_bytes;
-	cpy_2_bytes_fn = is_big_endian() ? &to_big_endian_2_bytes
-									 : &to_little_endian_2_bytes;
+	cpy_4_bytes_fn
+		= is_big_endian() ? &to_big_endian_4_bytes : &to_little_endian_4_bytes;
+	cpy_2_bytes_fn
+		= is_big_endian() ? &to_big_endian_2_bytes : &to_little_endian_2_bytes;
 	if (!bytes) return RUNTIME_ERROR;
 	cpy_4_bytes_fn((bytes + byte_c), data.header.signature.bytes);
 	SHIFT_COUNTER(4);
@@ -172,16 +172,14 @@ int marshal(uint8_t *bytes, adf_t data)
 		if (!current.light_exposure) return RUNTIME_ERROR;
 		for (uint32_t mask_i = 0; mask_i < data.header.n_chunks.val;
 			 mask_i++, byte_c += 4) {
-			cpy_4_bytes_fn(
-				(bytes + byte_c), current.light_exposure[mask_i].bytes
-			);
+			cpy_4_bytes_fn((bytes + byte_c),
+						   current.light_exposure[mask_i].bytes);
 		}
 		if (!current.temp_celsius) return RUNTIME_ERROR;
 		for (uint32_t temp_i = 0; temp_i < data.header.n_chunks.val;
 			 temp_i++, byte_c += 4) {
-			cpy_4_bytes_fn(
-				(bytes + byte_c), current.temp_celsius[temp_i].bytes
-			);
+			cpy_4_bytes_fn((bytes + byte_c),
+						   current.temp_celsius[temp_i].bytes);
 		}
 		if (!current.water_use_ml) return RUNTIME_ERROR;
 		for (uint32_t w_i = 0; w_i < data.header.n_chunks.val;
@@ -199,23 +197,19 @@ int marshal(uint8_t *bytes, adf_t data)
 		cpy_2_bytes_fn((bytes + byte_c), current.n_atm_adds.bytes);
 		SHIFT_COUNTER(2);
 		for (uint16_t j = 0, l = current.n_soil_adds.val; j < l; j++) {
-			cpy_2_bytes_fn(
-				(bytes + byte_c), current.soil_additives[j].code_idx.bytes
-			);
+			cpy_2_bytes_fn((bytes + byte_c),
+						   current.soil_additives[j].code_idx.bytes);
 			SHIFT_COUNTER(2);
-			cpy_4_bytes_fn(
-				(bytes + byte_c), current.soil_additives[j].concentration.bytes
-			);
+			cpy_4_bytes_fn((bytes + byte_c),
+						   current.soil_additives[j].concentration.bytes);
 			SHIFT_COUNTER(4);
 		}
 		for (uint16_t j = 0, l = current.n_atm_adds.val; j < l; j++) {
-			cpy_2_bytes_fn(
-				(bytes + byte_c), current.atm_additives[j].code_idx.bytes
-			);
+			cpy_2_bytes_fn((bytes + byte_c),
+						   current.atm_additives[j].code_idx.bytes);
 			SHIFT_COUNTER(2);
-			cpy_4_bytes_fn(
-				(bytes + byte_c), current.atm_additives[j].concentration.bytes
-			);
+			cpy_4_bytes_fn((bytes + byte_c),
+						   current.atm_additives[j].concentration.bytes);
 			SHIFT_COUNTER(4);
 		}
 		cpy_4_bytes_fn((bytes + byte_c), current.repeated.bytes);
@@ -232,10 +226,10 @@ int unmarshal(adf_t *adf, const uint8_t *bytes)
 {
 	size_t byte_c = 0;
 	uint_small_t expected_crc;
-	cpy_4_bytes_fn = is_big_endian() ? &to_big_endian_4_bytes
-									 : &to_little_endian_4_bytes;
-	cpy_2_bytes_fn = is_big_endian() ? &to_big_endian_2_bytes
-									 : &to_little_endian_2_bytes;
+	cpy_4_bytes_fn
+		= is_big_endian() ? &to_big_endian_4_bytes : &to_little_endian_4_bytes;
+	cpy_2_bytes_fn
+		= is_big_endian() ? &to_big_endian_2_bytes : &to_little_endian_2_bytes;
 
 	if (!bytes || !adf) return RUNTIME_ERROR;
 
@@ -281,8 +275,8 @@ int unmarshal(adf_t *adf, const uint8_t *bytes)
 
 	if (meta_crc != expected_crc.val) return METADATA_CORRUPTED;
 
-	if (!(adf->series = malloc(adf->metadata.size_series.val * sizeof(series_t))
-		))
+	if (!(adf->series
+		  = malloc(adf->metadata.size_series.val * sizeof(series_t))))
 		return RUNTIME_ERROR;
 
 	for (uint32_t i = 0, n_iter = adf->metadata.size_series.val; i < n_iter;
@@ -303,15 +297,13 @@ int unmarshal(adf_t *adf, const uint8_t *bytes)
 
 		for (u_int32_t mask_i = 0; mask_i < adf->header.n_chunks.val;
 			 mask_i++, byte_c += 4) {
-			cpy_4_bytes_fn(
-				current.light_exposure[mask_i].bytes, (bytes + byte_c)
-			);
+			cpy_4_bytes_fn(current.light_exposure[mask_i].bytes,
+						   (bytes + byte_c));
 		}
 		for (u_int32_t temp_i = 0; temp_i < adf->header.n_chunks.val;
 			 temp_i++, byte_c += 4) {
-			cpy_4_bytes_fn(
-				current.temp_celsius[temp_i].bytes, (bytes + byte_c)
-			);
+			cpy_4_bytes_fn(current.temp_celsius[temp_i].bytes,
+						   (bytes + byte_c));
 		}
 		for (u_int32_t w_i = 0; w_i < adf->header.n_chunks.val;
 			 w_i++, byte_c += 4) {
@@ -339,29 +331,25 @@ int unmarshal(adf_t *adf, const uint8_t *bytes)
 
 		uint16_t code_idx;
 		for (uint16_t j = 0, l = current.n_soil_adds.val; j < l; j++) {
-			cpy_2_bytes_fn(
-				current.soil_additives[j].code_idx.bytes, (bytes + byte_c)
-			);
+			cpy_2_bytes_fn(current.soil_additives[j].code_idx.bytes,
+						   (bytes + byte_c));
 			code_idx = current.soil_additives[j].code_idx.val;
 			current.soil_additives[j].code.val
 				= adf->metadata.additive_codes[code_idx].val;
 			SHIFT_COUNTER(2);
-			cpy_4_bytes_fn(
-				current.soil_additives[j].concentration.bytes, (bytes + byte_c)
-			);
+			cpy_4_bytes_fn(current.soil_additives[j].concentration.bytes,
+						   (bytes + byte_c));
 			SHIFT_COUNTER(4);
 		}
 		for (uint16_t j = 0, l = current.n_atm_adds.val; j < l; j++) {
-			cpy_2_bytes_fn(
-				current.atm_additives[j].code_idx.bytes, (bytes + byte_c)
-			);
+			cpy_2_bytes_fn(current.atm_additives[j].code_idx.bytes,
+						   (bytes + byte_c));
 			code_idx = current.atm_additives[j].code_idx.val;
 			current.atm_additives[j].code.val
 				= adf->metadata.additive_codes[code_idx].val;
 			SHIFT_COUNTER(2);
-			cpy_4_bytes_fn(
-				current.atm_additives[j].concentration.bytes, (bytes + byte_c)
-			);
+			cpy_4_bytes_fn(current.atm_additives[j].concentration.bytes,
+						   (bytes + byte_c));
 			SHIFT_COUNTER(4);
 		}
 		cpy_4_bytes_fn(current.repeated.bytes, (bytes + byte_c));
@@ -400,10 +388,8 @@ _Bool are_series_equal(series_t first, series_t second, uint32_t n_chunks)
 	if (!int_fields_eq) return false;
 
 	_Bool real_fields_eq = are_reals_equal(first.p_bar, second.p_bar)
-						   && are_reals_equal(
-							   first.soil_density_kg_m3,
-							   second.soil_density_kg_m3
-						   );
+						   && are_reals_equal(first.soil_density_kg_m3,
+											  second.soil_density_kg_m3);
 
 	if (!real_fields_eq) return false;
 
@@ -411,30 +397,28 @@ _Bool are_series_equal(series_t first, series_t second, uint32_t n_chunks)
 	for (uint32_t i = 0; i < n_chunks; i++) {
 		if (!(are_reals_equal(first.light_exposure[i], second.light_exposure[i])
 			  && are_reals_equal(first.temp_celsius[i], second.temp_celsius[i])
-			  && are_reals_equal(first.water_use_ml[i], second.water_use_ml[i])
-			))
+			  && are_reals_equal(first.water_use_ml[i],
+								 second.water_use_ml[i])))
 			return false;
 	}
 
 	for (uint16_t i = 0, l = first.n_soil_adds.val; i < l; i++) {
-		if (!are_additive_t_equal(
-				first.soil_additives[i], second.soil_additives[i]
-			))
+		if (!are_additive_t_equal(first.soil_additives[i],
+								  second.soil_additives[i]))
 			return false;
 	}
 
 	for (uint16_t i = 0, l = first.n_atm_adds.val; i < l; i++) {
-		if (!are_additive_t_equal(
-				first.atm_additives[i], second.atm_additives[i]
-			))
+		if (!are_additive_t_equal(first.atm_additives[i],
+								  second.atm_additives[i]))
 			return false;
 	}
 
 	return true;
 }
 
-static _Bool
-is_additive_new(uint_t *additives, uint16_t n_additives, additive_t target)
+static _Bool is_additive_new(uint_t *additives, uint16_t n_additives,
+							 additive_t target)
 {
 	for (uint16_t i = 0; i < n_additives; i++) {
 		if (target.code.val == additives[i].val) return false;
@@ -445,8 +429,8 @@ is_additive_new(uint_t *additives, uint16_t n_additives, additive_t target)
 int add_series(adf_t *adf, series_t series_to_add)
 {
 	series_t *last;
-	cpy_2_bytes_fn = is_big_endian() ? &to_big_endian_2_bytes
-									 : &to_little_endian_2_bytes;
+	cpy_2_bytes_fn
+		= is_big_endian() ? &to_big_endian_2_bytes : &to_little_endian_2_bytes;
 
 	if (series_to_add.repeated.val == 0) { return ZERO_REPEATED_SERIES; }
 
@@ -459,8 +443,8 @@ int add_series(adf_t *adf, series_t series_to_add)
 		}
 	}
 
-	size_t new_size_series = (adf->metadata.size_series.val + 1)
-							 * sizeof(series_t);
+	size_t new_size_series
+		= (adf->metadata.size_series.val + 1) * sizeof(series_t);
 	adf->series = realloc(adf->series, new_size_series);
 	if (!adf->series) { return RUNTIME_ERROR; }
 
@@ -474,10 +458,9 @@ int add_series(adf_t *adf, series_t series_to_add)
 	if (series_to_add.n_soil_adds.val > 0) {
 		for (uint16_t n_soil = 0, l = series_to_add.n_soil_adds.val; n_soil < l;
 			 n_soil++) {
-			if (is_additive_new(
-					adf->metadata.additive_codes, adf->metadata.n_additives.val,
-					series_to_add.soil_additives[n_soil]
-				)) {
+			if (is_additive_new(adf->metadata.additive_codes,
+								adf->metadata.n_additives.val,
+								series_to_add.soil_additives[n_soil])) {
 				soil_add[soil_addtocopy_idx]
 					= series_to_add.soil_additives[n_soil];
 				soil_addtocopy_idx++;
@@ -488,10 +471,9 @@ int add_series(adf_t *adf, series_t series_to_add)
 	if (series_to_add.n_atm_adds.val > 0) {
 		for (uint16_t n_atm = 0; n_atm < adf->metadata.n_additives.val;
 			 n_atm++) {
-			if (is_additive_new(
-					adf->metadata.additive_codes, adf->metadata.n_additives.val,
-					series_to_add.atm_additives[n_atm]
-				)) {
+			if (is_additive_new(adf->metadata.additive_codes,
+								adf->metadata.n_additives.val,
+								series_to_add.atm_additives[n_atm])) {
 				atm_add[atm_addtocopy_idx] = series_to_add.atm_additives[n_atm];
 				atm_addtocopy_idx++;
 			}
@@ -499,8 +481,8 @@ int add_series(adf_t *adf, series_t series_to_add)
 	}
 
 	uint16_t items_to_add = soil_addtocopy_idx + atm_addtocopy_idx;
-	size_t new_size_additives = (adf->metadata.n_additives.val + items_to_add)
-								* sizeof(uint_t);
+	size_t new_size_additives
+		= (adf->metadata.n_additives.val + items_to_add) * sizeof(uint_t);
 	adf->metadata.additive_codes
 		= realloc(adf->metadata.additive_codes, new_size_additives);
 	if (!adf->metadata.additive_codes) return RUNTIME_ERROR;
@@ -559,10 +541,41 @@ int remove_series(adf_t *adf)
 	return OK;
 }
 
-adf_header_t create_header(
-	uint8_t farming_tec, uint32_t n_chunks, uint32_t min_w_len_nm,
-	uint32_t max_w_len_nm, uint32_t n_wavelrngth
-)
+int update_series(adf_t *adf, series_t series, uint64_t time)
+{
+	uint16_t series_period = adf->metadata.period_sec.val;
+	uint64_t max_time = series_period * adf->metadata.n_series,
+			 lower_bound_nth_series = 0, upper_bound_nth_series = 0;
+
+	if (time > max_time) return TIME_OUT_OF_BOUND;
+
+	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
+		lower_bound_nth_series = upper_bound_nth_series;
+		upper_bound_nth_series = (adf->series[i].repeated.val * series_period);
+		if (time >= lower_bound_nth_series && time < upper_bound_nth_series)
+			*(adf->series + 1) = series;
+	}
+	return OK;
+}
+
+int reindex_additives(adf_t *adf)
+{
+	uint_t *additives;
+	if (adf->metadata.n_series.val == 0) {
+		adf->metadata.additive_codes = NULL;
+		adf->metadata.n_additives = { 0 };
+		return OK;
+	}
+	additives = malloc(adf->metadata.n_additives.val * sizeof(uint_t));
+	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
+		// adf->series[i].soil_additives 
+	}
+	return OK;
+}
+
+adf_header_t create_header(uint8_t farming_tec, uint32_t n_chunks,
+						   uint32_t min_w_len_nm, uint32_t max_w_len_nm,
+						   uint32_t n_wavelrngth)
 {
 	return (adf_header_t){ .signature = { __ADF_SIGNATURE__ },
 						   .version = __ADF_VERSION__,
@@ -573,10 +586,9 @@ adf_header_t create_header(
 						   .n_chunks = { n_chunks } };
 }
 
-adf_meta_t create_metadata(
-	uint32_t *additive_codes, uint16_t n_additives, uint32_t size_series,
-	uint32_t n_series, uint16_t period_sec
-)
+adf_meta_t create_metadata(uint32_t *additive_codes, uint16_t n_additives,
+						   uint32_t size_series, uint32_t n_series,
+						   uint16_t period_sec)
 {
 	return (adf_meta_t){ .additive_codes = additive_codes,
 						 .n_additives = n_additives,

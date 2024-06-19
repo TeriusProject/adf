@@ -82,9 +82,16 @@ typedef enum {
 	EMPTY_SERIES = 0x05u,
 
 	/*
+	 * Returned when you are trying to select a series (tipically for update),
+	 * by specifying a time (in seconds) that is greater than the `period_sec`
+	 * contained in the metadata section.
+	 */
+	TIME_OUT_OF_BOUND = 0x06u,
+
+	/*
 	 * The most generic error code.
 	 */
-	RUNTIME_ERROR = 0xFFFFFFFFu
+	RUNTIME_ERROR = 0xFFFFu
 } code_t;
 
 typedef struct {
@@ -166,7 +173,7 @@ typedef struct {
 	uint_small_t n_atm_adds;
 
 	/*
-	 * 
+	 *
 	 */
 	additive_t *soil_additives;
 
@@ -214,7 +221,7 @@ typedef struct {
 	uint_small_t n_additives;
 
 	/*
-	 * Contains the code of 
+	 * Contains the code of
 	 */
 	uint_t *additive_codes;
 } __attribute__((packed)) adf_meta_t;
@@ -287,16 +294,16 @@ uint8_t get_version(void);
  * IMPORTANT: This is *not* the size of the struct adf_header_t; this is the
  * size of the serialized header data. The actual size in memory of the
  * adf_header_t structure may be bigger, due to some redundant fields that
- * speed up the mashalling and unmarshalling process. 
+ * speed up the mashalling and unmarshalling process.
  */
 size_t size_header(void);
-	
+
 /*
  * The size (bytes) of the adf metadata section, including its crc field.
  * IMPORTANT: This is *not* the size of the struct adf_meta_t; this is the
  * size of the serialized metadata section. The actual size in memory of the
  * adf_meta_t structure may be bigger, due to some redundant fields that
- * speed up the mashalling and unmarshalling process. 
+ * speed up the mashalling and unmarshalling process.
  */
 size_t size_medatata_t(adf_meta_t);
 
@@ -306,11 +313,11 @@ size_t size_medatata_t(adf_meta_t);
  * taken in the series) as the first parameter, and a series as the second.
  * Since all the series have the same size, we can get the size of all the
  * series block by multiplying this value with the field `size_series` in
- * metadata.  
+ * metadata.
  * IMPORTANT: This is *not* the size of the struct series_t; this is the
  * size of each serialized series. The actual size in memory of the series_t
  * structure may be bigger, due to some redundant fields that speed up the
- * mashalling and unmarshalling process. 
+ * mashalling and unmarshalling process.
  */
 size_t size_series_t(uint32_t, series_t);
 
@@ -319,7 +326,7 @@ size_t size_series_t(uint32_t, series_t);
  * IMPORTANT: This is *not* the size of the struct adf_t; this is the size of
  * the serialized object as a whole. The actual size in memory of the adf_t
  * structure may be bigger, due to some redundant fields that speed up
- * the mashalling and unmarshalling process. 
+ * the mashalling and unmarshalling process.
  */
 size_t size_adf_t(adf_t);
 
@@ -331,7 +338,7 @@ size_t size_adf_t(adf_t);
 uint8_t *bytes_alloc(adf_t);
 
 /*
- * 
+ *
  */
 int add_series(adf_t *, series_t);
 
@@ -349,6 +356,16 @@ int marshal(uint8_t *, adf_t);
  *
  */
 int unmarshal(adf_t *, const uint8_t *);
+
+/*
+ *
+ */
+int update_series(adf_t *, series_t, uint64_t);
+
+/*
+ *
+ */
+int reindex_additives(adf_t *);
 
 /*
  *
