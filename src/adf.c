@@ -568,27 +568,29 @@ int reindex_additives(adf_t *adf)
 	}
 	additives = malloc(adf->metadata.n_additives.val * sizeof(uint_t));
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
-		// adf->series[i].soil_additives 
+		// adf->series[i].soil_additives
 	}
 	return OK;
 }
 
 adf_header_t create_header(uint8_t farming_tec, uint32_t n_chunks,
-						   uint32_t min_w_len_nm, uint32_t max_w_len_nm,
-						   uint32_t n_wavelrngth)
+			   uint32_t min_w_len_nm, uint32_t max_w_len_nm,
+			   uint32_t n_wavelrngth)
 {
-	return (adf_header_t){ .signature = { __ADF_SIGNATURE__ },
-						   .version = __ADF_VERSION__,
-						   .farming_tec = farming_tec,
-						   .max_w_len_nm = { max_w_len_nm },
-						   .min_w_len_nm = { min_w_len_nm },
-						   .n_wavelength = { n_wavelrngth },
-						   .n_chunks = { n_chunks } };
+	return (adf_header_t){
+	    .signature = { __ADF_SIGNATURE__ },
+	    .version = __ADF_VERSION__,
+	    .farming_tec = farming_tec,
+	    .max_w_len_nm = { max_w_len_nm },
+	    .min_w_len_nm = { min_w_len_nm },
+	    .n_wavelength = { n_wavelrngth },
+	    .n_chunks = { n_chunks }
+	};
 }
 
 adf_meta_t create_metadata(uint32_t *additive_codes, uint16_t n_additives,
-						   uint32_t size_series, uint32_t n_series,
-						   uint16_t period_sec)
+			   uint32_t size_series, uint32_t n_series,
+			   uint16_t period_sec)
 {
 	return (adf_meta_t){ .additive_codes = additive_codes,
 						 .n_additives = n_additives,
