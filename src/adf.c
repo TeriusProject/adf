@@ -128,10 +128,12 @@ int marshal(uint8_t *bytes, adf_t data)
 {
 	size_t byte_c = 0;
 	uint_small_t crc_16bits;
-	cpy_4_bytes_fn
-		= is_big_endian() ? &to_big_endian_4_bytes : &to_little_endian_4_bytes;
-	cpy_2_bytes_fn
-		= is_big_endian() ? &to_big_endian_2_bytes : &to_little_endian_2_bytes;
+	cpy_4_bytes_fn = is_big_endian()
+					 ? &to_big_endian_4_bytes 
+					 : &to_little_endian_4_bytes;
+	cpy_2_bytes_fn = is_big_endian()
+					 ? &to_big_endian_2_bytes 
+					 : &to_little_endian_2_bytes;
 	if (!bytes) return RUNTIME_ERROR;
 	cpy_4_bytes_fn((bytes + byte_c), data.header.signature.bytes);
 	SHIFT_COUNTER(4);
@@ -227,10 +229,12 @@ int unmarshal(adf_t *adf, const uint8_t *bytes)
 {
 	size_t byte_c = 0;
 	uint_small_t expected_crc;
-	cpy_4_bytes_fn
-		= is_big_endian() ? &to_big_endian_4_bytes : &to_little_endian_4_bytes;
-	cpy_2_bytes_fn
-		= is_big_endian() ? &to_big_endian_2_bytes : &to_little_endian_2_bytes;
+	cpy_4_bytes_fn = is_big_endian()
+					 ? &to_big_endian_4_bytes 
+					 : &to_little_endian_4_bytes;
+	cpy_2_bytes_fn = is_big_endian()
+					 ? &to_big_endian_2_bytes 
+					 : &to_little_endian_2_bytes;
 
 	if (!bytes || !adf) return RUNTIME_ERROR;
 
@@ -615,7 +619,7 @@ int reindex_additives(adf_t *adf)
 		}
 	}
 
-	additives_keys = table_keys(&lookup_table);
+	additives_keys = table_get_pairs(&lookup_table);
 	if (!additives_keys) { return REINDEX_ERROR; }
 
 	adf->metadata.additive_codes = get_additive_codes(additives_keys, 

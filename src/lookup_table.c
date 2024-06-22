@@ -129,7 +129,7 @@ uint16_t table_remove(table_t * table, uint32_t key)
 	return LM_OK;
 }
 
-pair_t *table_keys(const table_t *table)
+pair_t *table_get_pairs(const table_t *table)
 {
 	pair_t *keys = malloc(table->size * sizeof(pair_t));
 	size_t counter = 0;

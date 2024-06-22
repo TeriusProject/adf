@@ -90,7 +90,7 @@ uint16_t table_put(table_t *, uint32_t, void *);
 uint16_t table_update(table_t *,uint32_t, void *);
 uint16_t table_remove(table_t *, uint32_t);
 void *table_get(const table_t *, uint32_t);
-pair_t *table_keys(const table_t *);
+pair_t *table_get_pairs(const table_t *);
 void pair_free(pair_t *);
 void table_free(table_t *);
 

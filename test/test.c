@@ -1,4 +1,4 @@
-/* test.c
+/* test.c - A minimal unit test framework implementation
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -52,6 +52,22 @@ bool are_uint8_arrays_equal(uint8_t *x, uint8_t *y, uint32_t size)
 	return true;
 }
 
+bool are_uint32_arrays_equal(uint32_t *x, uint32_t *y, uint32_t size)
+{
+	for (uint32_t i = 0; i < size; i++)
+		if (x[i] != y[i]) return false;
+
+	return true;
+}
+
+bool are_pair_arrays_equal(pair_t *x, pair_t *y, uint32_t size)
+{
+	for (uint32_t i = 0; i < size; i++)
+		if (x[i].key != y[i].key) return false;
+
+	return true;
+}
+
 bool are_int_arrays_equal(uint_t *x, uint_t *y, uint32_t size)
 {
 	for (uint32_t i = 0; i < size; i++)
@@ -98,30 +114,38 @@ void assert_small_int_equal(uint_small_t x, uint_small_t y, const char *label)
 	assert_true(are_small_ints_equal(x, y), label);
 }
 
-void assert_int_arrays_equal(
-	uint_t *x, uint_t *y, uint32_t size, const char *label
-)
+void assert_int_arrays_equal(uint_t *x, uint_t *y, uint32_t size, 
+							 const char *label)
 {
 	assert_true(are_int_arrays_equal(x, y, size), label);
 }
 
-void assert_real_arrays_equal(
-	real_t *x, real_t *y, uint32_t size, const char *label
-)
+void assert_uint32_arrays_equal(uint32_t *x, uint32_t *y, uint32_t size, 
+								const char *label)
+{
+	assert_true(are_uint32_arrays_equal(x, y, size), label);
+}
+
+void assert_pair_arrays_equal(pair_t *x, pair_t *y, uint32_t size, 
+							  const char *label)
+{
+	assert_true(are_pair_arrays_equal(x, y, size), label);
+}
+
+void assert_real_arrays_equal(real_t *x, real_t *y, uint32_t size,
+							  const char *label)
 {
 	assert_true(are_real_arrays_equal(x, y, size), label);
 }
 
-void assert_uint8_arrays_equal(
-	uint8_t *x, uint8_t *y, uint32_t size, const char *label
-)
+void assert_uint8_arrays_equal(uint8_t *x, uint8_t *y, uint32_t size,
+							   const char *label)
 {
 	assert_true(are_uint8_arrays_equal(x, y, size), label);
 }
 
-void assert_additive_arrays_equal(
-	additive_t *x, additive_t *y, uint32_t size, const char *label
-)
+void assert_additive_arrays_equal(additive_t *x, additive_t *y, uint32_t size,
+								  const char *label)
 {
 	assert_true(are_additive_arrays_equal(x, y, size), label);
 }
