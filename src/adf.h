@@ -89,6 +89,11 @@ typedef enum {
 	TIME_OUT_OF_BOUND = 0x06u,
 
 	/*
+	 *
+	 */
+	REINDEX_ERROR = 0x07u,
+
+	/*
 	 * The most generic error code.
 	 */
 	RUNTIME_ERROR = 0xFFFFu

@@ -153,7 +153,7 @@ void assert_metadata_equal(adf_meta_t target, adf_meta_t expected)
 	assert_int_equal(
 		target.size_series, expected.size_series, "are size_series equal"
 	);
-	assert_int_equal(
+	assert_small_int_equal(
 		target.period_sec, expected.period_sec, "are periods equal"
 	);
 	assert_small_int_equal(
