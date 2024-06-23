@@ -43,9 +43,9 @@ void push_and_pop_one_integer(void)
 	}
 	uint32_t *returned_value = (uint32_t *)table_get(&t, 13);
 	assert_true(value == *returned_value,
-				"Push and pop on the same index gets the same value");
+				"Push and pop the same integer");
 
-	assert_true(t.size == 1, "Table size should be 1");
+	assert_true(t.size == 1, "One integer inserted, table size should be 1");
 }
 
 void push_and_remove_should_be_empty(void)
@@ -151,24 +151,33 @@ void push_and_pop_one_object(void)
 		printf("[%hu] %s", res, "An error occurred\n");
 		exit(1);
 	}
-	uint32_t value = 1234;
+	additive_t value = (additive_t) {
+		.code = {1234},
+		.code_idx = {12},
+		.concentration = {0.56789}
+	};
 	res = table_put(&t, 13, &value);
 	if (res != LM_OK) {
 		printf("[%hu] %s", res, "An error occurred\n");
 		exit(1);
 	}
-	uint32_t *returned_value = (uint32_t *)table_get(&t, 13);
-	assert_true(value == *returned_value,
-				"Push and pop on the same index gets the same value");
-
-	assert_true(t.size == 1, "Table size should be 1");
+	
+	additive_t *returned_value = (additive_t *)table_get(&t, 13);
+	if (!returned_value) {
+		printf("[%hu] %s", res, "An error occurred\n");
+		exit(1);
+	}
+	assert_true(are_additives_equal(value, *returned_value),
+				"Push and pop the same object");
+	assert_true(t.size == 1,  "One object inserted, table size should be 1");
 }
 
-int main()
+int main(void)
 {
-	printf("(Lookup table test)\n");
 	srand(time(NULL));
+	printf("(Lookup table test)\n");
 	push_and_pop_one_integer();
+	push_and_pop_one_object();
 	push_and_remove_should_be_empty();
 	push_and_update();
 	map_should_resize_when_half_full();

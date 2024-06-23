@@ -23,7 +23,7 @@
 #include "mock.h"
 #include "../src/adf.h"
 
-static real_t *get_real_array()
+static real_t *get_real_array(void)
 {
 	real_t *light_mask = malloc(10 * sizeof(real_t));
 	float f = 0.0;

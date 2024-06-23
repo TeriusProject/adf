@@ -20,14 +20,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "../src/adf.h"
 #include "mock.h"
 #include "test.h"
+#include <adf.h>
 #include <stdio.h>
 
 #define FILE_PATH "sample.adf"
 
-int main()
+int main(void)
 {
 	adf_t obj = get_default_object();
 	uint8_t *bytes = malloc(size_adf_t(obj) * sizeof(uint8_t));
@@ -52,7 +52,7 @@ int main()
 	/* marshalling the object */
 	bytes = malloc(size_adf_t(obj) * sizeof(uint8_t));
 	res = marshal(bytes, obj);
-	if (res != OK) {
+	if (res != ADF_OK) {
 		printf("%s", "An error occurred during marshal process\n_chunks");
 		return 1;
 	}

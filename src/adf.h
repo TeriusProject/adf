@@ -50,53 +50,53 @@ typedef enum {
 	/*
 	 * No errors detected
 	 */
-	OK = 0x00u,
+	ADF_OK = 0x00u,
 
 	/*
 	 * Returned during unmarshalling, when the checksum included in the last
 	 * two bytes of the header doesn't match with that calculated on the fly.
 	 */
-	HEADER_CORRUPTED = 0x01u,
+	ADF_HEADER_CORRUPTED = 0x01u,
 
 	/*
 	 * Returned during unmarshalling, when the checksum included in the last
 	 * two bytes of the metadata doesn't match with that calculated on the fly.
 	 */
-	METADATA_CORRUPTED = 0x02u,
+	ADF_METADATA_CORRUPTED = 0x02u,
 
 	/*
 	 * Returned during unmarshalling, when the checksum included in the last
 	 * two bytes of the header doesn't match with that calculated on the fly.
 	 */
-	SERIES_CORRUPTED = 0x03u,
+	ADF_SERIES_CORRUPTED = 0x03u,
 
 	/*
 	 * Returned when the field `repeated` in type series_t is set to 0.
 	 */
-	ZERO_REPEATED_SERIES = 0x04u,
+	ADF_ZERO_REPEATED_SERIES = 0x04u,
 
 	/*
 	 * Returned in the delete_series function, when you are trying to delete
 	 * a series, but the collection is empty.
 	 */
-	EMPTY_SERIES = 0x05u,
+	ADF_EMPTY_SERIES = 0x05u,
 
 	/*
 	 * Returned when you are trying to select a series (tipically for update),
 	 * by specifying a time (in seconds) that is greater than the `period_sec`
 	 * contained in the metadata section.
 	 */
-	TIME_OUT_OF_BOUND = 0x06u,
+	ADF_TIME_OUT_OF_BOUND = 0x06u,
 
 	/*
 	 *
 	 */
-	REINDEX_ERROR = 0x07u,
+	ADF_REINDEX_ERROR = 0x07u,
 
 	/*
 	 * The most generic error code.
 	 */
-	RUNTIME_ERROR = 0xFFFFu
+	ADF_RUNTIME_ERROR = 0xFFFFu
 } code_t;
 
 typedef struct {
@@ -345,32 +345,32 @@ uint8_t *bytes_alloc(adf_t);
 /*
  *
  */
-int add_series(adf_t *, series_t);
+uint16_t add_series(adf_t *, series_t);
 
 /*
  *
  */
-int remove_series(adf_t *);
+uint16_t remove_series(adf_t *);
 
 /*
  *
  */
-int marshal(uint8_t *, adf_t);
+uint16_t marshal(uint8_t *, adf_t);
 
 /*
  *
  */
-int unmarshal(adf_t *, const uint8_t *);
+uint16_t unmarshal(adf_t *, const uint8_t *);
 
 /*
  *
  */
-int update_series(adf_t *, series_t, uint64_t);
+uint16_t update_series(adf_t *, series_t, uint64_t);
 
 /*
  *
  */
-int reindex_additives(adf_t *);
+uint16_t reindex_additives(adf_t *);
 
 /*
  *

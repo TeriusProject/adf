@@ -84,11 +84,16 @@ bool are_real_arrays_equal(real_t *x, real_t *y, size_t size)
 	return true;
 }
 
+bool are_additives_equal(additive_t x, additive_t y)
+{
+	return are_small_ints_equal(x.code_idx, y.code_idx)
+		   && are_reals_equal(x.concentration, y.concentration);
+}
+
 bool are_additive_arrays_equal(additive_t *x, additive_t *y, size_t size)
 {
 	for (size_t i = 0; i < size; i++) {
-		if (!are_small_ints_equal(x[i].code_idx, y[i].code_idx)
-			|| !are_reals_equal(x[i].concentration, y[i].concentration))
+		if (are_additives_equal(x[i], y[i]))
 			return false;
 	}
 	return true;

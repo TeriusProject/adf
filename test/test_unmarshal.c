@@ -28,7 +28,7 @@
 
 #define FILE_PATH "sample.adf"
 
-int main()
+int main(void)
 {
 	adf_t expected = get_default_object();
 	uint8_t *bytes;
@@ -57,7 +57,7 @@ int main()
 
 	adf_t new;
 	long res = unmarshal(&new, bytes);
-	if (res != OK) {
+	if (res != ADF_OK) {
 		printf("[%ld] %s", res, "An error occurred during unmarshal process\n");
 		return 1;
 	}

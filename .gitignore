@@ -56,7 +56,9 @@ test/test_marshal
 test/test_unmarshal
 test/generate_sample.c
 test/generate_sample
-test/test_lookup
+test/test_lookup_table
+test/test_create
+test/test_update
 
 # VS code conf
 .vscode/

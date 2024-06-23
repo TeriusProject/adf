@@ -40,6 +40,7 @@ bool are_int_arrays_equal(uint_t *x, uint_t *y, uint32_t size);
 bool are_real_arrays_equal(real_t *x, real_t *y, size_t size);
 bool are_additive_arrays_equal(additive_t *x, additive_t *y, size_t size);
 bool are_pair_arrays_equal(pair_t *x, pair_t *y, uint32_t size);
+bool are_additives_equal(additive_t x, additive_t y);
 
 /* assertions */
 void assert_true(bool condition, const char *label);
