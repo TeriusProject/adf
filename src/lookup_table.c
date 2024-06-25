@@ -131,8 +131,11 @@ uint16_t table_remove(table_t * table, uint32_t key)
 
 pair_t *table_get_pairs(const table_t *table)
 {
-	pair_t *keys = malloc(table->size * sizeof(pair_t));
+	pair_t *keys;
 	size_t counter = 0;
+
+	keys = malloc(table->size * sizeof(pair_t));
+	if (!keys) { return NULL; }
 
 	for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
 		if (table->pairs[i].value) {

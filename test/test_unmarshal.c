@@ -56,9 +56,9 @@ int main(void)
 	);
 
 	adf_t new;
-	long res = unmarshal(&new, bytes);
+	uint16_t res = unmarshal(&new, bytes);
 	if (res != ADF_OK) {
-		printf("[%ld] %s", res, "An error occurred during unmarshal process\n");
+		printf("[%x] %s", res, "An error occurred during unmarshal process\n");
 		return 1;
 	}
 

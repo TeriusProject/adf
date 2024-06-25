@@ -93,7 +93,7 @@ bool are_additives_equal(additive_t x, additive_t y)
 bool are_additive_arrays_equal(additive_t *x, additive_t *y, size_t size)
 {
 	for (size_t i = 0; i < size; i++) {
-		if (are_additives_equal(x[i], y[i]))
+		if (!are_additives_equal(x[i], y[i]))
 			return false;
 	}
 	return true;
@@ -182,6 +182,7 @@ void assert_metadata_equal(adf_meta_t target, adf_meta_t expected)
 	assert_int_equal(
 		target.size_series, expected.size_series, "are size_series equal"
 	);
+	assert_true(target.n_series == expected.n_series, "are n_series equal");
 	assert_small_int_equal(
 		target.period_sec, expected.period_sec, "are periods equal"
 	);

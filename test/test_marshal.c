@@ -33,7 +33,8 @@ int main(void)
 	uint8_t *bytes = malloc(size_adf_t(obj) * sizeof(uint8_t));
 	FILE *sample_file;
 	uint8_t *file_bytes;
-	long res, file_len;
+	uint16_t res;
+	long file_len;
 
 	/* reading the file with expected bytes */
 	sample_file = fopen(FILE_PATH, "rb");

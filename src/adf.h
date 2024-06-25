@@ -29,6 +29,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 /* The (hex) bytes of `@ADF` */
@@ -40,8 +41,11 @@ extern "C" {
  */
 #define __ADF_VERSION__ 0x01u
 
-/* Used for the comparison of floating point numbers */
-#define EPSILON 1e-6
+/* 
+ * Used for the comparison of floating point numbers: numbers that have the 
+ * first three decimals equal, are considered equals.
+ */
+#define EPSILON 1e-3
 
 /*
  * It contains the exit code of the functions that handle the adf_t structure.
@@ -91,7 +95,47 @@ typedef enum {
 	/*
 	 *
 	 */
-	ADF_REINDEX_ERROR = 0x07u,
+	ADF_ADDITIVE_TABLE_OVERFLOW = 0x07u,
+
+	/*
+	 *
+	 */
+	ADF_NULL_HEADER_SOURCE = 0x08u,
+
+	/*
+	 *
+	 */
+	ADF_NULL_HEADER_TARGET = 0x09u,
+
+	/*
+	 *
+	 */
+	ADF_NULL_META_SOURCE = 0x0Au,
+
+	/*
+	 *
+	 */
+	ADF_NULL_META_TARGET = 0x0Bu,
+
+	/*
+	 *
+	 */
+	ADF_NULL_SERIES_SOURCE = 0x0Cu,
+
+	/*
+	 *
+	 */
+	ADF_NULL_SERIES_TARGET = 0x0Du,
+
+	/*
+	 *
+	 */
+	ADF_NULL_SOURCE = 0x0Eu,
+
+	/*
+	 *
+	 */
+	ADF_NULL_TARGET = 0x0Fu,
 
 	/*
 	 * The most generic error code.
@@ -345,6 +389,11 @@ uint8_t *bytes_alloc(adf_t);
 /*
  *
  */
+bool are_series_equal(series_t, series_t, uint32_t);
+
+/*
+ *
+ */
 uint16_t add_series(adf_t *, series_t);
 
 /*
@@ -395,6 +444,33 @@ adf_t create_adf(adf_header_t header, adf_meta_t metadata);
  *
  */
 adf_t create_empty_adf(adf_header_t header);
+
+/*
+ *
+ */
+void adf_free(adf_t *);
+
+/*
+ *
+ */
+uint16_t cpy_adf(adf_t *target, const adf_t *source);
+
+/*
+ *
+ */
+uint16_t cpy_adf_header(adf_header_t *target, const adf_header_t *source);
+
+/*
+ *
+ */
+uint16_t cpy_adf_metadata(adf_meta_t *target, const adf_meta_t *source);
+
+
+/*
+ *
+ */
+uint16_t cpy_adf_series(series_t *target, const series_t *source,
+						uint32_t n_chunks, uint32_t n_wavelength);
 
 #ifdef __cplusplus
 }
