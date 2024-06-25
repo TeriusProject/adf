@@ -22,7 +22,7 @@
 
 #include "mock.h"
 #include "test.h"
-#include <adf.h>
+#include "../src/adf.h"
 #include <stdio.h>
 
 #define FILE_PATH "sample.adf"

@@ -23,7 +23,7 @@
 
 #include "mock.h"
 #include "test.h"
-#include <adf.h>
+#include "../src/adf.h"
 #include <stdio.h>
 #include <stdlib.h>
 

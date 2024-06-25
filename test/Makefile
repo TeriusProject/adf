@@ -1,14 +1,14 @@
 CC = gcc
 CFLAGS = -pedantic -Wall -Wextra -O3 -std=c17
 SRC = ../src/
+BIN = generate_sample test_create test_marshal test_unmarshal test_update test_lookup_table
 
-all: test_create test_marshal test_unmarshal test_update test_lookup_table generate_sample
+all: $(BIN)
 	./test_create
 	./test_marshal
 	./test_unmarshal
 	./test_update
 	./test_lookup_table
-	./generate_sample
 
 test_create: test_create.c test.c mock.c $(SRC)adf.c  $(SRC)crc.c $(SRC)lookup_table.c
 	$(CC) $(CFLAGS) $^  -o $@  
@@ -28,5 +28,5 @@ test_lookup_table: test_lookup_table.c test.c $(SRC)adf.c  $(SRC)crc.c $(SRC)loo
 generate_sample: generate_sample.c mock.c $(SRC)adf.c  $(SRC)crc.c $(SRC)lookup_table.c
 	$(CC) $(CFLAGS) $^ -o $@
 
-clean: test_create test_marshal test_unmarshal test_update test_lookup_table generate_sample
+clean: $(BIN)
 	rm $^
