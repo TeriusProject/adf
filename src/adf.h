@@ -424,26 +424,27 @@ uint16_t reindex_additives(adf_t *);
 /*
  *
  */
-adf_header_t create_header(uint8_t farming_tec, uint32_t n_chunks,
-						   uint32_t min_w_len_nm, uint32_t max_w_len_nm,
-						   uint32_t n_wavelrngth);
+adf_header_t create_header(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t);
 
 /*
  *
  */
-adf_meta_t create_metadata(uint32_t *additive_codes, uint16_t n_additives,
-						   uint32_t size_series, uint32_t n_series,
-						   uint16_t period_sec);
+adf_meta_t create_metadata(uint32_t *, uint16_t, uint32_t, uint32_t, uint16_t);
 
 /*
  *
  */
-adf_t create_adf(adf_header_t header, adf_meta_t metadata);
+adf_t create_adf(adf_header_t, adf_meta_t);
 
 /*
  *
  */
-adf_t create_empty_adf(adf_header_t header);
+adf_t create_empty_adf(adf_header_t);
+
+/*
+ *
+ */
+void metadata_free(adf_meta_t *);
 
 /*
  *
@@ -458,24 +459,23 @@ void adf_free(adf_t *);
 /*
  * 
  */
-uint16_t cpy_adf(adf_t *target, const adf_t *source);
+uint16_t cpy_adf(adf_t *, const adf_t *);
 
 /*
  *
  */
-uint16_t cpy_adf_header(adf_header_t *target, const adf_header_t *source);
+uint16_t cpy_adf_header(adf_header_t *, const adf_header_t *);
 
 /*
  *
  */
-uint16_t cpy_adf_metadata(adf_meta_t *target, const adf_meta_t *source);
+uint16_t cpy_adf_metadata(adf_meta_t *, const adf_meta_t *);
 
 
 /*
  *
  */
-uint16_t cpy_adf_series(series_t *target, const series_t *source,
-						uint32_t n_chunks, uint32_t n_wavelength);
+uint16_t cpy_adf_series(series_t *, const series_t *, uint32_t, uint32_t);
 
 #ifdef __cplusplus
 }

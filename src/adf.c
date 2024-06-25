@@ -704,6 +704,11 @@ adf_t create_empty_adf(adf_header_t header)
 	return (adf_t) { .header = header };
 }
 
+void metadata_free(adf_meta_t *metadata)
+{
+	free(metadata->additive_codes);
+}
+
 void series_free(series_t *series)
 {
 	free(series->light_exposure);
@@ -715,7 +720,7 @@ void series_free(series_t *series)
 
 void adf_free(adf_t *adf)
 {
-	free(adf->metadata.additive_codes);
+	metadata_free(&adf->metadata);
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++)
 		series_free(adf->series + i);
 	free(adf->series);

@@ -67,3 +67,4 @@ test/test_update
 *.class
 
 .DS_Store
+api/
