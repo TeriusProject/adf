@@ -24,9 +24,9 @@
 
 void assert_true(bool condition, const char *label)
 {
-	if (condition) { printf(GREEN "PASSED (\u2713): %s\n" RESET, label); }
+	if (condition) { printf(GREEN "PASSED (" TICK "): %s\n" RESET, label); }
 	else {
-		printf(RED "FAILED (\u2A09): %s\n" RESET, label);
+		printf(RED "FAILED (" CROSS "): %s\n" RESET, label);
 		exit(1);
 	}
 }

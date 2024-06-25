@@ -66,6 +66,4 @@ test/test_update
 # Java classes
 *.class
 
-# APIs
-api/
 .DS_Store

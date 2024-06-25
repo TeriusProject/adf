@@ -559,15 +559,20 @@ uint16_t update_series(adf_t *adf, series_t series, uint64_t time)
 {
 	uint16_t series_period = adf->metadata.period_sec.val;
 	uint64_t max_time = series_period * adf->metadata.n_series,
-			 lower_bound_nth_series = 0, upper_bound_nth_series = 0;
+			 l_bound_nth_series = 0, u_bound_nth_series = 0;
 
 	if (time > max_time) { return ADF_TIME_OUT_OF_BOUND; }
 
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
-		lower_bound_nth_series = upper_bound_nth_series;
-		upper_bound_nth_series = adf->series[i].repeated.val * series_period;
-		if (time >= lower_bound_nth_series && time < upper_bound_nth_series)
-			*(adf->series + 1) = series;
+		l_bound_nth_series = u_bound_nth_series;
+		u_bound_nth_series = l_bound_nth_series 
+							 +(adf->series[i].repeated.val * series_period);
+		if (time >= l_bound_nth_series && time < u_bound_nth_series) {
+			adf->metadata.n_series += series.repeated.val 
+									  - adf->series[i].repeated.val;
+			series_free(adf->series + i);
+			*(adf->series + i) = series;
+		}
 	}
 	return ADF_OK;
 }
@@ -586,7 +591,7 @@ static uint_t *get_additive_codes(pair_t *pairs, size_t size)
  * Since the additive code is a unique integer id we do not need an hash 
  * function. Hence, the `id` function just return the 4-byte additive code
  */
-uint32_t id(void *key)
+static uint32_t id(void *key)
 {
 	return *((uint32_t *) key);
 }
@@ -604,7 +609,7 @@ uint16_t reindex_additives(adf_t *adf)
 		return ADF_OK;
 	}
 
-	if ((table_code = table_init(&lookup_table, 1024, 1024, &id)) != ADF_OK)
+	if ((table_code = table_init(&lookup_table, 1024, 1024, &id)) != LM_OK)
 		return ADF_RUNTIME_ERROR;
 
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
@@ -699,16 +704,20 @@ adf_t create_empty_adf(adf_header_t header)
 	return (adf_t) { .header = header };
 }
 
+void series_free(series_t *series)
+{
+	free(series->light_exposure);
+	free(series->temp_celsius);
+	free(series->water_use_ml);
+	free(series->soil_additives);
+	free(series->atm_additives);
+}
+
 void adf_free(adf_t *adf)
 {
 	free(adf->metadata.additive_codes);
-	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
-		free(adf->series[i].light_exposure);
-		free(adf->series[i].temp_celsius);
-		free(adf->series[i].water_use_ml);
-		free(adf->series[i].soil_additives);
-		free(adf->series[i].atm_additives);
-	}
+	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++)
+		series_free(adf->series + i);
 	free(adf->series);
 	free(adf);
 }

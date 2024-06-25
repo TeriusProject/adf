@@ -1,9 +1,9 @@
 CC = gcc
-CFLAGS = -pedantic -Wall -Wextra -O3 -std=c17
-LIB = -dynamiclib
+AR = ar
+CFLAGS = -pedantic -Wall -Wextra -O3 -std=c17 -fPIC
 
-libadf.dylib: adf.o crc.o lookup_table.o
-	$(CC) $(CFLAGS) $(LIB) -o $@ $^
+libadf.a: adf.o crc.o lookup_table.o
+	$(AR) cr $@ $^
 
 adf.o: adf.c
 	$(CC) $(CFLAGS) -c $^

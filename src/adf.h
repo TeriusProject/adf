@@ -446,6 +446,11 @@ adf_t create_adf(adf_header_t header, adf_meta_t metadata);
 adf_t create_empty_adf(adf_header_t header);
 
 /*
+ *
+ */
+void series_free(series_t *);
+
+/*
  * Frees the memory used by an adf_t object and its content.
  */
 void adf_free(adf_t *);

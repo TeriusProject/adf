@@ -114,13 +114,13 @@ void test_update_series_time_out_of_bound(void)
 void test_update_series(void)
 {
 	adf_t adf = get_default_object();
-	series_t to_add = get_series();
+	series_t to_add = get_repeated_series();
 	uint16_t res;
 	uint64_t time = 1;
 	res = update_series(&adf, to_add, time);
 	assert_true(res == ADF_OK, "Series updated");
-	assert_series_equal(adf, adf.series[0], to_add, "AAAA");
-
+	assert_series_equal(adf, adf.series[0], to_add, "Series are equal");
+	assert_true(adf.metadata.n_series == 5, "There should be 5 series in adf");
 }
 
 void test_delete_repeated_series(void)

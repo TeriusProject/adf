@@ -31,6 +31,8 @@
 #define RESET "\033[0m"
 #define RED "\033[31m"
 #define GREEN "\033[32m"
+#define TICK "\u2713"
+#define CROSS "\u2A09"
 
 bool are_ints_equal(uint_t x, uint_t y);
 bool are_small_ints_equal(uint_small_t x, uint_small_t y);
