@@ -62,6 +62,8 @@ void assert_pair_arrays_equal(pair_t *x, pair_t *y, uint32_t size,
 							  const char *label);
 void assert_header_equal(adf_header_t target, adf_header_t expected);
 void assert_metadata_equal(adf_meta_t target, adf_meta_t expected);
-void assert_series_equal(adf_t data, series_t x, series_t y);
+void assert_series_equal_verbose(adf_t data, series_t x, series_t y);
+void assert_series_equal(adf_t data, series_t x, series_t y,
+						 const char *label);
 
 #endif /* __UTILS_H__ */

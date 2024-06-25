@@ -76,10 +76,8 @@ int main(void)
 	h_and_meta_size = size_header() + size_medatata_t(new.metadata);
 	series_size = size_series_t(new.header.n_chunks.val, new.series[0]);
 	for (uint32_t i = 0; i < new.metadata.size_series.val; i++) {
-		printf(
-			"(iteration %u - from byte %lu)\n", i,
-			h_and_meta_size + (i * series_size)
-		);
-		assert_series_equal(new, new.series[i], expected.series[i]);
+		printf("(iteration %u - from byte %lu)\n", i,
+			   h_and_meta_size + (i * series_size));
+		assert_series_equal_verbose(new, new.series[i], expected.series[i]);
 	}
 }

@@ -217,7 +217,7 @@ typedef struct {
 	uint_small_t n_soil_adds;
 
 	/*
-	 * The number of elements of the array ``atm_additives`.
+	 * The number of elements of the array `atm_additives`.
 	 */
 	uint_small_t n_atm_adds;
 
@@ -446,12 +446,12 @@ adf_t create_adf(adf_header_t header, adf_meta_t metadata);
 adf_t create_empty_adf(adf_header_t header);
 
 /*
- *
+ * Frees the memory used by an adf_t object and its content.
  */
 void adf_free(adf_t *);
 
 /*
- *
+ * 
  */
 uint16_t cpy_adf(adf_t *target, const adf_t *source);
 

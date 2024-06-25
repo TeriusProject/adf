@@ -724,16 +724,38 @@ uint16_t cpy_adf_series(series_t *target, const series_t *source,
 	target->pH = source->pH;
 	target->repeated = source->repeated;
 	target->soil_density_kg_m3 = source->soil_density_kg_m3;
+
+	target->water_use_ml = malloc(n_chunks * sizeof(real_t));
+	target->temp_celsius = malloc(n_chunks * sizeof(real_t));
 	for (uint32_t i = 0; i < n_chunks; i++) {
 		target->water_use_ml[i] = source->water_use_ml[i];
 		target->temp_celsius[i] = source->temp_celsius[i];
 	}
+
+	target->light_exposure = malloc(n_wavelength * sizeof(real_t));
 	for (uint32_t i = 0; i < n_wavelength; i++) 
 		target->light_exposure[i] = source->light_exposure[i];
-	for (uint16_t i = 0, l = target->n_soil_adds.val; i < l; i++)
-		target->soil_additives[i] = source->soil_additives[i];
-	for (uint16_t i = 0, l = target->n_atm_adds.val; i < l; i++)
-		target->atm_additives[i] = source->atm_additives[i];
+
+	if (target->n_soil_adds.val > 0) {
+		target->soil_additives = malloc(target->n_soil_adds.val
+									* sizeof(additive_t));
+		for (uint16_t i = 0, l = target->n_soil_adds.val; i < l; i++)
+			target->soil_additives[i] = source->soil_additives[i];
+	}
+	else {
+		target->soil_additives = NULL;
+	}
+
+	if (target->n_atm_adds.val > 0) {
+		target->atm_additives = malloc(target->n_atm_adds.val
+								   * sizeof(additive_t));
+		for (uint16_t i = 0, l = target->n_atm_adds.val; i < l; i++)
+			target->atm_additives[i] = source->atm_additives[i];
+	}
+	else {
+		target->atm_additives = NULL;
+	}
+
 	return ADF_OK;
 }
 
@@ -745,7 +767,12 @@ uint16_t cpy_adf_metadata(adf_meta_t *target, const adf_meta_t *source)
 	target->period_sec = source->period_sec;
 	target->n_series = source->n_series;
 	target->n_additives = source->n_additives;
-	target->additive_codes = malloc(target->n_additives.val * sizeof(uint_t));
+	target->additive_codes = malloc(target->n_additives.val
+									* sizeof(uint_t));
+
+	for (uint16_t i = 0, l = target->n_additives.val; i < l; i++) 
+		target->additive_codes[i] = source->additive_codes[i];
+
 	return ADF_OK;
 }
 
@@ -760,6 +787,7 @@ uint16_t cpy_adf_header(adf_header_t *target, const adf_header_t *source)
 uint16_t cpy_adf(adf_t *target, const adf_t *source)
 {
 	uint16_t res;
+	uint32_t size_series;
 	
 	if (!source) { return ADF_NULL_SOURCE; }
 	if (!target) { return ADF_NULL_TARGET; }
@@ -770,11 +798,18 @@ uint16_t cpy_adf(adf_t *target, const adf_t *source)
 	res = cpy_adf_metadata(&target->metadata, &source->metadata);
 	if (res != ADF_OK) { return res; }
 
-	for (uint32_t i = 0, l = target->metadata.size_series.val; i < l; i++) {
-		res = cpy_adf_series(target->series + i, source->series + i,
-							 source->header.n_chunks.val,
-							 source->header.n_wavelength.val);
-		if(res != ADF_OK) { return res; }
+	size_series = source->metadata.size_series.val;
+	if (size_series > 0) {
+		target->series = malloc(size_series * sizeof(series_t));
+		for (uint32_t i = 0, l = target->metadata.size_series.val; i < l; i++) {
+			res = cpy_adf_series(target->series + i, source->series + i,
+								source->header.n_chunks.val,
+								source->header.n_wavelength.val);
+			if(res != ADF_OK) { return res; }
+		}
+	}
+	else {
+		target->series = NULL;
 	}
 	
 	return ADF_OK;

@@ -30,7 +30,7 @@
 int main(void)
 {
 	adf_t obj = get_default_object();
-	uint8_t *bytes = malloc(size_adf_t(obj) * sizeof(uint8_t));
+	uint8_t *bytes;
 	FILE *sample_file;
 	uint8_t *file_bytes;
 	uint16_t res;
@@ -48,7 +48,6 @@ int main(void)
 	file_bytes = (uint8_t *)malloc(file_len * sizeof(uint8_t));
 	fread(file_bytes, file_len, 1, sample_file);
 	fclose(sample_file);
-	free(file_bytes);
 
 	/* marshalling the object */
 	bytes = malloc(size_adf_t(obj) * sizeof(uint8_t));
@@ -59,10 +58,8 @@ int main(void)
 	}
 
 	/* compare byte arrays */
-	assert_long_equal(
-		file_len, size_adf_t(obj), "are byte arrays of the same length"
-	);
-	assert_uint8_arrays_equal(
-		file_bytes, bytes, file_len, "are byte arrays equal"
-	);
+	assert_long_equal(file_len, size_adf_t(obj),
+					  "are byte arrays of the same length");
+	assert_uint8_arrays_equal(file_bytes, bytes, file_len, 
+							  "are byte arrays equal");
 }

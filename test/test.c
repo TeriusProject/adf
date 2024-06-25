@@ -196,7 +196,7 @@ void assert_metadata_equal(adf_meta_t target, adf_meta_t expected)
 	);
 }
 
-void assert_series_equal(adf_t data, series_t x, series_t y)
+void assert_series_equal_verbose(adf_t data, series_t x, series_t y)
 {
 	assert_real_arrays_equal(
 		x.light_exposure, y.light_exposure, data.header.n_chunks.val,
@@ -231,4 +231,25 @@ void assert_series_equal(adf_t data, series_t x, series_t y)
 		"are atmosphere additives equal"
 	);
 	assert_int_equal(x.repeated, y.repeated, "are repeated equal");
+}
+
+void assert_series_equal(adf_t data, series_t x, series_t y, const char *label)
+{
+	bool c = are_real_arrays_equal(x.light_exposure, y.light_exposure,
+								   data.header.n_chunks.val)
+			&& are_real_arrays_equal(x.temp_celsius, y.temp_celsius,
+									 data.header.n_chunks.val)
+			&& are_real_arrays_equal(x.water_use_ml, y.water_use_ml,
+ 									 data.header.n_chunks.val)
+			&& x.pH == y.pH
+			&& are_reals_equal(x.p_bar, y.p_bar)
+			&& are_reals_equal(x.soil_density_kg_m3, y.soil_density_kg_m3)
+			&& are_small_ints_equal(x.n_soil_adds, y.n_soil_adds)
+			&& are_small_ints_equal(x.n_atm_adds, y.n_atm_adds)
+			&& are_additive_arrays_equal(x.soil_additives, y.soil_additives,
+			  							 x.n_soil_adds.val)
+			&& are_additive_arrays_equal(x.atm_additives, y.atm_additives,
+			  							 x.n_atm_adds.val)
+			&& are_ints_equal(x.repeated, y.repeated);
+	assert_true(c, label);
 }

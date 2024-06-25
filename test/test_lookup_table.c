@@ -32,13 +32,13 @@ void push_and_pop_one_integer(void)
 	table_t t;
 	uint16_t res = table_init(&t, 256, 256, &fn);
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	uint32_t value = 1234;
 	res = table_put(&t, 13, &value);
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	uint32_t *returned_value = (uint32_t *)table_get(&t, 13);
@@ -53,18 +53,18 @@ void push_and_remove_should_be_empty(void)
 	table_t t;
 	uint16_t res = table_init(&t, 256, 256, &fn);
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	uint32_t value = 1234;
 	res = table_put(&t, 13, &value);
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	res = table_remove(&t, 13);
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	assert_true(t.size == 0, "Table size should be 0");
@@ -75,19 +75,19 @@ void push_and_update(void)
 	table_t t;
 	uint16_t res = table_init(&t, 256, 256, &fn);
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	uint32_t value = 1234;
 	res = table_put(&t, 13, &value);
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	uint32_t new_value = 5678;
 	res = table_update(&t, 13, &new_value);
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	uint32_t *returned_value = (uint32_t *)table_get(&t, 13);
@@ -101,14 +101,14 @@ void map_should_resize_when_half_full(void)
 	uint16_t res = table_init(&t, 16, 16, &fn);
 	int rnd_number;
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	for (uint8_t i = 0, l = (uint8_t)(t.max_size / 2) + 2; i < l; i++) {
 		rnd_number = rand();
 		res = table_put(&t, i, &rnd_number);
 		if (res != LM_OK) {
-			printf("[%hu] %s", res, "An error occurred\n");
+			printf("[%x] %s", res, "An error occurred\n");
 			exit(1);
 		}
 	}
@@ -125,14 +125,14 @@ void table_keys_should_return_the_list_of_the_inserted_keys(void)
 	pair_t *expected_keys = malloc(((t.max_size / 2) + 2) * sizeof(pair_t)),
 		   *keys;
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	for (uint8_t i = 0, l = (uint8_t)(t.max_size / 2) + 2; i < l; i++) {
 		rnd_number = rand();
 		res = table_put(&t, i, &rnd_number);
 		if (res != LM_OK) {
-			printf("[%hu] %s", res, "An error occurred\n");
+			printf("[%x] %s", res, "An error occurred\n");
 			exit(1);
 		}
 		expected_keys[i] = (pair_t){ .key = i, .value = NULL };
@@ -148,7 +148,7 @@ void push_and_pop_one_object(void)
 	table_t t;
 	uint16_t res = table_init(&t, 256, 256, &fn);
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	additive_t value = (additive_t) {
@@ -158,13 +158,13 @@ void push_and_pop_one_object(void)
 	};
 	res = table_put(&t, 13, &value);
 	if (res != LM_OK) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	
 	additive_t *returned_value = (additive_t *)table_get(&t, 13);
 	if (!returned_value) {
-		printf("[%hu] %s", res, "An error occurred\n");
+		printf("[%x] %s", res, "An error occurred\n");
 		exit(1);
 	}
 	assert_true(are_additives_equal(value, *returned_value),

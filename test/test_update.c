@@ -91,7 +91,7 @@ void test_add_to_empty_series(void)
 	adf_t adf = get_object_with_zero_series();
 	series_t series = get_series();
 	int res = add_series(&adf, series);
-	if (res != ADF_OK) { printf("Error during update. Error code [%u]", res); }
+	if (res != ADF_OK) { printf("Error during update. Code [%u]", res); }
 	uint_t expected_series_size = { 1 };
 	assert_int_equal(adf.metadata.size_series, expected_series_size,
 					 "The size of series array is 1");
@@ -99,6 +99,28 @@ void test_add_to_empty_series(void)
 	size_t expected_n_series = 1;
 	assert_true(adf.metadata.n_series == expected_n_series,
 				"There are 1 series");
+}
+
+void test_update_series_time_out_of_bound(void)
+{
+	adf_t adf = get_default_object();
+	uint16_t res;
+	uint64_t time = adf.metadata.n_series * adf.metadata.period_sec.val;
+	res = update_series(&adf, adf.series[0], time+1);
+	assert_true(res == ADF_TIME_OUT_OF_BOUND,
+				"Time out of bound: should return ADF_TIME_OUT_OF_BOUND");
+}
+
+void test_update_series(void)
+{
+	adf_t adf = get_default_object();
+	series_t to_add = get_series();
+	uint16_t res;
+	uint64_t time = 1;
+	res = update_series(&adf, to_add, time);
+	assert_true(res == ADF_OK, "Series updated");
+	assert_series_equal(adf, adf.series[0], to_add, "AAAA");
+
 }
 
 void test_delete_repeated_series(void)
@@ -161,10 +183,17 @@ void test_delete_last_series(void)
 
 int main(void)
 {
+	/* Add */
 	test_add_series();
 	test_add_repeated_series();
 	test_add_repeated_and_non_repeated_series();
 	test_add_to_empty_series();
+
+	/* Update */
+	test_update_series_time_out_of_bound();
+	test_update_series();
+
+	/* Delete */
 	test_delete_repeated_series();
 	test_delete();
 	test_delete_from_empty_series();
