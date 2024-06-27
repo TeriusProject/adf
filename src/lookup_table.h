@@ -30,43 +30,13 @@
 #define DEFAULT_MAP_SIZE 1024
 
 typedef enum {
-
-	/* Everything's ok */
 	LM_OK = 0x00u,
-
-	/*
-	 *
-	 */
 	LM_CANNOT_INIT_TABLE = 0x01u,
-
-	/*
-	 *
-	 */
 	LM_CANNOT_INIT_TABLE_PAIRS = 0x02u,
-
-	/*
-	 *
-	 */
 	LM_CANNOT_INSERT_VALUE = 0x03u,
-
-	/*
-	 *
-	 */
 	LM_NULL_VALUE_NOT_ALLOWED = 0x04u,
-
-	/*
-	 *
-	 */
 	LM_VALUE_NOT_FOUND = 0x05u,
-
-	/*
-	 *
-	 */
 	LM_MAP_SIZE_OVERFLOW = 0x06u,
-
-	/*
-	 *
-	 */
 	LM_FAILED_EXPANDING_MAP_SIZE = 0x07u,
 } table_code;
 

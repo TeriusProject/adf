@@ -620,7 +620,7 @@ uint16_t reindex_additives(adf_t *adf)
 								   adf->series[i].soil_additives[j].code.val,
 								   &default_val);
 			if (table_code == LM_MAP_SIZE_OVERFLOW) {
-				return ADF_ADDITIVE_TABLE_OVERFLOW;
+				return ADF_ADDITIVE_OVERFLOW;
 			} else if (table_code != LM_OK) {
 				return ADF_RUNTIME_ERROR; 
 			}
@@ -631,7 +631,7 @@ uint16_t reindex_additives(adf_t *adf)
 								   adf->series[i].atm_additives[j].code.val,
 								   &default_val);
 			if (table_code == LM_MAP_SIZE_OVERFLOW) {
-				return ADF_ADDITIVE_TABLE_OVERFLOW;
+				return ADF_ADDITIVE_OVERFLOW;
 			} else if (table_code != LM_OK) {
 				return ADF_RUNTIME_ERROR; 
 			}

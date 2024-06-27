@@ -52,7 +52,7 @@ extern "C" {
  */
 typedef enum {
 	/*
-	 * No errors detected
+	 * Everything's OK.
 	 */
 	ADF_OK = 0x00u,
 
@@ -93,47 +93,47 @@ typedef enum {
 	ADF_TIME_OUT_OF_BOUND = 0x06u,
 
 	/*
-	 *
+	 * 
 	 */
-	ADF_ADDITIVE_TABLE_OVERFLOW = 0x07u,
+	ADF_ADDITIVE_OVERFLOW = 0x07u,
 
 	/*
-	 *
+	 * Error raised when a NULL pointer is passed as source in cpy_adf_header.
 	 */
 	ADF_NULL_HEADER_SOURCE = 0x08u,
 
 	/*
-	 *
+	 * Error raised when a NULL pointer is passed as target in cpy_adf_header.
 	 */
 	ADF_NULL_HEADER_TARGET = 0x09u,
 
 	/*
-	 *
+	 * Error raised when a NULL pointer is passed as source in cpy_adf_metadata.
 	 */
 	ADF_NULL_META_SOURCE = 0x0Au,
 
 	/*
-	 *
+	 * Error raised when a NULL pointer is passed as target in cpy_adf_metadata.
 	 */
 	ADF_NULL_META_TARGET = 0x0Bu,
 
 	/*
-	 *
+	 * Error raised when a NULL pointer is passed as source in cpy_adf_series.
 	 */
 	ADF_NULL_SERIES_SOURCE = 0x0Cu,
 
 	/*
-	 *
+	 * Error raised when a NULL pointer is passed as target in cpy_adf_series.
 	 */
 	ADF_NULL_SERIES_TARGET = 0x0Du,
 
 	/*
-	 *
+	 * Error raised when a NULL pointer is passed as source in cpy_adf.
 	 */
 	ADF_NULL_SOURCE = 0x0Eu,
 
 	/*
-	 *
+	 * Error raised when a NULL pointer is passed as target in cpy_adf.
 	 */
 	ADF_NULL_TARGET = 0x0Fu,
 
@@ -142,12 +142,6 @@ typedef enum {
 	 */
 	ADF_RUNTIME_ERROR = 0xFFFFu
 } code_t;
-
-typedef struct {
-	char *msg;
-	size_t len_msg;
-	code_t code;
-} return_code_t;
 
 typedef union {
 	float val;
@@ -164,12 +158,20 @@ typedef union {
 	uint8_t bytes[4];
 } uint_small_t;
 
-/*
- *
- */
 typedef struct {
+
+	/*
+	 * The index is the 4-byte unsigned index of the additive in
+	 * metadata.additives
+	 */
 	uint_small_t code_idx;
+
+	/*
+	 * This field won't be serialized.
+	 */
 	uint_t code;
+	
+	/* the concentration in mg/kg */
 	real_t concentration;
 } additive_t;
 
@@ -221,14 +223,7 @@ typedef struct {
 	 */
 	uint_small_t n_atm_adds;
 
-	/*
-	 *
-	 */
 	additive_t *soil_additives;
-
-	/*
-	 *
-	 */
 	additive_t *atm_additives;
 
 	/*
@@ -270,7 +265,8 @@ typedef struct {
 	uint_small_t n_additives;
 
 	/*
-	 * Contains the code of
+	 * Contains the unique code of each additive present in the series. Each
+	 * additive should appear just once.
 	 */
 	uint_t *additive_codes;
 } __attribute__((packed)) adf_meta_t;
@@ -296,6 +292,16 @@ typedef struct {
 	uint8_t farming_tec;
 
 	/*
+	 * The lower bound of the light spectrum.
+	 */
+	uint_t min_w_len_nm;
+
+	/*
+	 * The upper bound of the light spectrum.
+	 */
+	uint_t max_w_len_nm;
+
+	/*
 	 * A 4 byte unsigned integer that represents the number of steps in which
 	 * the light spectrum is (equally) divided. The spectrum represented here
 	 * is bounded between:
@@ -304,17 +310,7 @@ typedef struct {
 	uint_t n_wavelength;
 
 	/*
-	 * The lower bound of the light spectrum
-	 */
-	uint_t min_w_len_nm;
-
-	/*
-	 * The upper bound of the light spectrum
-	 */
-	uint_t max_w_len_nm;
-
-	/*
-	 * The number of chunks in which each data series is (equally) divided
+	 * The number of chunks in which each data series is (equally) divided.
 	 */
 	uint_t n_chunks;
 } __attribute__((packed)) adf_header_t;
@@ -387,12 +383,7 @@ size_t size_adf_t(adf_t);
 uint8_t *bytes_alloc(adf_t);
 
 /*
- *
- */
-bool are_series_equal(series_t, series_t, uint32_t);
-
-/*
- *
+ * 
  */
 uint16_t add_series(adf_t *, series_t);
 
@@ -402,17 +393,20 @@ uint16_t add_series(adf_t *, series_t);
 uint16_t remove_series(adf_t *);
 
 /*
- *
+ * Assumes the byte array `uint8_t *` to be allocated. You can get the exact
+ * byte size to be allocated by the function `size_adf_t`. Alternatively, you
+ * can allocate it directly with `bytes_alloc`. 
  */
 uint16_t marshal(uint8_t *, adf_t);
 
 /*
- *
+ * Assumes the `adf_t *` structure to be allocated.
  */
 uint16_t unmarshal(adf_t *, const uint8_t *);
 
 /*
- *
+ * It updates the series at time `uint64_t`.
+ * It considers the repetitions as well.
  */
 uint16_t update_series(adf_t *, series_t, uint64_t);
 
@@ -421,60 +415,17 @@ uint16_t update_series(adf_t *, series_t, uint64_t);
  */
 uint16_t reindex_additives(adf_t *);
 
-/*
- *
- */
+bool are_series_equal(series_t, series_t, uint32_t);
 adf_header_t create_header(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t);
-
-/*
- *
- */
 adf_meta_t create_metadata(uint32_t *, uint16_t, uint32_t, uint32_t, uint16_t);
-
-/*
- *
- */
 adf_t create_adf(adf_header_t, adf_meta_t);
-
-/*
- *
- */
 adf_t create_empty_adf(adf_header_t);
-
-/*
- *
- */
 void metadata_free(adf_meta_t *);
-
-/*
- *
- */
 void series_free(series_t *);
-
-/*
- * Frees the memory used by an adf_t object and its content.
- */
 void adf_free(adf_t *);
-
-/*
- * 
- */
 uint16_t cpy_adf(adf_t *, const adf_t *);
-
-/*
- *
- */
 uint16_t cpy_adf_header(adf_header_t *, const adf_header_t *);
-
-/*
- *
- */
 uint16_t cpy_adf_metadata(adf_meta_t *, const adf_meta_t *);
-
-
-/*
- *
- */
 uint16_t cpy_adf_series(series_t *, const series_t *, uint32_t, uint32_t);
 
 #ifdef __cplusplus
