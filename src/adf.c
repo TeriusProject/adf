@@ -122,7 +122,7 @@ size_t size_adf_t(adf_t data)
 	return head_metadata_size + series_size;
 }
 
-uint8_t *bytes_alloc(adf_t data) { return (uint8_t *)malloc(size_adf_t(data)); }
+uint8_t *adf_bytes_alloc(adf_t data) { return (uint8_t *)malloc(size_adf_t(data)); }
 
 uint16_t marshal(uint8_t *bytes, adf_t data)
 {

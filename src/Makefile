@@ -22,8 +22,10 @@
 CC = gcc
 AR = ar
 CFLAGS = -pedantic -Wall -Wextra -O3 -std=c17 -fPIC
+OBJS = adf.o crc.o lookup_table.o
+LIB = libadf.a
 
-libadf.a: adf.o crc.o lookup_table.o
+$(LIB): $(OBJS)
 	$(AR) cr $@ $^
 
 adf.o: adf.c
@@ -35,5 +37,10 @@ crc.o: crc.c
 lookup_table.o: lookup_table.c
 	$(CC) $(CFLAGS) -c $^
 
-clean: adf.o crc.o lookup_table.o
-	rm $^
+clean:
+	rm -f $(OBJS) $(LIB)
+
+# currently just install on macOS and GNU/Linux
+install: adf.h $(LIB)
+	cp $< /usr/local/include
+	cp $(LIB) /usr/local/lib

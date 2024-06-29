@@ -30,3 +30,7 @@ tests:
 clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C test clean
+
+# currently just install on macOS and GNU/Linux
+install:
+	$(MAKE) -C src install

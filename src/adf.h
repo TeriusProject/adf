@@ -380,7 +380,7 @@ size_t size_adf_t(adf_t);
  * serialization of an adf object. The size of the returned byte array is
  * `size_adf_t`.
  */
-uint8_t *bytes_alloc(adf_t);
+uint8_t *adf_bytes_alloc(adf_t);
 
 /*
  * 
