@@ -68,3 +68,5 @@ test/test_update
 
 .DS_Store
 api/
+example/example
+example/output.adf
