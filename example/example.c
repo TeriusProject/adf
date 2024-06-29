@@ -28,6 +28,11 @@ void write_file(adf_t adf)
 	fclose(output_file);
 }
 
+void register_data(adf_t *adf)
+{
+	printf("Register a new series (enter for default)")
+}
+
 int main(void)
 {	
 	adf_header_t header;

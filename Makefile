@@ -22,15 +22,17 @@
 all: adf tests
 
 adf:
-	$(MAKE) -C src/
+	@echo "*****************************\n  Building libadf\n*****************************"
+	@$(MAKE) -C src/
 
 tests:
-	$(MAKE) -C test/
+	@echo "*****************************\n  Building tests\n*****************************"
+	@$(MAKE) -C test/
 
 clean:
-	$(MAKE) -C src clean
-	$(MAKE) -C test clean
+	@$(MAKE) -C src clean
+	@$(MAKE) -C test clean
 
 # currently just install on macOS and GNU/Linux
 install:
-	$(MAKE) -C src install
+	@$(MAKE) -C src install
