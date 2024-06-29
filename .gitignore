@@ -58,7 +58,9 @@ test/generate_sample
 test/test_lookup_table
 test/test_create
 test/test_copy
-test/test_update
+test/test_series_add
+test/test_series_update
+test/test_series_remove
 
 # VS code conf
 .vscode/
@@ -70,3 +72,4 @@ test/test_update
 api/
 example/example
 example/output.adf
+example/example

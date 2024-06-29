@@ -71,8 +71,10 @@ void split_to_float_arr(char *arr_str, real_t *arr, uint32_t n)
 }
 
 /*
- *
  * !!! Just a mock series with some random values !!!
+ * In a real-world scenario, those series should be filled with data coming
+ * from an agricolture database or - if you have a tech greenhouse - from 
+ * your own sensors.
  */
 series_t get_series(uint32_t n_chunks, uint32_t n_wavelength)
 {
@@ -151,8 +153,10 @@ int main(void)
 		.n_wavelength = { 10 } 
 	};
 	adf = (adf_t){ .header = header, .metadata = metadata, .series = NULL };
-	
+
 	srand(time(NULL));
 	register_data(&adf);
+	printf("Writing on file `%s`\n", OUT_FILE_PATH);
 	write_file(adf);
+	printf("DONE\n");
 }

@@ -475,8 +475,7 @@ uint16_t add_series(adf_t *adf, series_t series_to_add)
 			if (is_additive_new(adf->metadata.additive_codes,
 								adf->metadata.n_additives.val,
 								series_to_add.soil_additives[n_soil])) {
-				soil_add[soil_addtocopy_idx]
-					= series_to_add.soil_additives[n_soil];
+				soil_add[soil_addtocopy_idx] = series_to_add.soil_additives[n_soil];
 				soil_addtocopy_idx++;
 			}
 		}

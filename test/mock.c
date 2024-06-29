@@ -34,9 +34,9 @@ static real_t *get_real_array(void)
 
 series_t get_series(void)
 {
-	additive_t *add_code = malloc(sizeof(additive_t));
-	additive_t add_1 = { .code_idx = { 2395 }, .concentration = { 1.234 } };
-	*add_code = add_1;
+	additive_t *soil_add_code = malloc(sizeof(additive_t));
+	additive_t add_1 = { .code = { 1234 }, .concentration = { 1.234 } };
+	*soil_add_code = add_1;
 	return (series_t){ .light_exposure = get_real_array(),
 					   .temp_celsius = get_real_array(),
 					   .water_use_ml = get_real_array(),
@@ -45,7 +45,7 @@ series_t get_series(void)
 					   .soil_density_kg_m3 = { 123.345 },
 					   .n_soil_adds = { 1 },
 					   .n_atm_adds = { 0 },
-					   .soil_additives = add_code,
+					   .soil_additives = soil_add_code,
 					   .atm_additives = NULL,
 					   .repeated = { 1 } };
 }
@@ -70,13 +70,11 @@ series_t get_repeated_series(void)
 
 adf_t get_object_with_zero_series(void)
 {
-	uint_t *codes = malloc(sizeof(uint_t));
-	*codes = (uint_t){ 2345 };
 	adf_meta_t metadata = { .period_sec = { 1345 },
-							.n_additives = { 1 },
+							.n_additives = { 0 },
 							.size_series = { 0 },
 							.n_series = 0,
-							.additive_codes = codes };
+							.additive_codes = NULL };
 	adf_header_t header = { .signature = { __ADF_SIGNATURE__ },
 							.version = __ADF_VERSION__,
 							.farming_tec = 3,

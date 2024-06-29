@@ -1,5 +1,5 @@
 /*
- * test_update.c
+ * test_series_add.c
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -95,107 +95,48 @@ void test_add_to_empty_series(void)
 	uint_t expected_series_size = { 1 };
 	assert_int_equal(adf.metadata.size_series, expected_series_size,
 					 "The size of series array is 1");
-
+	
 	size_t expected_n_series = 1;
 	assert_true(adf.metadata.n_series == expected_n_series,
 				"There are 1 series");
 }
 
-void test_update_series_time_out_of_bound(void)
+void test_add_series_should_merge_additives(void)
 {
-	adf_t adf = get_default_object();
-	uint16_t res;
-	uint64_t time = adf.metadata.n_series * adf.metadata.period_sec.val;
-	res = update_series(&adf, adf.series[0], time+1);
-	assert_true(res == ADF_TIME_OUT_OF_BOUND,
-				"Time out of bound: should return ADF_TIME_OUT_OF_BOUND");
-}
-
-void test_update_series(void)
-{
-	adf_t adf = get_default_object();
-	series_t to_add = get_repeated_series();
-	uint16_t res;
-	uint64_t time = 1;
-	res = update_series(&adf, to_add, time);
-	assert_true(res == ADF_OK, "Series updated");
-	assert_series_equal(adf, adf.series[0], to_add, "Series are equal");
-	assert_true(adf.metadata.n_series == 5, "There should be 5 series in adf");
-}
-
-void test_delete_repeated_series(void)
-{
-	adf_t adf = get_default_object();
-	int res = remove_series(&adf);
-	if (res != ADF_OK) { printf("Error during delete. Error code [%u]", res); }
-
-	uint_t expected_series_size = { 2 };
-	assert_int_equal(adf.metadata.size_series, expected_series_size,
-					 "The size of series array is 2");
-	size_t expected_n_series = 3;
-	assert_true(adf.metadata.n_series == expected_n_series,
-				"There are 3 series");
-}
-
-void test_delete(void)
-{
-	adf_t adf = get_default_object();
-	int res = remove_series(&adf);
-	if (res != ADF_OK) { printf("Error during delete. Error code [%u]", res); }
-
-	uint_t expected_size_series = { 2 };
-	assert_int_equal(adf.metadata.size_series, expected_size_series,
-					 "The size of series array is 2");
-
-	size_t expected_n_series = 3;
-	assert_true(adf.metadata.n_series == expected_n_series,
-				"There are 3 series");
-}
-
-void test_delete_from_empty_series(void)
-{
-	adf_t adf = get_object_with_zero_series();
-	int res = remove_series(&adf);
-	assert_true(res == ADF_EMPTY_SERIES,
-				"Cannot delete anything from EMPTY series");
-}
-
-void test_delete_last_series(void)
-{
-	adf_t adf = get_default_object();
 	int res;
+	adf_t adf = get_object_with_zero_series();
+	series_t series1 = get_series();
+	series_t series2 = get_series();
+	res = add_series(&adf, series1);
+	if (res != ADF_OK) { printf("Error during update. Code [%u]", res); }
 
-	for (uint8_t i = 0; i < 4; i++) {
-		res = remove_series(&adf);
-		if (res != ADF_OK) {
-			printf("Error during delete. Error code [%u]", res);
-		}
-	}
-
-	uint_t expected_size_series = { 0 };
-	assert_int_equal(adf.metadata.size_series, expected_size_series,
-					 "The series array is EMPTY");
-
-	size_t expected_n_series = 0;
-	assert_true(adf.metadata.n_series == expected_n_series,
-				"There are 0 series");
+	assert_true(adf.metadata.n_additives.val == 1,
+				"metadata should contain 1 soil additive");
+	assert_true(adf.series[0].soil_additives[0].code_idx.val == 0,
+				"additives should occupy the lowest possible position in metadata");
+	series2.soil_additives[0].code.val = 5678;
+	series2.soil_additives[0].concentration.val = 5.678;
+	res = add_series(&adf, series2);
+	if (res != ADF_OK) { printf("Error during update. Code [%u]", res); }
+	
+	assert_true(adf.metadata.n_additives.val == 2,
+				"metadata should contain 2 soil additive");
+	assert_true(adf.series[0].soil_additives[0].code_idx.val == 0,
+				"add_series should never change already inserted additives");
+	assert_true(adf.series[1].soil_additives[0].code_idx.val == 1,
+				"additives should be inserted by push_back");
 }
+
+// void test_add_series_with_too_many_additives(void)
+// {
+// 	adf_t adf = get_object_with_zero_series();
+// }
 
 int main(void)
 {
-	/* Add */
 	test_add_series();
 	test_add_repeated_series();
 	test_add_repeated_and_non_repeated_series();
 	test_add_to_empty_series();
-
-	/* Update */
-	test_update_series_time_out_of_bound();
-	test_update_series();
-
-	/* Delete */
-	test_delete_repeated_series();
-	test_delete();
-	test_delete_from_empty_series();
-	test_delete_last_series();
+	test_add_series_should_merge_additives();
 }
