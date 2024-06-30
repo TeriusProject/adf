@@ -23,7 +23,7 @@
 #include "mock.h"
 #include "../src/adf.h"
 
-static real_t *get_real_array(void)
+real_t *get_real_array(void)
 {
 	real_t *light_mask = malloc(10 * sizeof(real_t));
 	float f = 0.0;
@@ -37,17 +37,19 @@ series_t get_series(void)
 	additive_t *soil_add_code = malloc(sizeof(additive_t));
 	additive_t add_1 = { .code = { 1234 }, .concentration = { 1.234 } };
 	*soil_add_code = add_1;
-	return (series_t){ .light_exposure = get_real_array(),
-					   .temp_celsius = get_real_array(),
-					   .water_use_ml = get_real_array(),
-					   .pH = 11,
-					   .p_bar = { 13.56789 },
-					   .soil_density_kg_m3 = { 123.345 },
-					   .n_soil_adds = { 1 },
-					   .n_atm_adds = { 0 },
-					   .soil_additives = soil_add_code,
-					   .atm_additives = NULL,
-					   .repeated = { 1 } };
+	return (series_t) { 
+		.light_exposure = get_real_array(),
+		.temp_celsius = get_real_array(),
+		.water_use_ml = get_real_array(),
+		.pH = 11,
+		.p_bar = { 13.56789 },
+		.soil_density_kg_m3 = { 123.345 },
+		.n_soil_adds = { 1 },
+		.n_atm_adds = { 0 },
+		.soil_additives = soil_add_code,
+		.atm_additives = NULL,
+		.repeated = { 1 }
+	};
 }
 
 series_t get_repeated_series(void)

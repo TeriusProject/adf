@@ -133,30 +133,22 @@ void register_data(adf_t *adf)
 int main(void)
 {
 	adf_header_t header;
-	adf_meta_t metadata;
 	adf_t adf;
-
-	metadata = (adf_meta_t){ 
-		.period_sec = { 21600 }, // each series takes 6 hours
-		.n_additives = { 0 },
-		.size_series = { 0 },
-		.n_series = 0,
-		.additive_codes = NULL 
-	};
-	header = (adf_header_t){ 
+	
+	header = (adf_header_t) { 
 		.signature = { __ADF_SIGNATURE__ },
 		.version = __ADF_VERSION__,
-		.farming_tec = 3,
+		.farming_tec = 0x01u,
 		.min_w_len_nm = { 0 },
 		.max_w_len_nm = { 10000 },
 		.n_chunks = { 10 },
 		.n_wavelength = { 10 } 
 	};
-	adf = (adf_t){ .header = header, .metadata = metadata, .series = NULL };
+	adf_init(&adf, header, 86400); // each series takes 1 day
 
 	srand(time(NULL));
 	register_data(&adf);
-	printf("Writing on file `%s`\n", OUT_FILE_PATH);
+	printf("Writing on file `%s`...\n", OUT_FILE_PATH);
 	write_file(adf);
-	printf("DONE\n");
+	printf("*DONE*\n");
 }

@@ -54,7 +54,7 @@ void headers_are_equal(void)
 		printf("[%x] An error occurred while copying the headers\n", res);
 		exit(1);
 	}
-	assert_header_equal(adf.header, target);
+	assert_header_equal_verbose(adf.header, target);
 }
 
 void copy_meta_with_null_target(void)
@@ -162,7 +162,7 @@ void adfs_are_equal(void)
 	}
 	/* Header */
 	printf("%s\n", "(header)");
-	assert_header_equal(target.header, source.header);
+	assert_header_equal_verbose(target.header, source.header);
 
 	/* Metadata */
 	printf("%s\n", "(metadata)");

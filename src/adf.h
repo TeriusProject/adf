@@ -255,9 +255,9 @@ typedef struct {
 	 * It represents the time (measured in seconds) that each series last. The
 	 * total time elapsed (in seconds) is given by the period multiplied by
 	 * the number of the series, including each repetition. Each series can last
-	 * up to 65,535 seconds (approx. 18 hours)
+	 * up to 4,294,967,295 seconds
 	 */
-	uint_small_t period_sec;
+	uint_t period_sec;
 
 	/*
 	 * Contains the number of elements of the array `additive_codes`.
@@ -417,9 +417,10 @@ uint16_t reindex_additives(adf_t *);
 
 bool are_series_equal(series_t, series_t, uint32_t);
 adf_header_t create_header(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t);
-adf_meta_t create_metadata(uint32_t *, uint16_t, uint32_t, uint32_t, uint16_t);
-adf_t create_adf(adf_header_t, adf_meta_t);
-adf_t create_empty_adf(adf_header_t);
+uint16_t init_empty_series(series_t *, uint32_t, uint32_t, uint16_t, uint16_t);
+void metadata_init(adf_meta_t *, uint32_t);
+void adf_init(adf_t *, adf_header_t, uint32_t);
+adf_t create_empty_adf(adf_header_t, uint16_t);
 void metadata_free(adf_meta_t *);
 void series_free(series_t *);
 void adf_free(adf_t *);

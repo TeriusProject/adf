@@ -25,6 +25,7 @@
 
 #include "../src/adf.h"
 
+real_t *get_real_array(void);
 series_t get_series(void);
 series_t get_repeated_series(void);
 adf_t get_default_object(void);

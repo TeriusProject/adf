@@ -143,7 +143,7 @@ void table_keys_should_return_the_list_of_the_inserted_keys(void)
 		"table_get_pairs should return the available pairs");
 }
 
-void push_and_pop_one_object(void)
+void push_and_pop_one_additive(void)
 {
 	table_t t;
 	uint16_t res = table_init(&t, 256, 256, &fn);
@@ -168,8 +168,8 @@ void push_and_pop_one_object(void)
 		exit(1);
 	}
 	assert_true(are_additives_equal(value, *returned_value),
-				"Push and pop the same object");
-	assert_true(t.size == 1,  "One object inserted, table size should be 1");
+				"Push and pop the same additive");
+	assert_true(t.size == 1,  "One additive inserted, table size should be 1");
 }
 
 int main(void)
@@ -177,7 +177,7 @@ int main(void)
 	srand(time(NULL));
 	printf("(Lookup table test)\n");
 	push_and_pop_one_integer();
-	push_and_pop_one_object();
+	push_and_pop_one_additive();
 	push_and_remove_should_be_empty();
 	push_and_update();
 	map_should_resize_when_half_full();

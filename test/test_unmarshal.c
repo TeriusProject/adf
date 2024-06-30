@@ -64,7 +64,7 @@ int main(void)
 
 	/* Header */
 	printf("%s\n", "(header - from byte 0)");
-	assert_header_equal(new.header, expected.header);
+	assert_header_equal_verbose(new.header, expected.header);
 
 	/* Metadata */
 	printf("%s\n", "(metadata - from byte 24)");

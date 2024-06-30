@@ -34,38 +34,34 @@
 #define TICK "\u2713"
 #define CROSS "\u2A09"
 
-bool are_ints_equal(uint_t x, uint_t y);
-bool are_small_ints_equal(uint_small_t x, uint_small_t y);
-bool are_reals_equal(real_t x, real_t y);
-bool are_uint8_arrays_equal(uint8_t *x, uint8_t *y, uint32_t size);
-bool are_int_arrays_equal(uint_t *x, uint_t *y, uint32_t size);
-bool are_real_arrays_equal(real_t *x, real_t *y, size_t size);
-bool are_additive_arrays_equal(additive_t *x, additive_t *y, size_t size);
-bool are_pair_arrays_equal(pair_t *x, pair_t *y, uint32_t size);
-bool are_additives_equal(additive_t x, additive_t y);
+bool are_ints_equal(uint_t, uint_t);
+bool are_small_ints_equal(uint_small_t, uint_small_t);
+bool are_reals_equal(real_t, real_t);
+bool are_uint8_arrays_equal(uint8_t *, uint8_t *, uint32_t);
+bool are_int_arrays_equal(uint_t *, uint_t *, uint32_t);
+bool are_real_arrays_equal(real_t *, real_t *, size_t);
+bool are_additive_arrays_equal(additive_t *, additive_t *, size_t);
+bool are_pair_arrays_equal(pair_t *, pair_t *, uint32_t);
+bool are_additives_equal(additive_t, additive_t);
 
 /* assertions */
-void assert_true(bool condition, const char *label);
-void assert_int_equal(uint_t x, uint_t y, const char *label);
-void assert_long_equal(long x, long y, const char *label);
-void assert_real_equal(real_t x, real_t y, const char *label);
-void assert_small_int_equal(uint_small_t x, uint_small_t y, const char *label);
-void assert_uint32_arrays_equal(uint32_t *x, uint32_t *y, uint32_t size, 
-								const char *label);
-void assert_int_arrays_equal(uint_t *x, uint_t *y, uint32_t size, 
-							 const char *label);
-void assert_real_arrays_equal(real_t *x, real_t *y, uint32_t size, 
-							  const char *label);
-void assert_additive_arrays_equal(additive_t *x, additive_t *y, uint32_t size,
-								  const char *label);
-void assert_uint8_arrays_equal(uint8_t *x, uint8_t *y, uint32_t size,
-							   const char *label);
-void assert_pair_arrays_equal(pair_t *x, pair_t *y, uint32_t size, 
-							  const char *label);
-void assert_header_equal(adf_header_t target, adf_header_t expected);
-void assert_metadata_equal(adf_meta_t target, adf_meta_t expected);
-void assert_series_equal_verbose(adf_t data, series_t x, series_t y);
-void assert_series_equal(adf_t data, series_t x, series_t y,
-						 const char *label);
+void assert_true(bool, const char *);
+void assert_int_equal(uint_t, uint_t, const char *);
+void assert_long_equal(long, long, const char *);
+void assert_real_equal(real_t, real_t, const char *);
+void assert_small_int_equal(uint_small_t, uint_small_t, const char *);
+void assert_uint32_arrays_equal(uint32_t *, uint32_t *, uint32_t, 
+								const char *);
+void assert_int_arrays_equal(uint_t *, uint_t *, uint32_t, const char *);
+void assert_real_arrays_equal(real_t *, real_t *, uint32_t, const char *);
+void assert_additive_arrays_equal(additive_t *, additive_t *, uint32_t,
+								  const char *);
+void assert_uint8_arrays_equal(uint8_t *, uint8_t *, uint32_t, const char *);
+void assert_pair_arrays_equal(pair_t *, pair_t *, uint32_t, const char *);
+void assert_header_equal(adf_header_t, adf_header_t, const char *);
+void assert_header_equal_verbose(adf_header_t, adf_header_t);
+void assert_metadata_equal(adf_meta_t, adf_meta_t);
+void assert_series_equal_verbose(adf_t, series_t, series_t);
+void assert_series_equal(adf_t, series_t, series_t, const char *);
 
 #endif /* __UTILS_H__ */

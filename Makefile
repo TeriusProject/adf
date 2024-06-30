@@ -19,6 +19,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+INCLUDE = /usr/local/include
+LIB = /usr/local/lib
+
 all: adf tests
 
 adf:
@@ -36,3 +39,6 @@ clean:
 # currently just install on macOS and GNU/Linux
 install:
 	@$(MAKE) -C src install
+
+cpp:
+	@$(MAKE) -C api/cc 

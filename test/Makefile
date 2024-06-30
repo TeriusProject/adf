@@ -20,7 +20,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 CC = gcc
-CFLAGS = -pedantic -Wall -Wextra -O3 -std=c17
+CFLAGS = -pedantic -Wall -Wextra -O3 -std=c2x
 SRC = ../src/
 BIN = test_create test_marshal test_unmarshal test_series_add test_series_update test_series_remove test_lookup_table test_copy
 

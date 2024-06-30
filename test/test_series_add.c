@@ -127,10 +127,62 @@ void test_add_series_should_merge_additives(void)
 				"additives should be inserted by push_back");
 }
 
-// void test_add_series_with_too_many_additives(void)
-// {
-// 	adf_t adf = get_object_with_zero_series();
-// }
+void test_additive_overflow(void)
+{
+	adf_t adf = get_object_with_zero_series();
+	series_t series1, series2;
+	additive_t *series1_additives, *series2_additives;
+	uint16_t size1 = 30'000, size2 = 50'000, res;
+
+	series1_additives = malloc(size1 * sizeof(additive_t));
+	series2_additives = malloc(size2 * sizeof(additive_t));
+
+	for (uint16_t i = 0; i < size1; i++)
+		series1_additives[i] = (additive_t) {
+			.code = { i },
+			.concentration = { 1.0 }
+		};
+
+	for (uint16_t i = 0; i < size2; i++)
+		series1_additives[i] = (additive_t) {
+			.code = { i + size1 },
+			.concentration = { 1.0 }
+		};
+	series1 = (series_t) { 
+		.light_exposure = get_real_array(),
+		.temp_celsius = get_real_array(),
+		.water_use_ml = get_real_array(),
+		.pH = 11,
+		.p_bar = { 13.56789 },
+		.soil_density_kg_m3 = { 123.345 },
+		.n_soil_adds = { size1 },
+		.n_atm_adds = { 0 },
+		.soil_additives = series1_additives,
+		.atm_additives = NULL,
+		.repeated = { 1 }
+	};
+	series2 = (series_t) { 
+		.light_exposure = get_real_array(),
+		.temp_celsius = get_real_array(),
+		.water_use_ml = get_real_array(),
+		.pH = 2,
+		.p_bar = { 3.89 },
+		.soil_density_kg_m3 = { 0.345 },
+		.n_soil_adds = { size2 },
+		.n_atm_adds = { 0 },
+		.soil_additives = series2_additives,
+		.atm_additives = NULL,
+		.repeated = { 1 }
+	};
+	res = add_series(&adf, series1);
+	if (res != ADF_OK) {
+		printf("An error occurred while adding series 1 [code:%x]", res);
+		exit(1);
+	}
+	res = add_series(&adf, series2);
+	assert_true(res == ADF_ADDITIVE_OVERFLOW, 
+				"too many additives, should return ADF_ADDITIVE_OVERFLOW");
+}
 
 int main(void)
 {
@@ -139,4 +191,5 @@ int main(void)
 	test_add_repeated_and_non_repeated_series();
 	test_add_to_empty_series();
 	test_add_series_should_merge_additives();
+	test_additive_overflow();
 }

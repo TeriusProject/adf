@@ -155,7 +155,7 @@ void assert_additive_arrays_equal(additive_t *x, additive_t *y, uint32_t size,
 	assert_true(are_additive_arrays_equal(x, y, size), label);
 }
 
-void assert_header_equal(adf_header_t target, adf_header_t expected)
+void assert_header_equal_verbose(adf_header_t target, adf_header_t expected)
 {
 	assert_int_equal(
 		target.signature, expected.signature, "are signatures equals"
@@ -177,23 +177,32 @@ void assert_header_equal(adf_header_t target, adf_header_t expected)
 	assert_int_equal(target.n_chunks, expected.n_chunks, "are n_chunks equal");
 }
 
+void assert_header_equal(adf_header_t target, adf_header_t expected,
+						 const char *label)
+{
+	bool c = are_ints_equal(target.signature, expected.signature)
+			 && target.version == expected.version
+			 && target.farming_tec == expected.farming_tec
+			 && are_ints_equal(target.n_wavelength, expected.n_wavelength)
+			 && are_ints_equal(target.min_w_len_nm, expected.min_w_len_nm)
+			 && are_ints_equal(target.max_w_len_nm, expected.max_w_len_nm)
+			 && are_ints_equal(target.n_chunks, expected.n_chunks);
+	assert_true(c, label);
+}
+
 void assert_metadata_equal(adf_meta_t target, adf_meta_t expected)
 {
 	assert_int_equal(
 		target.size_series, expected.size_series, "are size_series equal"
 	);
 	assert_true(target.n_series == expected.n_series, "are n_series equal");
-	assert_small_int_equal(
-		target.period_sec, expected.period_sec, "are periods equal"
-	);
-	assert_small_int_equal(
-		target.n_additives, expected.n_additives,
-		"are number of additive codes equal"
-	);
-	assert_int_arrays_equal(
-		target.additive_codes, expected.additive_codes, target.n_additives.val,
-		"are additive codes equal"
-	);
+	assert_int_equal(target.period_sec, expected.period_sec, 
+					 "are periods equal");
+	assert_small_int_equal(target.n_additives, expected.n_additives,
+						   "are number of additive codes equal");
+	assert_int_arrays_equal(target.additive_codes, expected.additive_codes,
+							target.n_additives.val,
+							"are all the additive codes equal");
 }
 
 void assert_series_equal_verbose(adf_t data, series_t x, series_t y)
