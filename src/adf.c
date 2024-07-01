@@ -25,6 +25,7 @@
 #include "crc.h"
 #include "lookup_table.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #define SHIFT_COUNTER(n) (byte_c += n)
@@ -386,38 +387,43 @@ static bool are_additive_t_equal(additive_t x, additive_t y)
 		   && are_reals_equal(x.concentration, y.concentration);
 }
 
-bool are_series_equal(series_t first, series_t second, uint32_t n_chunks)
+bool are_series_equal(const series_t *first, const series_t *second, 
+					  uint32_t n_chunks, uint16_t n_wavelength)
 {
-	bool int_fields_eq = first.pH == second.pH
-						  && first.n_atm_adds.val == second.n_atm_adds.val
-						  && first.n_soil_adds.val == second.n_soil_adds.val;
+	bool int_fields_eq = first->pH == second->pH
+						  && first->n_atm_adds.val == second->n_atm_adds.val
+						  && first->n_soil_adds.val == second->n_soil_adds.val;
 
 	if (!int_fields_eq) return false;
 
-	bool real_fields_eq = are_reals_equal(first.p_bar, second.p_bar)
-						   && are_reals_equal(first.soil_density_kg_m3,
-											  second.soil_density_kg_m3);
+	bool real_fields_eq = are_reals_equal(first->p_bar, second->p_bar)
+						   && are_reals_equal(first->soil_density_kg_m3,
+											  second->soil_density_kg_m3);
 
 	if (!real_fields_eq) return false;
 
 	/* lastly, we need to check the arrays :( */
 	for (uint32_t i = 0; i < n_chunks; i++) {
-		if (!(are_reals_equal(first.light_exposure[i], second.light_exposure[i])
-			  && are_reals_equal(first.temp_celsius[i], second.temp_celsius[i])
-			  && are_reals_equal(first.water_use_ml[i],
-								 second.water_use_ml[i])))
+		if (!(are_reals_equal(first->temp_celsius[i], second->temp_celsius[i])
+			  && are_reals_equal(first->water_use_ml[i],
+								 second->water_use_ml[i])))
 			return false;
 	}
 
-	for (uint16_t i = 0, l = first.n_soil_adds.val; i < l; i++) {
-		if (!are_additive_t_equal(first.soil_additives[i],
-								  second.soil_additives[i]))
+	for (uint16_t i = 0; i < n_wavelength; i++) {
+		if (!are_reals_equal(first->light_exposure[i], second->light_exposure[i]))
 			return false;
 	}
 
-	for (uint16_t i = 0, l = first.n_atm_adds.val; i < l; i++) {
-		if (!are_additive_t_equal(first.atm_additives[i],
-								  second.atm_additives[i]))
+	for (uint16_t i = 0, l = first->n_soil_adds.val; i < l; i++) {
+		if (!are_additive_t_equal(first->soil_additives[i],
+								  second->soil_additives[i]))
+			return false;
+	}
+
+	for (uint16_t i = 0, l = first->n_atm_adds.val; i < l; i++) {
+		if (!are_additive_t_equal(first->atm_additives[i],
+								  second->atm_additives[i]))
 			return false;
 	}
 
@@ -433,7 +439,7 @@ static bool is_additive_new(uint_t *additives, uint16_t n_additives,
 	return true;
 }
 
-uint16_t add_series(adf_t *adf, series_t series_to_add)
+uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 {
 	series_t *last;
 	size_t new_size_series;
@@ -444,41 +450,43 @@ uint16_t add_series(adf_t *adf, series_t series_to_add)
 					 ? &to_big_endian_2_bytes 
 					 : &to_little_endian_2_bytes;
 
-	if (series_to_add.repeated.val == 0) { return ADF_ZERO_REPEATED_SERIES; }
+	if (series_to_add->repeated.val == 0) { return ADF_ZERO_REPEATED_SERIES; }
 
 	if (adf->metadata.size_series.val > 0) {
 		last = adf->series + (adf->metadata.size_series.val - 1);
-		if (are_series_equal(*last, series_to_add, adf->header.n_chunks.val)) {
-			last->repeated.val += series_to_add.repeated.val;
-			adf->metadata.n_series += series_to_add.repeated.val;
+		if (are_series_equal(last, series_to_add, adf->header.n_chunks.val,
+							 adf->header.n_wavelength.val)) {
+			last->repeated.val += series_to_add->repeated.val;
+			adf->metadata.n_series += series_to_add->repeated.val;
 			return ADF_OK;
 		}
 	}
 
+	/* If it's not equal to the last one, and if it's not zero-repeated, 
+	   then we have to add it to the series array */
 	new_size_series = (adf->metadata.size_series.val + 1) * sizeof(series_t);
 	adf->series = realloc(adf->series, new_size_series);
-
 	if (!adf->series) { return ADF_RUNTIME_ERROR; }
 
-	n_soil_add = series_to_add.n_soil_adds.val;
-	n_atm_add = series_to_add.n_atm_adds.val;
-	soil_add = malloc(n_soil_add * sizeof(additive_t *));
-	atm_add = malloc(n_atm_add * sizeof(additive_t *));
+	/* At this point, we don't know how many additives should be added to the 
+	   additive_codes array in the metadata, so we allocate  */
+	n_soil_add = series_to_add->n_soil_adds.val;
+	n_atm_add = series_to_add->n_atm_adds.val;
+	if (n_soil_add > 0)
+		soil_add = malloc(n_soil_add * sizeof(additive_t *));
+	if (n_atm_add > 0)
+		atm_add = malloc(n_atm_add * sizeof(additive_t *));
 	soil_addtocopy_idx = 0;
 	atm_addtocopy_idx = 0;
-
-	total_additives = adf->metadata.n_additives.val
-					  + n_soil_add 
-					  + n_atm_add;
-	if (total_additives > 0xFFFF) 
-		return ADF_ADDITIVE_OVERFLOW;
+	table_t additives_to_add;
+	table_init(&additives_to_add, 1024, 1024, &id);
 
 	if (n_soil_add > 0) {
-		for (uint16_t n_soil = 0, l = n_soil_add; n_soil < l; n_soil++) {
+		for (uint16_t n_soil = 0; n_soil < n_soil_add; n_soil++) {
 			if (is_additive_new(adf->metadata.additive_codes,
 								adf->metadata.n_additives.val,
-								series_to_add.soil_additives[n_soil])) {
-				soil_add[soil_addtocopy_idx] = series_to_add.soil_additives
+								series_to_add->soil_additives[n_soil])) {
+				soil_add[soil_addtocopy_idx] = series_to_add->soil_additives
 											   + n_soil;
 				soil_addtocopy_idx++;
 			}
@@ -486,18 +494,24 @@ uint16_t add_series(adf_t *adf, series_t series_to_add)
 	}
 
 	if (n_atm_add > 0) {
-		for (uint16_t n_atm = 0, l = n_atm_add; n_atm < l; n_atm++) {
+		for (uint16_t n_atm = 0; n_atm < n_atm_add; n_atm++) {
 			if (is_additive_new(adf->metadata.additive_codes,
 								adf->metadata.n_additives.val,
-								series_to_add.atm_additives[n_atm])) {
-				atm_add[atm_addtocopy_idx] = series_to_add.atm_additives
+								series_to_add->atm_additives[n_atm])) {
+				atm_add[atm_addtocopy_idx] = series_to_add->atm_additives
 											 + n_atm;
 				atm_addtocopy_idx++;
 			}
 		}
 	}
 
-	uint16_t items_to_add = soil_addtocopy_idx + atm_addtocopy_idx;
+	uint32_t items_to_add = soil_addtocopy_idx + atm_addtocopy_idx;
+	total_additives = adf->metadata.n_additives.val + items_to_add;
+	if (total_additives > 0xFFFF) {
+		if (n_soil_add > 0) { free(soil_add); }
+		if (n_atm_add > 0) { free(atm_add); }
+		return ADF_ADDITIVE_OVERFLOW; 
+	}
 	size_t new_size_additives = (adf->metadata.n_additives.val + items_to_add) 
 								* sizeof(uint_t);
 	adf->metadata.additive_codes = realloc(adf->metadata.additive_codes, 
@@ -508,7 +522,6 @@ uint16_t add_series(adf_t *adf, series_t series_to_add)
 	for (uint16_t i = adf->metadata.n_additives.val, j = 0;
 		 i < adf->metadata.n_additives.val + soil_addtocopy_idx; i++, j++) {
 		adf->metadata.additive_codes[i] = soil_add[j]->code;
-
 		soil_add[j]->code_idx.val = i;
 	}
 	for (uint16_t i = adf->metadata.n_additives.val + soil_addtocopy_idx, j = 0;
@@ -517,13 +530,15 @@ uint16_t add_series(adf_t *adf, series_t series_to_add)
 		atm_add[j]->code_idx.val = i;
 	}
 	adf->metadata.n_additives.val += items_to_add;
-	adf->series[adf->metadata.size_series.val] = series_to_add;
+	cpy_adf_series(adf->series + adf->metadata.size_series.val, 
+				   series_to_add, adf->header.n_chunks.val, 
+				   adf->header.n_wavelength.val);
 	adf->metadata.size_series.val++;
-	adf->metadata.n_series += series_to_add.repeated.val;
+	adf->metadata.n_series += series_to_add->repeated.val;
 
-	free(soil_add);
-	free(atm_add);
-
+	if (n_soil_add > 0) { free(soil_add); }
+	if (n_atm_add > 0) { free(atm_add); }
+	
 	return ADF_OK;
 }
 

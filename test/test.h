@@ -60,7 +60,8 @@ void assert_uint8_arrays_equal(uint8_t *, uint8_t *, uint32_t, const char *);
 void assert_pair_arrays_equal(pair_t *, pair_t *, uint32_t, const char *);
 void assert_header_equal(adf_header_t, adf_header_t, const char *);
 void assert_header_equal_verbose(adf_header_t, adf_header_t);
-void assert_metadata_equal(adf_meta_t, adf_meta_t);
+void assert_metadata_equal_verbose(adf_meta_t, adf_meta_t);
+void assert_metadata_equal(adf_meta_t, adf_meta_t, const char *);
 void assert_series_equal_verbose(adf_t, series_t, series_t);
 void assert_series_equal(adf_t, series_t, series_t, const char *);
 

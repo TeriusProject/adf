@@ -68,7 +68,7 @@ int main(void)
 
 	/* Metadata */
 	printf("%s\n", "(metadata - from byte 24)");
-	assert_metadata_equal(new.metadata, expected.metadata);
+	assert_metadata_equal_verbose(new.metadata, expected.metadata);
 
 	/* Series */
 	if (new.metadata.size_series.val == 0) return 0;

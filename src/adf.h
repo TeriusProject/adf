@@ -385,7 +385,7 @@ uint8_t *adf_bytes_alloc(adf_t);
 /*
  * 
  */
-uint16_t add_series(adf_t *, series_t);
+uint16_t add_series(adf_t *, const series_t *);
 
 /*
  *
@@ -415,7 +415,7 @@ uint16_t update_series(adf_t *, series_t, uint64_t);
  */
 uint16_t reindex_additives(adf_t *);
 
-bool are_series_equal(series_t, series_t, uint32_t);
+bool are_series_equal(const series_t *, const series_t *, uint32_t, uint16_t);
 adf_header_t create_header(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t);
 uint16_t init_empty_series(series_t *, uint32_t, uint32_t, uint16_t, uint16_t);
 void metadata_init(adf_meta_t *, uint32_t);

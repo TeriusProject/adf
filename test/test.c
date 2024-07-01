@@ -190,7 +190,20 @@ void assert_header_equal(adf_header_t target, adf_header_t expected,
 	assert_true(c, label);
 }
 
-void assert_metadata_equal(adf_meta_t target, adf_meta_t expected)
+void assert_metadata_equal(adf_meta_t target, adf_meta_t expected,
+						   const char *label)
+{
+	bool c = are_ints_equal(target.size_series, expected.size_series)
+			 && target.n_series == expected.n_series
+			 && are_ints_equal(target.period_sec, expected.period_sec)
+			 && are_small_ints_equal(target.n_additives, expected.n_additives)
+			 && are_int_arrays_equal(target.additive_codes, 
+			 						 expected.additive_codes,
+									 target.n_additives.val);
+	assert_true(c, label);
+}
+
+void assert_metadata_equal_verbose(adf_meta_t target, adf_meta_t expected)
 {
 	assert_int_equal(
 		target.size_series, expected.size_series, "are size_series equal"

@@ -22,16 +22,18 @@
 INCLUDE = /usr/local/include
 LIB = /usr/local/lib
 
-all: adf tests
+all: adf test
 
 adf:
 	@echo "*****************************\n  Building libadf\n*****************************"
 	@$(MAKE) -C src/
 
-tests:
+.PHONY : test
+test:
 	@echo "*****************************\n  Building tests\n*****************************"
 	@$(MAKE) -C test/
 
+.PHONY : clean
 clean:
 	@$(MAKE) -C src clean
 	@$(MAKE) -C test clean
@@ -40,5 +42,6 @@ clean:
 install:
 	@$(MAKE) -C src install
 
+.PHONY : cpp
 cpp:
 	@$(MAKE) -C api/cc 
