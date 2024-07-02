@@ -43,6 +43,11 @@ clean:
 install:
 	@$(MAKE) -C src install
 
+.PHONY : uninstall
+# currently just uninstall on macOS and GNU/Linux
+uninstall: 
+	@$(MAKE) -C src uninstall
+
 .PHONY : cpp
 cpp:
 	@$(MAKE) -C api/cc 

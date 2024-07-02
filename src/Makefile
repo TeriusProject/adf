@@ -23,11 +23,12 @@ CC = gcc
 AR = ar
 CFLAGS = -pedantic -Wall -Wextra -O3 -std=c2x -fPIC
 OBJS = adf.o crc.o lookup_table.o
-LIB_NAME = libadf.a
+LIB = libadf.a
+HEADER = adf.h
 INCLUDE = /usr/local/include
-LIB = /usr/local/lib
+LIB_DIR = /usr/local/lib
 
-$(LIB_NAME): $(OBJS)
+$(LIB): $(OBJS)
 	$(AR) cr $@ $^
 
 adf.o: adf.c
@@ -41,10 +42,16 @@ lookup_table.o: lookup_table.c
 
 .PHONY : clean
 clean:
-	rm -f $(OBJS) $(LIB_NAME)
+	rm -f $(OBJS) $(LIB)
 
 .PHONY : install
 # currently just install on macOS and GNU/Linux
-install: adf.h $(LIB_NAME)
+install: $(HEADER) $(LIB)
 	cp $< $(INCLUDE)
-	cp $(LIB_NAME) $(LIB)
+	cp $(LIB) $(LIB_DIR)
+
+.PHONY : uninstall
+# currently just uninstall on macOS and GNU/Linux
+uninstall: 
+	rm -f $(INCLUDE)/$(HEADER)
+	rm -f $(LIB_DIR)/$(LIB)
