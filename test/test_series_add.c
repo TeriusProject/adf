@@ -11,7 +11,7 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * Terius is distributed in the hope that it will be useful,
+ * ADF is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -186,10 +186,10 @@ void test_additive_overflow(void)
 
 int main(void)
 {
-	// test_add_series();
-	// test_add_repeated_series();
-	// test_add_repeated_and_non_repeated_series();
-	// test_add_to_empty_series();
-	// test_add_series_should_merge_additives();
+	test_add_series();
+	test_add_repeated_series();
+	test_add_repeated_and_non_repeated_series();
+	test_add_to_empty_series();
+	test_add_series_should_merge_additives();
 	test_additive_overflow();
 }

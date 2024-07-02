@@ -10,7 +10,7 @@
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
 #
-# Terius is distributed in the hope that it will be useful,
+# ADF is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -39,9 +39,11 @@ crc.o: crc.c
 lookup_table.o: lookup_table.c
 	$(CC) $(CFLAGS) -c $^
 
+.PHONY : clean
 clean:
 	rm -f $(OBJS) $(LIB_NAME)
 
+.PHONY : install
 # currently just install on macOS and GNU/Linux
 install: adf.h $(LIB_NAME)
 	cp $< $(INCLUDE)

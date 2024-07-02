@@ -1,0 +1,3 @@
+[submodule "intrinsics"]
+	path = intrinsics
+	url = https://github.com/aestriplex/intrinsic.git

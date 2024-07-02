@@ -11,7 +11,7 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * Terius is distributed in the hope that it will be useful,
+ * ADF is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -31,6 +31,17 @@
 #define SHIFT_COUNTER(n) (byte_c += n)
 
 typedef void (*number_bytes_copy)(uint8_t *, const uint8_t *);
+
+/*
+ * Hash function.
+ * Since the additive code is a unique integer id we do not need an hash 
+ * function. Hence, the `id` function just return the 4-byte additive code
+ */
+static uint32_t id(void *key)
+{
+	return *((uint32_t *) key);
+}
+
 
 static number_bytes_copy cpy_4_bytes_fn;
 static number_bytes_copy cpy_2_bytes_fn;
@@ -605,15 +616,6 @@ static uint_t *get_additive_codes(pair_t *pairs, size_t size)
 		pairs[i].value = &i;
 	}
 	return additives;
-}
-
-/*
- * Since the additive code is a unique integer id we do not need an hash 
- * function. Hence, the `id` function just return the 4-byte additive code
- */
-static uint32_t id(void *key)
-{
-	return *((uint32_t *) key);
 }
 
 uint16_t reindex_additives(adf_t *adf)

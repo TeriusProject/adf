@@ -11,7 +11,7 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * Terius is distributed in the hope that it will be useful,
+ * ADF is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -122,7 +122,7 @@ void register_data(adf_t *adf)
 		printf("Adding series %d/%d\n", i, n);
 		series_to_add = get_series(adf->header.n_chunks.val, 
 								   adf->header.n_wavelength.val);
-		res = add_series(adf,series_to_add);
+		res = add_series(adf,&series_to_add);
 		if (res != ADF_OK) {
 			printf("An error occurred while adding the series [code:%x]", res);
 			exit(1);
