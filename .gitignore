@@ -7,6 +7,9 @@
 *.obj
 *.elf
 
+# ASM files
+*.s
+
 # Linker output
 *.ilk
 *.map

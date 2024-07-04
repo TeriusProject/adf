@@ -48,6 +48,10 @@ install:
 uninstall: 
 	@$(MAKE) -C src uninstall
 
+.PHONY: asm
+asm:
+	@$(MAKE) -C src asm
+
 .PHONY : cpp
 cpp:
 	@$(MAKE) -C api/cc 

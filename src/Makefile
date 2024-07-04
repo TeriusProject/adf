@@ -22,6 +22,8 @@
 CC = gcc
 AR = ar
 CFLAGS = -pedantic -Wall -Wextra -O3 -std=c2x -fPIC
+SRC = adf.c crc.c lookup_table.c
+ASM = adf.s crc.s lookup_table.s
 OBJS = adf.o crc.o lookup_table.o
 LIB = libadf.a
 HEADER = adf.h
@@ -42,7 +44,7 @@ lookup_table.o: lookup_table.c
 
 .PHONY : clean
 clean:
-	rm -f $(OBJS) $(LIB)
+	rm -f $(OBJS) $(LIB) $(ASM)
 
 .PHONY : install
 # currently just install on macOS and GNU/Linux
@@ -55,3 +57,7 @@ install: $(HEADER) $(LIB)
 uninstall: 
 	rm -f $(INCLUDE)/$(HEADER)
 	rm -f $(LIB_DIR)/$(LIB)
+
+.PHONY: asm
+asm: $(SRC)
+	$(CC) $(CFLAGS) -S $<

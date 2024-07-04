@@ -42,7 +42,6 @@ static uint32_t id(void *key)
 	return *((uint32_t *) key);
 }
 
-
 static number_bytes_copy cpy_4_bytes_fn;
 static number_bytes_copy cpy_2_bytes_fn;
 
