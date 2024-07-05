@@ -191,5 +191,5 @@ int main(void)
 	// test_add_repeated_and_non_repeated_series();
 	// test_add_to_empty_series();
 	// test_add_series_should_merge_additives();
-	// test_additive_overflow();
+	test_additive_overflow();
 }

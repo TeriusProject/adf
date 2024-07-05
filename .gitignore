@@ -64,6 +64,7 @@ test/test_copy
 test/test_series_add
 test/test_series_update
 test/test_series_remove
+test/test_reindex
 
 # VS code conf
 .vscode/

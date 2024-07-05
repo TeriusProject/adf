@@ -482,32 +482,30 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	   additive_codes array in the metadata, so we allocate  */
 	n_soil_add = series_to_add->n_soil_adds.val;
 	n_atm_add = series_to_add->n_atm_adds.val;
-	if (n_soil_add > 0)
-		soil_add = malloc(n_soil_add * sizeof(additive_t));
-	if (n_atm_add > 0)
-		atm_add = malloc(n_atm_add * sizeof(additive_t));
 	soil_addtocopy_idx = 0;
 	atm_addtocopy_idx = 0;
 
 	if (n_soil_add > 0) {
+		soil_add = malloc(n_soil_add * sizeof(additive_t));
 		for (uint16_t n_soil = 0; n_soil < n_soil_add; n_soil++) {
 			if (is_additive_new(adf->metadata.additive_codes,
 								adf->metadata.n_additives.val,
 								series_to_add->soil_additives[n_soil])) {
-				additive_t tmp = series_to_add->soil_additives[n_soil];
-				soil_add[soil_addtocopy_idx] = tmp;
+				cpy_additive(soil_add + soil_addtocopy_idx, 
+							 series_to_add->soil_additives + n_soil);
 				soil_addtocopy_idx++;
 			}
 		}
 	}
 
 	if (n_atm_add > 0) {
+		atm_add = malloc(n_atm_add * sizeof(additive_t));
 		for (uint16_t n_atm = 0; n_atm < n_atm_add; n_atm++) {
 			if (is_additive_new(adf->metadata.additive_codes,
 								adf->metadata.n_additives.val,
 								series_to_add->atm_additives[n_atm])) {
-				additive_t tmp = series_to_add->atm_additives[n_atm];
-				atm_add[atm_addtocopy_idx] = tmp;
+				cpy_additive(atm_add + atm_addtocopy_idx,
+							 series_to_add->atm_additives + n_atm);
 				atm_addtocopy_idx++;
 			}
 		}
