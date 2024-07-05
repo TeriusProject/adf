@@ -38,6 +38,7 @@ typedef enum {
 	LM_VALUE_NOT_FOUND = 0x05u,
 	LM_MAP_SIZE_OVERFLOW = 0x06u,
 	LM_FAILED_EXPANDING_MAP_SIZE = 0x07u,
+	LM_NULL_KEY_ARRAY = 0x08u
 } table_code;
 
 typedef uint32_t (*hash_fn_t)(void *);
@@ -60,7 +61,7 @@ uint16_t table_put(table_t *, uint32_t, void *);
 uint16_t table_update(table_t *,uint32_t, void *);
 uint16_t table_remove(table_t *, uint32_t);
 void *table_get(const table_t *, uint32_t);
-pair_t *table_get_pairs(const table_t *);
+uint16_t table_get_pairs(const table_t *, pair_t *);
 void pair_free(pair_t *);
 void table_free(table_t *);
 

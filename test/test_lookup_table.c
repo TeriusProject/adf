@@ -137,7 +137,11 @@ void table_keys_should_return_the_list_of_the_inserted_keys(void)
 		}
 		expected_keys[i] = (pair_t){ .key = i, .value = NULL };
 	}
-	keys = table_get_pairs(&t);
+	keys = malloc(t.size * sizeof(pair_t));
+	if((res = table_get_pairs(&t, keys)) != LM_OK) {
+		printf("[%x] %s", res, "An error occurred\n");
+		exit(1);
+	}
 	assert_pair_arrays_equal(
 		keys, expected_keys, t.size,
 		"table_get_pairs should return the available pairs");
