@@ -462,6 +462,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 
 	if (series_to_add->repeated.val == 0) { return ADF_ZERO_REPEATED_SERIES; }
 
+	/* Happy path, the series is repeated, just increment */
 	if (adf->metadata.size_series.val > 0) {
 		last = adf->series + (adf->metadata.size_series.val - 1);
 		if (are_series_equal(last, series_to_add, adf->header.n_chunks.val,
