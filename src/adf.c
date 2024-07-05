@@ -32,6 +32,8 @@
 
 typedef void (*number_bytes_copy)(uint8_t *, const uint8_t *);
 
+const int DEFAULT_LOOKUP_TABLE_VALUE = 0;
+
 /*
  * Hash function.
  * Since the additive code is a unique integer id we do not need an hash 
@@ -453,7 +455,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 {
 	series_t *last;
 	size_t new_size_series;
-	additive_t **soil_add, **atm_add;      
+	additive_t *soil_add, *atm_add;
 	uint16_t n_soil_add, n_atm_add, soil_addtocopy_idx, atm_addtocopy_idx;
 	uint32_t total_additives;
 	cpy_2_bytes_fn = is_big_endian() 
@@ -484,21 +486,19 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	n_soil_add = series_to_add->n_soil_adds.val;
 	n_atm_add = series_to_add->n_atm_adds.val;
 	if (n_soil_add > 0)
-		soil_add = malloc(n_soil_add * sizeof(additive_t *));
+		soil_add = malloc(n_soil_add * sizeof(additive_t));
 	if (n_atm_add > 0)
-		atm_add = malloc(n_atm_add * sizeof(additive_t *));
+		atm_add = malloc(n_atm_add * sizeof(additive_t));
 	soil_addtocopy_idx = 0;
 	atm_addtocopy_idx = 0;
-	table_t additives_to_add;
-	table_init(&additives_to_add, 1024, 1024, &id);
 
 	if (n_soil_add > 0) {
 		for (uint16_t n_soil = 0; n_soil < n_soil_add; n_soil++) {
 			if (is_additive_new(adf->metadata.additive_codes,
 								adf->metadata.n_additives.val,
 								series_to_add->soil_additives[n_soil])) {
-				soil_add[soil_addtocopy_idx] = series_to_add->soil_additives
-											   + n_soil;
+				additive_t tmp = series_to_add->soil_additives[n_soil];
+				soil_add[soil_addtocopy_idx] = tmp;
 				soil_addtocopy_idx++;
 			}
 		}
@@ -509,8 +509,8 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 			if (is_additive_new(adf->metadata.additive_codes,
 								adf->metadata.n_additives.val,
 								series_to_add->atm_additives[n_atm])) {
-				atm_add[atm_addtocopy_idx] = series_to_add->atm_additives
-											 + n_atm;
+				additive_t tmp = series_to_add->atm_additives[n_atm];
+				atm_add[atm_addtocopy_idx] = tmp;
 				atm_addtocopy_idx++;
 			}
 		}
@@ -528,22 +528,36 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	adf->metadata.additive_codes = realloc(adf->metadata.additive_codes, 
 										   new_size_additives);
 
-	if (!adf->metadata.additive_codes) { return ADF_RUNTIME_ERROR; }
+	if (!adf->metadata.additive_codes) {
+		if (n_soil_add > 0) { free(soil_add); }
+		if (n_atm_add > 0) { free(atm_add); }
+		return ADF_RUNTIME_ERROR; 
+	}
 
 	for (uint16_t i = adf->metadata.n_additives.val, j = 0;
 		 i < adf->metadata.n_additives.val + soil_addtocopy_idx; i++, j++) {
-		adf->metadata.additive_codes[i] = soil_add[j]->code;
-		soil_add[j]->code_idx.val = i;
+		adf->metadata.additive_codes[i] = soil_add[j].code;
+		soil_add[j].code_idx.val = i;
 	}
 	for (uint16_t i = adf->metadata.n_additives.val + soil_addtocopy_idx, j = 0;
 		 i < adf->metadata.n_additives.val + atm_addtocopy_idx; i++, j++) {
-		adf->metadata.additive_codes[i] = atm_add[j]->code;
-		atm_add[j]->code_idx.val = i;
+		adf->metadata.additive_codes[i] = atm_add[j].code;
+		atm_add[j].code_idx.val = i;
 	}
 	adf->metadata.n_additives.val += items_to_add;
 	cpy_adf_series(adf->series + adf->metadata.size_series.val, 
 				   series_to_add, adf->header.n_chunks.val, 
 				   adf->header.n_wavelength.val);
+	
+	/* Update soil_add and atm_add of the new series to keep track of the 
+	   index of the just inserted additive_code */
+	series_t *last_series = adf->series + adf->metadata.size_series.val;
+	for (uint16_t i = 0, l = last_series->n_soil_adds.val; i < l; i++) 
+		last_series->soil_additives[i] = soil_add[i];
+
+	for (uint16_t i = 0, l = last_series->n_atm_adds.val; i < l; i++)
+		last_series->atm_additives[i] = atm_add[i];
+
 	adf->metadata.size_series.val++;
 	adf->metadata.n_series += series_to_add->repeated.val;
 
