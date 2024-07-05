@@ -58,7 +58,9 @@ void series_have_more_additives(void)
 		exit(1);
 	}
 	assert_true(format.metadata.n_additives.val == 2,
-				"there are two attributes in the metadata section");
+				"there are two additives in the metadata section");
+
+	
 }
 
 int main(void)

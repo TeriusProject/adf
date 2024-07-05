@@ -97,45 +97,35 @@ typedef enum {
 	 */
 	ADF_ADDITIVE_OVERFLOW = 0x07u,
 
-	/*
-	 * Error raised when a NULL pointer is passed as source in cpy_adf_header.
-	 */
+	/* Error raised when NULL is passed as source in cpy_adf_header. */
 	ADF_NULL_HEADER_SOURCE = 0x08u,
 
-	/*
-	 * Error raised when a NULL pointer is passed as target in cpy_adf_header.
-	 */
+	/* Error raised when NULL is passed as target in cpy_adf_header. */
 	ADF_NULL_HEADER_TARGET = 0x09u,
 
-	/*
-	 * Error raised when a NULL pointer is passed as source in cpy_adf_metadata.
-	 */
+	/* Error raised when NULL is passed as source in cpy_adf_metadata. */
 	ADF_NULL_META_SOURCE = 0x0Au,
 
-	/*
-	 * Error raised when a NULL pointer is passed as target in cpy_adf_metadata.
-	 */
+	/* Error raised when NULL is passed as target in cpy_adf_metadata. */
 	ADF_NULL_META_TARGET = 0x0Bu,
 
-	/*
-	 * Error raised when a NULL pointer is passed as source in cpy_adf_series.
-	 */
+	/* Error raised when  NULL is passed as source in cpy_adf_series. */
 	ADF_NULL_SERIES_SOURCE = 0x0Cu,
 
-	/*
-	 * Error raised when a NULL pointer is passed as target in cpy_adf_series.
-	 */
+	/* Error raised when NULL is passed as target in cpy_adf_series. */
 	ADF_NULL_SERIES_TARGET = 0x0Du,
 
-	/*
-	 * Error raised when a NULL pointer is passed as source in cpy_adf.
-	 */
+	/* Error raised when NULL is passed as source in cpy_adf. */
 	ADF_NULL_SOURCE = 0x0Eu,
 
-	/*
-	 * Error raised when a NULL pointer is passed as target in cpy_adf.
-	 */
+	/* Error raised when NULL is passed as target in cpy_adf. */
 	ADF_NULL_TARGET = 0x0Fu,
+
+	/* Error raised when NULL is passed as source in cpy_series. */
+	ADF_NULL_ADDITIVE_SOURCE = 0x10u,
+
+	/* Error raised when NULL is passed as target in cpy_series. */
+	ADF_NULL_ADDITIVE_TARGET = 0x11u,
 
 	/*
 	 * The most generic error code.
@@ -424,6 +414,7 @@ adf_t create_empty_adf(adf_header_t, uint16_t);
 void metadata_free(adf_meta_t *);
 void series_free(series_t *);
 void adf_free(adf_t *);
+uint16_t cpy_additive(additive_t *, const additive_t *);
 uint16_t cpy_adf(adf_t *, const adf_t *);
 uint16_t cpy_adf_header(adf_header_t *, const adf_header_t *);
 uint16_t cpy_adf_metadata(adf_meta_t *, const adf_meta_t *);

@@ -32,8 +32,6 @@
 
 typedef void (*number_bytes_copy)(uint8_t *, const uint8_t *);
 
-const int DEFAULT_LOOKUP_TABLE_VALUE = 0;
-
 /*
  * Hash function.
  * Since the additive code is a unique integer id we do not need an hash 
@@ -293,7 +291,6 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	meta_crc = crc16((bytes + size_header()), byte_c - size_header());
 	cpy_2_bytes_fn(expected_crc.bytes, (bytes + byte_c));
 	SHIFT_COUNTER(2);
-
 	if (meta_crc != expected_crc.val) { return ADF_METADATA_CORRUPTED; }
 
 	adf->series = malloc(adf->metadata.size_series.val * sizeof(series_t));
@@ -403,14 +400,14 @@ bool are_series_equal(const series_t *first, const series_t *second,
 					  uint32_t n_chunks, uint16_t n_wavelength)
 {
 	bool int_fields_eq = first->pH == second->pH
-						  && first->n_atm_adds.val == second->n_atm_adds.val
-						  && first->n_soil_adds.val == second->n_soil_adds.val;
+						 && first->n_atm_adds.val == second->n_atm_adds.val
+						 && first->n_soil_adds.val == second->n_soil_adds.val;
 
 	if (!int_fields_eq) return false;
 
 	bool real_fields_eq = are_reals_equal(first->p_bar, second->p_bar)
-						   && are_reals_equal(first->soil_density_kg_m3,
-											  second->soil_density_kg_m3);
+						  && are_reals_equal(first->soil_density_kg_m3,
+											 second->soil_density_kg_m3);
 
 	if (!real_fields_eq) return false;
 
@@ -786,7 +783,18 @@ void adf_free(adf_t *adf)
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++)
 		series_free(adf->series + i);
 	free(adf->series);
-	free(adf);
+}
+
+uint16_t cpy_additive(additive_t *target, const additive_t *source)
+{
+	if (!source) { return ADF_NULL_ADDITIVE_SOURCE; }
+	if (!target) { return ADF_NULL_ADDITIVE_TARGET; }
+
+	target->code = source->code;
+	target->code_idx = source->code_idx;
+	target->concentration = source->concentration;
+
+	return ADF_OK;
 }
 
 uint16_t cpy_adf_series(series_t *target, const series_t *source,

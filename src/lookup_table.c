@@ -148,14 +148,10 @@ uint16_t table_get_pairs(const table_t *table, pair_t *keys)
 
 void pair_free(pair_t *pair)
 {
-	free(pair->value);
+	if (pair->value) { free(pair->value); }
 }
 
 void table_free(table_t *table)
 {
-    for (size_t i = 0, l = table->max_size; i < l; i++)
-		pair_free(table->pairs + i);
-
     free(table->pairs);
-    free(table);
 }
