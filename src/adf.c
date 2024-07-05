@@ -674,8 +674,10 @@ uint16_t reindex_additives(adf_t *adf)
 		}
 	}
 
-	additives_keys = table_get_pairs(&lookup_table);
-	if (!additives_keys) { return ADF_RUNTIME_ERROR; }
+	additives_keys = malloc(lookup_table.size * sizeof(pair_t));
+	if (table_get_pairs(&lookup_table, additives_keys) != LM_OK) {
+		return ADF_RUNTIME_ERROR; 
+	}
 
 	adf->metadata.additive_codes = get_additive_codes(additives_keys, 
 													  lookup_table.size);
