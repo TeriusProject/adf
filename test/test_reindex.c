@@ -24,39 +24,45 @@
 #include "test.h"
 #include "mock.h"
 
-void series_have_more_additives(void)
+void series_have_more_additives_than_metadata(void)
 {
-	series_t *series = malloc(sizeof(series_t));
+	uint_t *codes;
+	uint16_t res;
+	adf_t format;
+	series_t *series;
+
+	series = malloc(sizeof(series_t));
 	*series = get_series_with_two_soil_additives();
-	uint_t *codes = malloc(sizeof(uint_t));
+
+	codes = malloc(sizeof(uint_t));
 	*codes = (uint_t){ 2345 };
-	adf_meta_t metadata = {
-		.period_sec = { 1345 },
-		.n_additives = { 1 },
-		.size_series = { 1 },
-		.n_series = 2,
-		.additive_codes = codes 
-	};
-	adf_header_t header = { 
-		.signature = { __ADF_SIGNATURE__ },
-		.version = __ADF_VERSION__,
-		.farming_tec = 3,
-		.min_w_len_nm = { 0 },
-		.max_w_len_nm = { 10000 },
-		.n_chunks = { 10 },
-		.n_wavelength = { 10 } 
-	};
-	adf_t format = { 
-		.header = header,
-		.metadata = metadata,
+	
+	format = (adf_t) { 
+		.header = (adf_header_t) { 
+			.signature = { __ADF_SIGNATURE__ },
+			.version = __ADF_VERSION__,
+			.farming_tec = 3,
+			.min_w_len_nm = { 0 },
+			.max_w_len_nm = { 10000 },
+			.n_chunks = { 10 },
+			.n_wavelength = { 10 } 
+		},
+		.metadata = (adf_meta_t) {
+			.period_sec = { 1345 },
+			.n_additives = { 1 },
+			.size_series = { 1 },
+			.n_series = 2,
+			.additive_codes = codes 
+		},
 		.series = series
 	};
 
-	uint16_t res = reindex_additives(&format);
+	res = reindex_additives(&format);
 	if (res != ADF_OK) {
 		printf("An error occured while reindexing additives [code:%x]\n", res);
 		exit(1);
 	}
+
 	assert_true(format.metadata.n_additives.val == 2,
 				"there are two additives in the metadata section");
 
@@ -65,5 +71,5 @@ void series_have_more_additives(void)
 
 int main(void)
 {
-	series_have_more_additives();
+	series_have_more_additives_than_metadata();
 }

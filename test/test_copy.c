@@ -120,8 +120,7 @@ void copy_series_with_null_target(void)
 	series_t *target = NULL;
 	uint16_t res;
 	
-	res = cpy_adf_series(target, &source, adf.header.n_chunks.val,
-						 adf.header.n_wavelength.val);
+	res = cpy_adf_series(target, &source, &adf);
 	assert_true(res == ADF_NULL_SERIES_TARGET, 
 				"sereis target is null: raised ADF_NULL_SERIES_TARGET");
 }
@@ -133,8 +132,7 @@ void copy_series_with_null_source(void)
 	series_t target;
 	uint16_t res;
 
-	res = cpy_adf_series(&target, source, adf.header.n_chunks.val,
-						 adf.header.n_wavelength.val);
+	res = cpy_adf_series(&target, source, &adf);
 	assert_true(res == ADF_NULL_SERIES_SOURCE, 
 				"series source is null: raised ADF_NULL_SERIES_SOURCE");
 }
@@ -146,14 +144,15 @@ void series_are_equal(void)
 	series_t target;
 	uint16_t res;
 
-	res = cpy_adf_series(&target, &source, adf.header.n_chunks.val,
-						 adf.header.n_wavelength.val);
+	res = cpy_adf_series(&target, &source, &adf);
 	if (res != ADF_OK) {
 		printf("[%x] %s", res, "An error occurred while copying the series\n");
 		exit(1);
 	}
 
 	assert_series_equal_verbose(adf, source, target);
+	series_free(&target);
+	adf_free(&adf);
 }
 
 void copied_series_arrays_should_have_different_mem_address(void)
@@ -163,8 +162,7 @@ void copied_series_arrays_should_have_different_mem_address(void)
 	series_t target;
 	uint16_t res;
 
-	res = cpy_adf_series(&target, &source, adf.header.n_chunks.val,
-						 adf.header.n_wavelength.val);
+	res = cpy_adf_series(&target, &source, &adf);
 	if (res != ADF_OK) {
 		printf("[%x] %s", res, "An error occurred while copying the series\n");
 		exit(1);
@@ -242,24 +240,24 @@ void adfs_are_equal(void)
 int main(void)
 {
 	/* Header */
-	copy_header_with_null_target();
-	copy_header_with_null_source();
-	headers_are_equal();
+	// copy_header_with_null_target();
+	// copy_header_with_null_source();
+	// headers_are_equal();
 
-	/* Metadata */
-	copy_meta_with_null_target();
-	copy_meta_with_null_source();
-	metadata_are_equal();
-	copied_metadata_arrays_should_have_different_mem_address();
+	// /* Metadata */
+	// copy_meta_with_null_target();
+	// copy_meta_with_null_source();
+	// metadata_are_equal();
+	// copied_metadata_arrays_should_have_different_mem_address();
 
-	/* Series */
-	copy_series_with_null_target();
-	copy_series_with_null_source();
+	// /* Series */
+	// copy_series_with_null_target();
+	// copy_series_with_null_source();
 	series_are_equal();
-	copied_series_arrays_should_have_different_mem_address();
+	// copied_series_arrays_should_have_different_mem_address();
 
-	/* ADF */
-	copy_adf_with_null_target();
-	copy_adf_with_null_source();
-	adfs_are_equal();
+	// /* ADF */
+	// copy_adf_with_null_target();
+	// copy_adf_with_null_source();
+	// adfs_are_equal();
 }

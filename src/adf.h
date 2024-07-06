@@ -413,12 +413,12 @@ void adf_init(adf_t *, adf_header_t, uint32_t);
 adf_t create_empty_adf(adf_header_t, uint16_t);
 void metadata_free(adf_meta_t *);
 void series_free(series_t *);
-void adf_free(adf_t *);
+void adf_free(const adf_t *);
 uint16_t cpy_additive(additive_t *, const additive_t *);
 uint16_t cpy_adf(adf_t *, const adf_t *);
 uint16_t cpy_adf_header(adf_header_t *, const adf_header_t *);
 uint16_t cpy_adf_metadata(adf_meta_t *, const adf_meta_t *);
-uint16_t cpy_adf_series(series_t *, const series_t *, uint32_t, uint32_t);
+uint16_t cpy_adf_series(series_t *, const series_t *, const adf_t *);
 
 #ifdef __cplusplus
 }

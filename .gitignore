@@ -77,3 +77,4 @@ api/
 example/example
 example/output.adf
 example/example
+test/g.memgraph

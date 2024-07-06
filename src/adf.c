@@ -453,7 +453,8 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	series_t *last;
 	size_t new_size_series;
 	additive_t *soil_add, *atm_add;
-	uint16_t n_soil_add, n_atm_add, soil_addtocopy_idx, atm_addtocopy_idx;
+	uint16_t n_soil_add, n_atm_add, soil_addtocopy_idx, atm_addtocopy_idx,
+			 res;
 	uint32_t total_additives;
 	cpy_2_bytes_fn = is_big_endian() 
 					 ? &to_big_endian_2_bytes 
@@ -478,10 +479,14 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	adf->series = realloc(adf->series, new_size_series);
 	if (!adf->series) { return ADF_RUNTIME_ERROR; }
 
+	last = adf->series + adf->metadata.size_series.val;
+	res = cpy_adf_series(last, series_to_add, adf);
+	if (res != ADF_OK) { return res; }
+
 	/* At this point, we don't know how many additives should be added to the 
 	   additive_codes array in the metadata, so we allocate  */
-	n_soil_add = series_to_add->n_soil_adds.val;
-	n_atm_add = series_to_add->n_atm_adds.val;
+	n_soil_add = last->n_soil_adds.val;
+	n_atm_add = last->n_atm_adds.val;
 	soil_addtocopy_idx = 0;
 	atm_addtocopy_idx = 0;
 
@@ -490,9 +495,9 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 		for (uint16_t n_soil = 0; n_soil < n_soil_add; n_soil++) {
 			if (is_additive_new(adf->metadata.additive_codes,
 								adf->metadata.n_additives.val,
-								series_to_add->soil_additives[n_soil])) {
+								last->soil_additives[n_soil])) {
 				cpy_additive(soil_add + soil_addtocopy_idx, 
-							 series_to_add->soil_additives + n_soil);
+							 last->soil_additives + n_soil);
 				soil_addtocopy_idx++;
 			}
 		}
@@ -503,9 +508,9 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 		for (uint16_t n_atm = 0; n_atm < n_atm_add; n_atm++) {
 			if (is_additive_new(adf->metadata.additive_codes,
 								adf->metadata.n_additives.val,
-								series_to_add->atm_additives[n_atm])) {
+								last->atm_additives[n_atm])) {
 				cpy_additive(atm_add + atm_addtocopy_idx,
-							 series_to_add->atm_additives + n_atm);
+							 last->atm_additives + n_atm);
 				atm_addtocopy_idx++;
 			}
 		}
@@ -514,6 +519,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	uint32_t items_to_add = soil_addtocopy_idx + atm_addtocopy_idx;
 	total_additives = adf->metadata.n_additives.val + items_to_add;
 	if (total_additives > 0xFFFF) {
+		series_free(last);
 		if (n_soil_add > 0) { free(soil_add); }
 		if (n_atm_add > 0) { free(atm_add); }
 		return ADF_ADDITIVE_OVERFLOW; 
@@ -524,6 +530,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 										   new_size_additives);
 
 	if (!adf->metadata.additive_codes) {
+		series_free(last);
 		if (n_soil_add > 0) { free(soil_add); }
 		if (n_atm_add > 0) { free(atm_add); }
 		return ADF_RUNTIME_ERROR; 
@@ -540,21 +547,17 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 		atm_add[j].code_idx.val = i;
 	}
 	adf->metadata.n_additives.val += items_to_add;
-	cpy_adf_series(adf->series + adf->metadata.size_series.val, 
-				   series_to_add, adf->header.n_chunks.val, 
-				   adf->header.n_wavelength.val);
 	
 	/* Update soil_add and atm_add of the new series to keep track of the 
 	   index of the just inserted additive_code */
-	series_t *last_series = adf->series + adf->metadata.size_series.val;
-	for (uint16_t i = 0, l = last_series->n_soil_adds.val; i < l; i++) 
-		last_series->soil_additives[i] = soil_add[i];
+	for (uint16_t i = 0, l = last->n_soil_adds.val; i < l; i++) 
+		last->soil_additives[i] = soil_add[i];
 
-	for (uint16_t i = 0, l = last_series->n_atm_adds.val; i < l; i++)
-		last_series->atm_additives[i] = atm_add[i];
+	for (uint16_t i = 0, l = last->n_atm_adds.val; i < l; i++)
+		last->atm_additives[i] = atm_add[i];
 
 	adf->metadata.size_series.val++;
-	adf->metadata.n_series += series_to_add->repeated.val;
+	adf->metadata.n_series += last->repeated.val;
 
 	if (n_soil_add > 0) { free(soil_add); }
 	if (n_atm_add > 0) { free(atm_add); }
@@ -767,18 +770,19 @@ void metadata_free(adf_meta_t *metadata)
 }
 
 void series_free(series_t *series)
-{
+{ 
 	free(series->light_exposure);
 	free(series->temp_celsius);
 	free(series->water_use_ml);
-	free(series->soil_additives);
-	free(series->atm_additives);
+	if (series->n_soil_adds.val > 0) { free(series->soil_additives); }
+	if (series->n_atm_adds.val > 0) { free(series->atm_additives); }
 }
 
-void adf_free(adf_t *adf)
+void adf_free(const adf_t *adf)
 {
-	metadata_free(&adf->metadata);
-	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++)
+	adf_meta_t *metadata = (adf_meta_t *) &(adf->metadata);
+	metadata_free(metadata);
+	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) 
 		series_free(adf->series + i);
 	free(adf->series);
 }
@@ -796,10 +800,16 @@ uint16_t cpy_additive(additive_t *target, const additive_t *source)
 }
 
 uint16_t cpy_adf_series(series_t *target, const series_t *source,
-						uint32_t n_chunks, uint32_t n_wavelength)
+						const adf_t *adf)
 {
+	uint32_t n_chunks;
+	uint16_t n_wavelength;
+
 	if (!source) { return ADF_NULL_SERIES_SOURCE; }
 	if (!target) { return ADF_NULL_SERIES_TARGET; }
+
+	n_chunks = adf->header.n_chunks.val;
+	n_wavelength = adf->header.n_wavelength.val;
 	target->n_atm_adds = source->n_atm_adds;
 	target->n_soil_adds = source->n_soil_adds;
 	target->p_bar = source->p_bar;
@@ -845,6 +855,7 @@ uint16_t cpy_adf_metadata(adf_meta_t *target, const adf_meta_t *source)
 {
 	if (!source) { return ADF_NULL_META_SOURCE; }
 	if (!target) { return ADF_NULL_META_TARGET; }
+
 	target->size_series = source->size_series;
 	target->period_sec = source->period_sec;
 	target->n_series = source->n_series;
@@ -862,6 +873,7 @@ uint16_t cpy_adf_header(adf_header_t *target, const adf_header_t *source)
 {
 	if (!source) { return ADF_NULL_HEADER_SOURCE; }
 	if (!target) { return ADF_NULL_HEADER_TARGET; }
+
 	*target = *source;
 	return ADF_OK;
 }
@@ -885,8 +897,7 @@ uint16_t cpy_adf(adf_t *target, const adf_t *source)
 		target->series = malloc(size_series * sizeof(series_t));
 		for (uint32_t i = 0, l = target->metadata.size_series.val; i < l; i++) {
 			res = cpy_adf_series(target->series + i, source->series + i,
-								source->header.n_chunks.val,
-								source->header.n_wavelength.val);
+								source);
 			if(res != ADF_OK) { return res; }
 		}
 	}
