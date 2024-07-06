@@ -66,8 +66,10 @@ test_lookup_table: test_lookup_table.c test.c $(SRC)adf.c $(SRC)crc.c $(SRC)look
 generate_sample: generate_sample.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
 	$(CC) $(CFLAGS) $^ -o $@
 
+.PHONY: init
 init: generate_sample
 	./generate_sample
 
+.PHONY: clean
 clean:
 	rm -f $(BIN) generate_sample

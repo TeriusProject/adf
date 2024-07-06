@@ -72,9 +72,11 @@ test/test_reindex
 # Java classes
 *.class
 
+# Memgraph
+*.memgraph
+
 .DS_Store
 api/
 example/example
 example/output.adf
 example/example
-test/g.memgraph
