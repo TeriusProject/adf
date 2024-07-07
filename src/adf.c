@@ -336,14 +336,17 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 		cpy_2_bytes_fn(current.n_atm_adds.bytes, (bytes + byte_c));
 		SHIFT_COUNTER(2);
 
-		current.soil_additives = malloc(current.n_soil_adds.val
-								 * sizeof(additive_t));
-		current.atm_additives = malloc(current.n_atm_adds.val
-								* sizeof(additive_t));
-		
-		if (!current.atm_additives || !current.soil_additives)
-			return ADF_RUNTIME_ERROR;
+		current.soil_additives = NULL;
+		current.atm_additives = NULL;
 
+		if (current.n_soil_adds.val > 0)
+			current.soil_additives = malloc(current.n_soil_adds.val
+								 			* sizeof(additive_t));
+
+		if (current.n_atm_adds.val > 0)
+			current.atm_additives = malloc(current.n_atm_adds.val
+										   * sizeof(additive_t));
+		
 		uint16_t code_idx;
 		for (uint16_t j = 0, l = current.n_soil_adds.val; j < l; j++) {
 			cpy_2_bytes_fn(current.soil_additives[j].code_idx.bytes,
@@ -567,6 +570,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 
 uint16_t remove_series(adf_t *adf)
 {
+	uint32_t new_size;
 	series_t *last;
 
 	if (adf->metadata.size_series.val == 0) {
@@ -576,6 +580,7 @@ uint16_t remove_series(adf_t *adf)
 
 	last = adf->series + (adf->metadata.size_series.val - 1);
 
+	/* Happy path, last series is repeated. Just decrease */
 	if (last->repeated.val > 1) {
 		adf->metadata.n_series--;
 		last->repeated.val--;
@@ -584,8 +589,11 @@ uint16_t remove_series(adf_t *adf)
 
 	adf->metadata.n_series--;
 	adf->metadata.size_series.val--;
-	uint32_t new_size = adf->metadata.size_series.val;
+	new_size = adf->metadata.size_series.val;
 
+	series_free(last);
+
+	/* Just one series, not repeated */
 	if (new_size == 0) {
 		free(adf->series);
 		adf->series = NULL;
@@ -617,6 +625,7 @@ uint16_t update_series(adf_t *adf, series_t series, uint64_t time)
 			*(adf->series + i) = series;
 		}
 	}
+	
 	return ADF_OK;
 }
 
@@ -699,6 +708,7 @@ uint16_t reindex_additives(adf_t *adf)
 	}
 
 	table_free(&lookup_table);
+	free(additives_keys);
 	return ADF_OK;
 }
 

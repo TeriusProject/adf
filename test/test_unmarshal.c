@@ -30,12 +30,14 @@
 
 int main(void)
 {
-	adf_t expected = get_default_object();
 	uint8_t *bytes;
-	FILE *sample_file = fopen(FILE_PATH, "rb");
+	uint16_t res;
+	adf_t expected, new;
+	FILE *sample_file;
 	long file_len;
 	size_t series_size, h_and_meta_size;
 
+	sample_file = fopen(FILE_PATH, "rb");
 	if (sample_file == NULL) {
 		printf("The file `%s` is not opened.", FILE_PATH);
 		exit(0);
@@ -48,6 +50,7 @@ int main(void)
 	fread(bytes, file_len, 1, sample_file);
 	fclose(sample_file);
 
+	expected = get_default_object();
 	printf("expected bytes: %zu\n", size_adf_t(expected));
 	printf("read bytes: %ld\n", file_len);
 	assert_true(
@@ -55,8 +58,7 @@ int main(void)
 		"are byte arrays of the same length"
 	);
 
-	adf_t new;
-	uint16_t res = unmarshal(&new, bytes);
+	res = unmarshal(&new, bytes);
 	if (res != ADF_OK) {
 		printf("[%x] %s", res, "An error occurred during unmarshal process\n");
 		return 1;
@@ -80,4 +82,8 @@ int main(void)
 			   h_and_meta_size + (i * series_size));
 		assert_series_equal_verbose(new, new.series[i], expected.series[i]);
 	}
+
+	free(bytes);
+	adf_free(&expected);
+	adf_free(&new);
 }

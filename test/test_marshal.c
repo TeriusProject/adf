@@ -29,12 +29,14 @@
 
 int main(void)
 {
-	adf_t obj = get_default_object();
+	adf_t adf;
 	uint8_t *bytes;
 	FILE *sample_file;
 	uint8_t *file_bytes;
 	uint16_t res;
 	long file_len;
+
+	adf = get_default_object();
 
 	/* reading the file with expected bytes */
 	sample_file = fopen(FILE_PATH, "rb");
@@ -50,16 +52,20 @@ int main(void)
 	fclose(sample_file);
 
 	/* marshalling the object */
-	bytes = malloc(size_adf_t(obj) * sizeof(uint8_t));
-	res = marshal(bytes, obj);
+	bytes = malloc(size_adf_t(adf) * sizeof(uint8_t));
+	res = marshal(bytes, adf);
 	if (res != ADF_OK) {
 		printf("%s", "An error occurred during marshal process\n_chunks");
 		return 1;
 	}
 
 	/* compare byte arrays */
-	assert_long_equal(file_len, size_adf_t(obj),
+	assert_long_equal(file_len, size_adf_t(adf),
 					  "are byte arrays of the same length");
 	assert_uint8_arrays_equal(file_bytes, bytes, file_len, 
 							  "are byte arrays equal");
+
+	free(file_bytes);
+	free(bytes);
+	adf_free(&adf);
 }

@@ -33,6 +33,8 @@ void copy_header_with_null_target(void)
 	res = cpy_adf_header(target, &adf.header);
 	assert_true(res == ADF_NULL_HEADER_TARGET, 
 				"header target is null: raised ADF_NULL_HEADER_TARGET");
+	
+	adf_free(&adf);
 }
 
 void copy_header_with_null_source(void)
@@ -58,6 +60,8 @@ void headers_are_equal(void)
 		exit(1);
 	}
 	assert_header_equal_verbose(adf.header, target);
+
+	adf_free(&adf);
 }
 
 void copy_meta_with_null_target(void)
@@ -69,6 +73,8 @@ void copy_meta_with_null_target(void)
 	res = cpy_adf_metadata(target, &adf.metadata);
 	assert_true(res == ADF_NULL_META_TARGET, 
 				"metadata target is null: raised ADF_NULL_META_TARGET");
+	
+	adf_free(&adf);
 }
 
 void copy_meta_with_null_source(void)
@@ -94,6 +100,9 @@ void metadata_are_equal(void)
 		exit(1);
 	}
 	assert_metadata_equal_verbose(adf.metadata, target);
+
+	adf_free(&adf);
+	metadata_free(&target);
 }
 
 void copied_metadata_arrays_should_have_different_mem_address(void)
@@ -111,6 +120,9 @@ void copied_metadata_arrays_should_have_different_mem_address(void)
 	assert_true(target.additive_codes != adf.metadata.additive_codes
 				|| !target.additive_codes,
 				"additive_codes arrays have different memory address");
+	
+	adf_free(&adf);
+	metadata_free(&target);
 }
 
 void copy_series_with_null_target(void)
@@ -123,6 +135,8 @@ void copy_series_with_null_target(void)
 	res = cpy_adf_series(target, &source, &adf);
 	assert_true(res == ADF_NULL_SERIES_TARGET, 
 				"sereis target is null: raised ADF_NULL_SERIES_TARGET");
+	
+	adf_free(&adf);
 }
 
 void copy_series_with_null_source(void)
@@ -135,6 +149,8 @@ void copy_series_with_null_source(void)
 	res = cpy_adf_series(&target, source, &adf);
 	assert_true(res == ADF_NULL_SERIES_SOURCE, 
 				"series source is null: raised ADF_NULL_SERIES_SOURCE");
+	
+	adf_free(&adf);
 }
 
 void series_are_equal(void)
@@ -149,8 +165,8 @@ void series_are_equal(void)
 		printf("[%x] %s", res, "An error occurred while copying the series\n");
 		exit(1);
 	}
-
 	assert_series_equal_verbose(adf, source, target);
+
 	series_free(&target);
 	adf_free(&adf);
 }
@@ -183,6 +199,9 @@ void copied_series_arrays_should_have_different_mem_address(void)
 	assert_true(target.atm_additives != source.atm_additives
 				|| !target.atm_additives,
 				"atm_additives arrays have different memory address");
+	
+	adf_free(&adf);
+	series_free(&target);
 }
 
 void copy_adf_with_null_target(void)
@@ -194,6 +213,8 @@ void copy_adf_with_null_target(void)
 	res = cpy_adf(target, &adf);
 	assert_true(res == ADF_NULL_TARGET, 
 				"adf target is null: raised ADF_NULL_TARGET");
+	
+	adf_free(&adf);
 }
 
 void copy_adf_with_null_source(void)
@@ -235,29 +256,32 @@ void adfs_are_equal(void)
 		assert_series_equal_verbose(source, target.series[i], source.series[i]);
 	}
 	printf("%s\n", "----------------------  END  ----------------------");
+
+	adf_free(&source);
+	adf_free(&target);
 }
 
 int main(void)
 {
 	/* Header */
-	// copy_header_with_null_target();
-	// copy_header_with_null_source();
-	// headers_are_equal();
+	copy_header_with_null_target();
+	copy_header_with_null_source();
+	headers_are_equal();
 
-	// /* Metadata */
-	// copy_meta_with_null_target();
-	// copy_meta_with_null_source();
-	// metadata_are_equal();
-	// copied_metadata_arrays_should_have_different_mem_address();
+	/* Metadata */
+	copy_meta_with_null_target();
+	copy_meta_with_null_source();
+	metadata_are_equal();
+	copied_metadata_arrays_should_have_different_mem_address();
 
-	// /* Series */
-	// copy_series_with_null_target();
-	// copy_series_with_null_source();
+	/* Series */
+	copy_series_with_null_target();
+	copy_series_with_null_source();
 	series_are_equal();
-	// copied_series_arrays_should_have_different_mem_address();
+	copied_series_arrays_should_have_different_mem_address();
 
-	// /* ADF */
-	// copy_adf_with_null_target();
-	// copy_adf_with_null_source();
-	// adfs_are_equal();
+	/* ADF */
+	copy_adf_with_null_target();
+	copy_adf_with_null_source();
+	adfs_are_equal();
 }

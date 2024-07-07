@@ -66,7 +66,8 @@ void series_have_more_additives_than_metadata(void)
 	assert_true(format.metadata.n_additives.val == 2,
 				"there are two additives in the metadata section");
 
-	
+	free(codes);
+	adf_free(&format);
 }
 
 int main(void)

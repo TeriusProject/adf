@@ -29,31 +29,40 @@
 
 void test_remove_repeated_series(void)
 {
-	adf_t adf = get_default_object();
-	int res = remove_series(&adf);
-	if (res != ADF_OK) { printf("Error during remove. Error code [%u]", res); }
-
+	uint16_t res;
+	size_t expected_n_series = 3;
 	uint_t expected_series_size = { 2 };
+	adf_t adf;
+
+	adf = get_default_object();
+	res = remove_series(&adf);
+	if (res != ADF_OK) { printf("Error during remove. Error code [%u]", res); }
+	
 	assert_int_equal(adf.metadata.size_series, expected_series_size,
 					 "The size of series array is 2");
-	size_t expected_n_series = 3;
 	assert_true(adf.metadata.n_series == expected_n_series,
 				"There are 3 series");
+
+	adf_free(&adf);
 }
 
 void test_remove(void)
 {
-	adf_t adf = get_default_object();
-	int res = remove_series(&adf);
-	if (res != ADF_OK) { printf("Error during remove. Error code [%u]", res); }
-
+	uint16_t res;
+	size_t expected_n_series = 3;
 	uint_t expected_size_series = { 2 };
+	adf_t adf;
+	
+	adf = get_default_object();
+	res = remove_series(&adf);
+	if (res != ADF_OK) { printf("Error during remove. Error code [%u]", res); }
+	
 	assert_int_equal(adf.metadata.size_series, expected_size_series,
 					 "The size of series array is 2");
-
-	size_t expected_n_series = 3;
 	assert_true(adf.metadata.n_series == expected_n_series,
 				"There are 3 series");
+	
+	adf_free(&adf);
 }
 
 void test_remove_from_empty_series(void)
@@ -66,9 +75,12 @@ void test_remove_from_empty_series(void)
 
 void test_remove_last_series(void)
 {
-	adf_t adf = get_default_object();
-	int res;
+	uint16_t res;
+	size_t expected_n_series = 0;
+	uint_t expected_size_series = { 0 };
+	adf_t adf;
 
+	adf = get_default_object();
 	for (uint8_t i = 0; i < 4; i++) {
 		res = remove_series(&adf);
 		if (res != ADF_OK) {
@@ -76,13 +88,12 @@ void test_remove_last_series(void)
 		}
 	}
 
-	uint_t expected_size_series = { 0 };
 	assert_int_equal(adf.metadata.size_series, expected_size_series,
 					 "The series array is EMPTY");
-
-	size_t expected_n_series = 0;
 	assert_true(adf.metadata.n_series == expected_n_series,
 				"There are 0 series");
+	
+	adf_free(&adf);
 }
 
 int main(void)
