@@ -35,7 +35,7 @@ void test_update_series_time_out_of_bound(void)
 
 	adf = get_default_object();
 	time = adf.metadata.n_series * adf.metadata.period_sec.val;
-	res = update_series(&adf, adf.series[0], time+1);
+	res = update_series(&adf, adf.series, time+1);
 
 	assert_true(res == ADF_TIME_OUT_OF_BOUND,
 				"Time out of bound: should return ADF_TIME_OUT_OF_BOUND");
@@ -43,27 +43,89 @@ void test_update_series_time_out_of_bound(void)
 	adf_free(&adf);
 }
 
-void test_update_series(void)
+void test_update_one_series(void)
 {
 	adf_t adf;
-	series_t to_add;
+	series_t to_update;
 	uint16_t res;
 	uint64_t time = 1;
 
 	adf = get_default_object();
-	to_add = get_repeated_series();
-	res = update_series(&adf, to_add, time);
+	to_update = get_repeated_series();
+	res = update_series(&adf, &to_update, time);
 
 	assert_true(res == ADF_OK, "Series updated");
-	assert_series_equal(adf, adf.series[0], to_add, "Series are equal");
-	printf("# series: %d\n", adf.metadata.n_series);
-	assert_true(adf.metadata.n_series == 6, "There should be 5 series in adf");
+	assert_series_equal(adf, adf.series[0], to_update, "Series are equal");
+	assert_true(adf.metadata.n_series == 5, "There should be 5 series in adf");
 
+	series_free(&to_update);
+	adf_free(&adf);
+}
+
+void update_one_series_with_an_equal_one(void)
+{
+	adf_t adf;
+	series_t to_update;
+	uint16_t res;
+	uint64_t time = 1;
+
+	adf = get_default_object();
+	res = cpy_adf_series(&to_update, adf.series, &adf);
+	if (res != ADF_OK) {
+		printf("An error occurred [code:%x]\n", res);
+		exit(1);
+	}
+	res = update_series(&adf, &to_update, time);
+	if (res != ADF_OK) {
+		printf("An error occurred [code:%x]\n", res);
+		exit(1);
+	}
+
+	assert_true(are_series_equal(&to_update, adf.series, &adf),
+				"Update the same series, series should be equal");
+	assert_int_equal(to_update.repeated, adf.series[0].repeated,
+					 "Repeated field should be updated");
+
+	series_free(&to_update);
+	adf_free(&adf);
+}
+
+void update_one_series_with_an_equal_one_with_different_repetition(void)
+{
+	adf_t adf;
+	series_t to_update;
+	uint16_t res;
+	uint64_t time = 1;
+	uint_t expected_repeated = { 3 };
+
+	adf = get_default_object();
+	res = cpy_adf_series(&to_update, adf.series, &adf);
+	if (res != ADF_OK) {
+		printf("An error occurred [code:%x]\n", res);
+		exit(1);
+	}
+	/* update the repeated field */
+	to_update.repeated.val = 3;
+	res = update_series(&adf, &to_update, time);
+	if (res != ADF_OK) {
+		printf("An error occurred [code:%x]\n", res);
+		exit(1);
+	}
+
+	assert_true(are_series_equal(&to_update, adf.series, &adf),
+				"Update the same series (with different repetition), "
+				"series should be equal");
+	assert_int_equal(adf.series->repeated, expected_repeated,
+					 "Repeated field should be updated");
+
+	series_free(&to_update);
 	adf_free(&adf);
 }
 
 int main(void)
 {
 	test_update_series_time_out_of_bound();
-	test_update_series();
+	test_update_one_series();
+	update_one_series_with_an_equal_one();
+	update_one_series_with_an_equal_one_with_different_repetition();
 }

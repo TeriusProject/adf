@@ -400,8 +400,10 @@ static bool are_additive_t_equal(additive_t x, additive_t y)
 }
 
 bool are_series_equal(const series_t *first, const series_t *second, 
-					  uint32_t n_chunks, uint16_t n_wavelength)
+					  const adf_t *adf)
 {
+	uint32_t n_chunks = adf->header.n_chunks.val;
+	uint16_t n_wavelength = adf->header.n_wavelength.val;
 	bool int_fields_eq = first->pH == second->pH
 						 && first->n_atm_adds.val == second->n_atm_adds.val
 						 && first->n_soil_adds.val == second->n_soil_adds.val;
@@ -468,8 +470,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	/* Happy path, the series is repeated, just increment */
 	if (adf->metadata.size_series.val > 0) {
 		last = adf->series + (adf->metadata.size_series.val - 1);
-		if (are_series_equal(last, series_to_add, adf->header.n_chunks.val,
-							 adf->header.n_wavelength.val)) {
+		if (are_series_equal(last, series_to_add, adf)) {
 			last->repeated.val += series_to_add->repeated.val;
 			adf->metadata.n_series += series_to_add->repeated.val;
 			return ADF_OK;
@@ -580,7 +581,7 @@ uint16_t remove_series(adf_t *adf)
 
 	last = adf->series + (adf->metadata.size_series.val - 1);
 
-	/* Happy path, last series is repeated. Just decrease */
+	/* happy path, last series is repeated. Just decrease */
 	if (last->repeated.val > 1) {
 		adf->metadata.n_series--;
 		last->repeated.val--;
@@ -593,7 +594,7 @@ uint16_t remove_series(adf_t *adf)
 
 	series_free(last);
 
-	/* Just one series, not repeated */
+	/* just one series, not repeated */
 	if (new_size == 0) {
 		free(adf->series);
 		adf->series = NULL;
@@ -606,7 +607,7 @@ uint16_t remove_series(adf_t *adf)
 	return ADF_OK;
 }
 
-uint16_t update_series(adf_t *adf, series_t series, uint64_t time)
+uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 {
 	uint16_t series_period = adf->metadata.period_sec.val;
 	uint32_t new_series_size, size_series_increment;
@@ -624,16 +625,19 @@ uint16_t update_series(adf_t *adf, series_t series, uint64_t time)
 		
 		if (time > u_bound_nth_series) { continue; }
 
-	// 	if (are_series_equal(current, *series, adf->header.n_chunks.val,
-	// 						 adf->header.n_wavelength.val)) {
-	// 		current->repeated.val += series_to_add->repeated.val;
-	// 		adf->metadata.n_series += series_to_add->repeated.val;
-	// 	return ADF_OK;
-	// }
-		
+		/* if the two series are eual, nothing to do */
+		if (are_series_equal(current, series, adf)) {
+			adf->metadata.n_series += (series->repeated.val 
+									  - current->repeated.val);
+			current->repeated = series->repeated;
+			return ADF_OK;
+		}
+
 		if (current->repeated.val == 1) {
+			adf->metadata.n_series += (series->repeated.val 
+									  - current->repeated.val);
 			series_free(current);
-			cpy_adf_series(current, &series, adf);
+			cpy_adf_series(current, series, adf);
 			return ADF_OK;
 		}
 
@@ -650,7 +654,7 @@ uint16_t update_series(adf_t *adf, series_t series, uint64_t time)
 				return ADF_RUNTIME_ERROR;
 			}
 
-			cpy_adf_series(adf->series + (i+1), &series, adf);
+			cpy_adf_series(adf->series + (i+1), series, adf);
 			adf->series[i+2].repeated.val = len - i;
 			if (size_series_increment == 2) {
 				cpy_adf_series(adf->series + (i+2), adf->series + i, adf);
@@ -813,6 +817,7 @@ uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
 void metadata_free(adf_meta_t *metadata)
 {
 	free(metadata->additive_codes);
+	metadata->additive_codes = NULL;
 }
 
 void series_free(series_t *series)
@@ -822,15 +827,22 @@ void series_free(series_t *series)
 	free(series->water_use_ml);
 	if (series->n_soil_adds.val > 0) { free(series->soil_additives); }
 	if (series->n_atm_adds.val > 0) { free(series->atm_additives); }
+
+	series->light_exposure = NULL;
+	series->temp_celsius = NULL;
+	series->water_use_ml = NULL;
+	series->soil_additives = NULL;
+	series->atm_additives = NULL;
 }
 
-void adf_free(const adf_t *adf)
+void adf_free(adf_t *adf)
 {
 	adf_meta_t *metadata = (adf_meta_t *) &(adf->metadata);
 	metadata_free(metadata);
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) 
 		series_free(adf->series + i);
 	free(adf->series);
+	adf->series = NULL;
 }
 
 uint16_t cpy_additive(additive_t *target, const additive_t *source)

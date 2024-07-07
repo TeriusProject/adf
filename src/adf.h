@@ -389,31 +389,39 @@ uint16_t remove_series(adf_t *);
  */
 uint16_t marshal(uint8_t *, adf_t);
 
-/*
- * Assumes the `adf_t *` structure to be allocated.
- */
+/* Assumes the `adf_t *` structure to be allocated. */
 uint16_t unmarshal(adf_t *, const uint8_t *);
 
 /*
  * It updates the series at time `uint64_t`.
  * It considers the repetitions as well.
  */
-uint16_t update_series(adf_t *, series_t, uint64_t);
+uint16_t update_series(adf_t *, const series_t *, uint64_t);
 
 /*
  *
  */
 uint16_t reindex_additives(adf_t *);
 
-bool are_series_equal(const series_t *, const series_t *, uint32_t, uint16_t);
+/* This method doesn't check for the field `repeated`. */
+bool are_series_equal(const series_t *, const series_t *, const adf_t*);
+
+/* Just an helper function to create an header */
 adf_header_t create_header(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t);
+
+/* */
+adf_t create_empty_adf(adf_header_t, uint16_t);
+
+/* Just an helper function to create an empty series*/
 uint16_t init_empty_series(series_t *, uint32_t, uint32_t, uint16_t, uint16_t);
+
 void metadata_init(adf_meta_t *, uint32_t);
 void adf_init(adf_t *, adf_header_t, uint32_t);
-adf_t create_empty_adf(adf_header_t, uint16_t);
+
 void metadata_free(adf_meta_t *);
 void series_free(series_t *);
-void adf_free(const adf_t *);
+void adf_free(adf_t *);
+
 uint16_t cpy_additive(additive_t *, const additive_t *);
 uint16_t cpy_adf(adf_t *, const adf_t *);
 uint16_t cpy_adf_header(adf_header_t *, const adf_header_t *);

@@ -23,7 +23,8 @@ CC = gcc
 CFLAGS = -pedantic -Wall -Wextra -O3 -std=c2x
 SRC = ../src/
 BIN = test_create test_reindex test_marshal test_unmarshal test_series_add \
-	  test_series_update test_series_remove test_lookup_table test_copy
+	  test_series_update test_series_remove test_lookup_table test_copy    \
+	  test_free
 
 all: $(BIN) sample.adf
 	./test_create
@@ -35,6 +36,7 @@ all: $(BIN) sample.adf
 	./test_series_remove
 	./test_copy
 	./test_lookup_table
+	./test_free
 
 test_create: test_create.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
 	$(CC) $(CFLAGS) $^  -o $@  
@@ -60,8 +62,11 @@ test_series_remove: test_series_remove.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $
 test_copy: test_copy.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
 	$(CC) $(CFLAGS) $^  -o $@ 
 
-test_lookup_table: test_lookup_table.c test.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
+test_free: test_free.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
 	$(CC) $(CFLAGS) $^  -o $@ 
+
+test_lookup_table: test_lookup_table.c test.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
+	$(CC) $(CFLAGS) $^  -o $@
 
 generate_sample: generate_sample.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
 	$(CC) $(CFLAGS) $^ -o $@

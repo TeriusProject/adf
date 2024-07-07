@@ -214,7 +214,6 @@ void push_and_pop_one_additive(void)
 int main(void)
 {
 	srand(time(NULL));
-	printf("(Lookup table test)\n");
 	push_and_pop_one_integer();
 	push_and_pop_one_additive();
 	push_and_remove_should_be_empty();
