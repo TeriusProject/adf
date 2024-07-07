@@ -38,6 +38,10 @@ clean:
 	@$(MAKE) -C src clean
 	@$(MAKE) -C test clean
 
+.PHONY: init
+init:
+	@$(MAKE) -C test init
+
 .PHONY : install
 # currently just install on macOS and GNU/Linux
 install:

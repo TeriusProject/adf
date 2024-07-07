@@ -36,6 +36,8 @@ int main(void)
 	uint16_t res;
 	long file_len;
 
+	printf(YELLOW WARN_SAMPLE RESET "\n");
+
 	adf = get_default_object();
 
 	/* reading the file with expected bytes */

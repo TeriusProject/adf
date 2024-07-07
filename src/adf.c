@@ -609,20 +609,56 @@ uint16_t remove_series(adf_t *adf)
 uint16_t update_series(adf_t *adf, series_t series, uint64_t time)
 {
 	uint16_t series_period = adf->metadata.period_sec.val;
+	uint32_t new_series_size, size_series_increment;
 	uint64_t max_time = series_period * adf->metadata.n_series,
 			 l_bound_nth_series = 0, u_bound_nth_series = 0;
+	series_t *current;
 
 	if (time > max_time) { return ADF_TIME_OUT_OF_BOUND; }
 
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
+		current = adf->series + i;
 		l_bound_nth_series = u_bound_nth_series;
 		u_bound_nth_series = l_bound_nth_series 
-							 +(adf->series[i].repeated.val * series_period);
-		if (time >= l_bound_nth_series && time < u_bound_nth_series) {
-			adf->metadata.n_series += series.repeated.val 
-									  - adf->series[i].repeated.val;
-			series_free(adf->series + i);
-			*(adf->series + i) = series;
+							 + (current->repeated.val * series_period);
+		
+		if (time > u_bound_nth_series) { continue; }
+
+	// 	if (are_series_equal(current, *series, adf->header.n_chunks.val,
+	// 						 adf->header.n_wavelength.val)) {
+	// 		current->repeated.val += series_to_add->repeated.val;
+	// 		adf->metadata.n_series += series_to_add->repeated.val;
+	// 	return ADF_OK;
+	// }
+		
+		if (current->repeated.val == 1) {
+			series_free(current);
+			cpy_adf_series(current, &series, adf);
+			return ADF_OK;
+		}
+
+		for (uint32_t j = 0, len = current->repeated.val; j < len; j++) {
+			if (time < l_bound_nth_series || time >= u_bound_nth_series)
+				continue;
+			
+			size_series_increment = (j == l - 1) ? 1 : 2;
+			new_series_size = adf->metadata.size_series.val
+							  + size_series_increment;
+			
+			adf->series = realloc(adf->series, new_series_size);
+			if (!adf->series) {
+				return ADF_RUNTIME_ERROR;
+			}
+
+			cpy_adf_series(adf->series + (i+1), &series, adf);
+			adf->series[i+2].repeated.val = len - i;
+			if (size_series_increment == 2) {
+				cpy_adf_series(adf->series + (i+2), adf->series + i, adf);
+				adf->series[i+2].repeated.val = 1;
+			}
+
+			l_bound_nth_series += series_period; 
+			u_bound_nth_series += series_period;
 		}
 	}
 	

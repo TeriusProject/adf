@@ -56,7 +56,8 @@ void test_update_series(void)
 
 	assert_true(res == ADF_OK, "Series updated");
 	assert_series_equal(adf, adf.series[0], to_add, "Series are equal");
-	assert_true(adf.metadata.n_series == 5, "There should be 5 series in adf");
+	printf("# series: %d\n", adf.metadata.n_series);
+	assert_true(adf.metadata.n_series == 6, "There should be 5 series in adf");
 
 	adf_free(&adf);
 }

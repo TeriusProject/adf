@@ -31,8 +31,13 @@
 #define RESET "\033[0m"
 #define RED "\033[31m"
 #define GREEN "\033[32m"
+#define YELLOW "\033[33m"
 #define TICK "\u2713"
 #define CROSS "\u2A09"
+
+#define WARN_SAMPLE  "WARNING: for this test to work properly, the file "     \
+					 "sample.adf must be up to date to the latest version. "  \
+					 "If not, run `make init` first."
 
 bool are_ints_equal(uint_t, uint_t);
 bool are_small_ints_equal(uint_small_t, uint_small_t);

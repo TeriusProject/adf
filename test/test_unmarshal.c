@@ -37,6 +37,8 @@ int main(void)
 	long file_len;
 	size_t series_size, h_and_meta_size;
 
+	printf(YELLOW WARN_SAMPLE RESET "\n");
+
 	sample_file = fopen(FILE_PATH, "rb");
 	if (sample_file == NULL) {
 		printf("The file `%s` is not opened.", FILE_PATH);
