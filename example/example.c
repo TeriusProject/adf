@@ -47,27 +47,7 @@ void write_file(adf_t adf)
 	}
 	fwrite(bytes, 1, size_adf_t(adf), output_file);
 	fclose(output_file);
-}
-
-void split_to_float_arr(char *arr_str, real_t *arr, uint32_t n)
-{
-	size_t idx = 0;
-	char delim[] = " ";
-	char *ptr = strtok(arr_str, delim);
-	if (ptr) {
-		arr[idx].val = (float) atof(ptr);
-	}
-
-	while (ptr) {
-		idx++;
-		if (idx >= n) {
-			printf("Too many values, limit is %d\n", n);
-			exit(1);
-		}
-		arr[idx].val = (float) atof(ptr);
-		printf("%f\n",(float) atof(ptr));
-		ptr = strtok(NULL, delim);
-	}
+	free(bytes);
 }
 
 /*
@@ -79,12 +59,13 @@ void split_to_float_arr(char *arr_str, real_t *arr, uint32_t n)
 series_t get_series(uint32_t n_chunks, uint32_t n_wavelength)
 {
 	series_t series;
-	additive_t sample_additive = (additive_t) {
+	additive_t sample_additive;
+
+	sample_additive = (additive_t) {
 		.code = {1234},
 		.code_idx = {0},
 		.concentration = {123.456}
 	};
-
 	series.pH = rand() % 0xFFu;
 	series.p_bar.val = (float)rand()/(float)(RAND_MAX);
 	series.soil_density_kg_m3.val = (float)rand()/(float)(RAND_MAX);
@@ -115,14 +96,14 @@ series_t get_series(uint32_t n_chunks, uint32_t n_wavelength)
 
 void register_data(adf_t *adf)
 {
-	series_t series_to_add;
 	uint16_t res;
+	series_t series_to_add;
 
-	for (uint8_t i = 1, n = rand() % 0xFFu; i <= n; i++) {
+	for (uint16_t i = 1, n = rand() % 10'000; i <= n; i++) {
 		printf("Adding series %d/%d\n", i, n);
 		series_to_add = get_series(adf->header.n_chunks.val, 
 								   adf->header.n_wavelength.val);
-		res = add_series(adf,&series_to_add);
+		res = add_series(adf, &series_to_add);
 		if (res != ADF_OK) {
 			printf("An error occurred while adding the series [code:%x]", res);
 			exit(1);
@@ -150,5 +131,6 @@ int main(void)
 	register_data(&adf);
 	printf("Writing on file `%s`...\n", OUT_FILE_PATH);
 	write_file(adf);
+	adf_free(&adf);
 	printf("*DONE*\n");
 }

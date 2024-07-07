@@ -213,7 +213,14 @@ typedef struct {
 	 */
 	uint_small_t n_atm_adds;
 
+	/*
+	 *
+	 */
 	additive_t *soil_additives;
+	
+	/*
+	 *
+	 */
 	additive_t *atm_additives;
 
 	/*

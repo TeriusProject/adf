@@ -609,13 +609,10 @@ uint16_t remove_series(adf_t *adf)
 
 uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 {
+	series_t *current;
 	uint16_t series_period = adf->metadata.period_sec.val;
 	uint32_t new_series_size, size_series_increment;
-	uint64_t max_time = series_period * adf->metadata.n_series,
-			 l_bound_nth_series = 0, u_bound_nth_series = 0;
-	series_t *current;
-
-	if (time > max_time) { return ADF_TIME_OUT_OF_BOUND; }
+	uint64_t l_bound_nth_series = 0, u_bound_nth_series = 0;
 
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
 		current = adf->series + i;
@@ -642,8 +639,12 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 		}
 
 		for (uint32_t j = 0, len = current->repeated.val; j < len; j++) {
-			if (time < l_bound_nth_series || time >= u_bound_nth_series)
+			u_bound_nth_series = l_bound_nth_series + series_period;
+			if (time < l_bound_nth_series || time >= u_bound_nth_series) {
+				l_bound_nth_series += series_period; 
+				u_bound_nth_series += series_period;
 				continue;
+			}
 			
 			size_series_increment = (j == l - 1) ? 1 : 2;
 			new_series_size = adf->metadata.size_series.val
@@ -655,18 +656,17 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 			}
 
 			cpy_adf_series(adf->series + (i+1), series, adf);
-			adf->series[i+2].repeated.val = len - i;
+			adf->series[i+1].repeated.val = len - i;
 			if (size_series_increment == 2) {
 				cpy_adf_series(adf->series + (i+2), adf->series + i, adf);
 				adf->series[i+2].repeated.val = 1;
 			}
 
-			l_bound_nth_series += series_period; 
-			u_bound_nth_series += series_period;
+			return ADF_OK;
 		}
 	}
 	
-	return ADF_OK;
+	return ADF_TIME_OUT_OF_BOUND;
 }
 
 static uint_t *get_additive_codes(pair_t *pairs, size_t size)

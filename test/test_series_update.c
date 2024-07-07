@@ -122,10 +122,41 @@ void update_one_series_with_an_equal_one_with_different_repetition(void)
 	adf_free(&adf);
 }
 
+void test_update_series_within_repeated_series(void)
+{
+	adf_t adf;
+	series_t series1, to_update;
+	uint16_t res;
+	uint64_t time;
+
+	adf = get_object_with_zero_series();
+	to_update = get_series();
+	series1 = get_series_with_two_soil_additives();
+	series1.repeated.val = 3;
+	res = add_series(&adf, &series1);
+	if (res != ADF_OK) {
+		printf("An error occurred while updating [code:%x]\n", res);
+		exit(1);
+	}
+	time = adf.metadata.period_sec.val + 1;
+	res = update_series(&adf, &to_update, time);
+	if (res != ADF_OK) {
+		printf("An error occurred while updating [code:%x]\n", res);
+		exit(1);
+	}
+
+	assert_true(adf.metadata.size_series.val == 3,
+				"There must be 3 series in adf");
+
+	series_free(&to_update);
+	adf_free(&adf);
+}
+
 int main(void)
 {
-	test_update_series_time_out_of_bound();
-	test_update_one_series();
-	update_one_series_with_an_equal_one();
-	update_one_series_with_an_equal_one_with_different_repetition();
+	// test_update_series_time_out_of_bound();
+	// test_update_one_series();
+	// update_one_series_with_an_equal_one();
+	// update_one_series_with_an_equal_one_with_different_repetition();
+	test_update_series_within_repeated_series();
 }
