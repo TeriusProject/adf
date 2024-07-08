@@ -619,7 +619,7 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 		l_bound_nth_series = u_bound_nth_series;
 		u_bound_nth_series = l_bound_nth_series 
 							 + (current->repeated.val * series_period);
-		
+
 		if (time > u_bound_nth_series) { continue; }
 
 		/* if the two series are eual, nothing to do */
@@ -645,18 +645,17 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 				u_bound_nth_series += series_period;
 				continue;
 			}
-			
+
 			size_series_increment = (j == l - 1) ? 1 : 2;
 			new_series_size = adf->metadata.size_series.val
 							  + size_series_increment;
-			
-			adf->series = realloc(adf->series, new_series_size);
-			if (!adf->series) {
-				return ADF_RUNTIME_ERROR;
-			}
+			adf->metadata.size_series.val = new_series_size;
+			adf->series = realloc(adf->series, new_series_size
+								  * sizeof(series_t));
+			if (!adf->series) { return ADF_RUNTIME_ERROR; }
 
 			cpy_adf_series(adf->series + (i+1), series, adf);
-			adf->series[i+1].repeated.val = len - i;
+			adf->series[i].repeated.val = j;
 			if (size_series_increment == 2) {
 				cpy_adf_series(adf->series + (i+2), adf->series + i, adf);
 				adf->series[i+2].repeated.val = 1;
