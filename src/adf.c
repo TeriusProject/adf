@@ -274,6 +274,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	cpy_4_bytes_fn(adf->metadata.size_series.bytes, (bytes + byte_c));
 	SHIFT_COUNTER(4);
 	n_series = adf->metadata.size_series.val;
+	adf->metadata.is_dirty = n_series > 0;
 	cpy_4_bytes_fn(adf->metadata.period_sec.bytes, (bytes + byte_c));
 	SHIFT_COUNTER(4);
 	cpy_2_bytes_fn(adf->metadata.n_additives.bytes, (bytes + byte_c));
@@ -393,9 +394,9 @@ static inline bool are_reals_equal(real_t x, real_t y)
 						 : (x.val - y.val) < EPSILON;
 }
 
-static bool are_additive_t_equal(additive_t x, additive_t y)
+bool are_additive_t_equal(additive_t x, additive_t y)
 {
-	return x.code.val == y.code.val && x.code_idx.val == y.code_idx.val
+	return x.code.val == y.code.val
 		   && are_reals_equal(x.concentration, y.concentration);
 }
 
@@ -404,13 +405,15 @@ bool are_series_equal(const series_t *first, const series_t *second,
 {
 	uint32_t n_chunks = adf->header.n_chunks.val;
 	uint16_t n_wavelength = adf->header.n_wavelength.val;
-	bool int_fields_eq = first->pH == second->pH
+	bool int_fields_eq, real_fields_eq;
+
+	int_fields_eq = first->pH == second->pH
 						 && first->n_atm_adds.val == second->n_atm_adds.val
 						 && first->n_soil_adds.val == second->n_soil_adds.val;
-
+	
 	if (!int_fields_eq) return false;
 
-	bool real_fields_eq = are_reals_equal(first->p_bar, second->p_bar)
+	real_fields_eq = are_reals_equal(first->p_bar, second->p_bar)
 						  && are_reals_equal(first->soil_density_kg_m3,
 											 second->soil_density_kg_m3);
 
@@ -607,10 +610,64 @@ uint16_t remove_series(adf_t *adf)
 	return ADF_OK;
 }
 
+void series_list_free(series_list_t *list)
+{
+	series_node_t *curr = list->head, *next;
+    
+    while (curr != NULL) {
+        next = curr->next;
+        free(curr);
+        curr = next;
+    }
+	list->size = 0;
+	list->head = NULL;
+}
+
+uint16_t init_series_list(series_list_t *list, const adf_t *adf)
+{
+	uint16_t res;
+	uint32_t size;
+	series_node_t *head, *current, *tmp;
+
+	head = malloc(sizeof(series_node_t));
+	if (!head) { return ADF_RUNTIME_ERROR; }
+	*head = (series_node_t) {
+		.n = 0,
+		.val = *adf->series,
+		.next = NULL
+	};
+    current = head;
+	size = adf->metadata.size_series.val;
+    for (uint32_t i = 1; i < size; i++) {
+        tmp = malloc(sizeof(series_node_t));
+		if (!tmp) { return ADF_RUNTIME_ERROR; }
+		*tmp = (series_node_t) {
+			.n = i,
+			.next = NULL
+		};
+		res = cpy_adf_series(&tmp->val, adf->series + i, adf);
+		if (res != ADF_OK) { return res; }
+        current->next=tmp;
+        current=current->next;
+    }
+	list->size = size;
+	list->head = head;
+
+    return ADF_OK;
+}
+
+// void shift_series(series_t *s, uint32_t size, uint32_t l_bound, uint32_t shift)
+// {
+// 	for (uint32_t c = size - 1; size >= l_bound; c--) {
+
+// 	}
+// }
+
 uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 {
 	series_t *current;
-	uint16_t series_period = adf->metadata.period_sec.val;
+	series_list_t s_list;
+	uint16_t res, series_period = adf->metadata.period_sec.val;
 	uint32_t new_series_size, size_series_increment;
 	uint64_t l_bound_nth_series = 0, u_bound_nth_series = 0;
 
@@ -646,7 +703,10 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 				continue;
 			}
 
-			size_series_increment = (j == l - 1) ? 1 : 2;
+			res = init_series_list(&s_list, adf);
+			if (res != ADF_OK) { return res; }
+
+			size_series_increment = (j == len - 1) ? 1 : 2;
 			new_series_size = adf->metadata.size_series.val
 							  + size_series_increment;
 			adf->metadata.size_series.val = new_series_size;
@@ -773,6 +833,7 @@ void  metadata_init(adf_meta_t *metadata, uint32_t period_sec)
 	metadata->size_series.val = 0;
 	metadata->period_sec.val = period_sec;
 	metadata->n_series = 0;
+	metadata->is_dirty = false;
 }
 
 void adf_init(adf_t *adf, adf_header_t header, uint32_t period_sec)
@@ -916,6 +977,7 @@ uint16_t cpy_adf_metadata(adf_meta_t *target, const adf_meta_t *source)
 	target->size_series = source->size_series;
 	target->period_sec = source->period_sec;
 	target->n_series = source->n_series;
+	target->is_dirty = source->is_dirty;
 	target->n_additives = source->n_additives;
 	target->additive_codes = malloc(target->n_additives.val
 									* sizeof(uint_t));

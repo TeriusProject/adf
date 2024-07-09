@@ -21,6 +21,7 @@
  */
 
 #include "test.h"
+#include <time.h>
 
 void assert_true(bool condition, const char *label)
 {
@@ -274,4 +275,16 @@ void assert_series_equal(adf_t data, series_t x, series_t y, const char *label)
 			  							 x.n_atm_adds.val)
 			&& are_ints_equal(x.repeated, y.repeated);
 	assert_true(c, label);
+}
+
+uint64_t get_nanos(void)
+{
+	tick_t start;
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+	return (uint64_t) start.tv_sec*1e9 + (uint64_t) start.tv_nsec;
+}
+
+double get_time_diff(uint64_t prev_tick)
+{
+	return (get_nanos() - prev_tick)*1e-9;
 }

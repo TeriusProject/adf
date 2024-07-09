@@ -148,6 +148,17 @@ typedef union {
 	uint8_t bytes[4];
 } uint_small_t;
 
+typedef struct series_list_node {
+	uint32_t n;
+	series_t val;
+	struct series_list_node *next;
+} series_node_t;
+
+typedef struct {
+	uint32_t size;
+	series_node_t *head;
+} series_list_t;
+
 typedef struct {
 
 	/*
@@ -247,6 +258,15 @@ typedef struct {
 	 * unmarshalling procedure.
 	 */
 	uint32_t n_series;
+
+	/*
+	 * This field refers to the series array. If it's true it means that 
+	 * series points to an already allocated chunk of memory. It's primarily 
+	 * used to know if the old series should be deallocated in order to set 
+	 * a new one. It should be *always* checked before calling the function 
+	 * `set_series`
+	 */
+	bool is_dirty;
 
 	/*
 	 * It represents the time (measured in seconds) that each series last. The
@@ -410,7 +430,17 @@ uint16_t update_series(adf_t *, const series_t *, uint64_t);
  */
 uint16_t reindex_additives(adf_t *);
 
-/* This method doesn't check for the field `repeated`. */
+/* */
+uint16_t init_series_list(series_list_t *list, const adf_t *adf);
+
+/*
+ * !!! This function doesn't compare the field `code_idx` !!!
+ */
+bool are_additive_t_equal(additive_t, additive_t);
+
+/*
+ * !!! This method doesn't check for the field `repeated`. !!!
+ */
 bool are_series_equal(const series_t *, const series_t *, const adf_t*);
 
 /* Just an helper function to create an header */
@@ -428,6 +458,7 @@ void adf_init(adf_t *, adf_header_t, uint32_t);
 void metadata_free(adf_meta_t *);
 void series_free(series_t *);
 void adf_free(adf_t *);
+void series_list_free(series_list_t *);
 
 uint16_t cpy_additive(additive_t *, const additive_t *);
 uint16_t cpy_adf(adf_t *, const adf_t *);

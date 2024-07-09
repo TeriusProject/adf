@@ -146,10 +146,69 @@ void test_update_series_within_repeated_series(void)
 	}
 
 	assert_true(adf.metadata.size_series.val == 3,
-				"There must be 3 series in adf");
+				"size_series should be 4");
+	assert_true(are_series_equal(adf.series, &series1, &adf),
+				"adf.series[0] == series1");
+	assert_true(are_series_equal(adf.series + 1, &to_update, &adf),
+				"adf.series[1] == to_update");
+	assert_true(are_series_equal(adf.series + 2, &series1, &adf),
+				"adf.series[2] == series1");
+	assert_true(adf.series[0].repeated.val == 1,
+				"First series should be repeated 1 time");
+	assert_true(adf.series[1].repeated.val == 1,
+				"Second series should be repeated 1 time");
+	assert_true(adf.series[2].repeated.val == 1,
+				"Third series should be repeated 1 time");
 
 	series_free(&to_update);
+	series_free(&series1);
 	adf_free(&adf);
+}
+
+void test_update_series_within_repeated_series_between_others(void)
+{
+	adf_t adf;
+	series_t series1, series2, to_update;
+	uint16_t res;
+	uint64_t time;
+
+	adf = get_object_with_zero_series();
+	to_update = get_series();
+	series1 = get_series_with_two_soil_additives();
+	series1.repeated.val = 3;
+	res = add_series(&adf, &series1);
+	if (res != ADF_OK) {
+		printf("An error occurred while updating [code:%x]\n", res);
+		exit(1);
+	}
+	series2 = get_repeated_series();
+	res = add_series(&adf, &series2);
+	if (res != ADF_OK) {
+		printf("An error occurred while updating [code:%x]\n", res);
+		exit(1);
+	}
+	res = add_series(&adf, &series1);
+	if (res != ADF_OK) {
+		printf("An error occurred while updating [code:%x]\n", res);
+		exit(1);
+	}
+	time = (adf.metadata.period_sec.val * 4) + 1;
+	res = update_series(&adf, &to_update, time);
+	if (res != ADF_OK) {
+		printf("An error occurred while updating [code:%x]\n", res);
+		exit(1);
+	}
+
+	assert_true(adf.metadata.size_series.val == 4,
+				"size_series should be 4");
+	assert_true(are_series_equal(adf.series, &series1, &adf),
+				"adf.series[0] == series1");
+	assert_true(are_series_equal(adf.series + 1, &series2, &adf),
+				"adf.series[1] == series2");
+	assert_true(are_series_equal(adf.series + 2, &to_update, &adf),
+				"adf.series[2] == to_update");
+	assert_true(are_series_equal(adf.series + 3, &series1, &adf),
+				"adf.series[3] == series1");
 }
 
 int main(void)
@@ -158,5 +217,6 @@ int main(void)
 	// test_update_one_series();
 	// update_one_series_with_an_equal_one();
 	// update_one_series_with_an_equal_one_with_different_repetition();
-	test_update_series_within_repeated_series();
+	// test_update_series_within_repeated_series();
+	test_update_series_within_repeated_series_between_others();
 }

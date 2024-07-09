@@ -70,4 +70,9 @@ void assert_metadata_equal(adf_meta_t, adf_meta_t, const char *);
 void assert_series_equal_verbose(adf_t, series_t, series_t);
 void assert_series_equal(adf_t, series_t, series_t, const char *);
 
+/* Performances */
+typedef struct timespec tick_t;
+uint64_t get_nanos(void);
+double get_time_diff(uint64_t);
+
 #endif /* __UTILS_H__ */
