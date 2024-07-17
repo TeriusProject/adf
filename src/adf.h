@@ -39,7 +39,7 @@ extern "C" {
  * Version is an unsigned int between 0 and 255. Versions are numbered in
  * progressive way, without any distinction between major and minor releases.
  */
-#define __ADF_VERSION__ 0x01u
+#define __ADF_VERSION__ 0x0001u
 
 /* 
  * Used for the comparison of floating point numbers: numbers that have the 
@@ -148,17 +148,6 @@ typedef union {
 	uint8_t bytes[4];
 } uint_small_t;
 
-typedef struct series_list_node {
-	uint32_t n;
-	series_t val;
-	struct series_list_node *next;
-} series_node_t;
-
-typedef struct {
-	uint32_t size;
-	series_node_t *head;
-} series_list_t;
-
 typedef struct {
 
 	/*
@@ -242,6 +231,17 @@ typedef struct {
 	uint_t repeated;
 } __attribute__((packed)) series_t;
 
+typedef struct series_list_node {
+	uint32_t n;
+	series_t val;
+	struct series_list_node *next;
+} series_node_t;
+
+typedef struct {
+	uint32_t size;
+	series_node_t *head;
+} series_list_t;
+
 typedef struct {
 	/*
 	 * The number of series registered. The number 0 is used to
@@ -258,15 +258,6 @@ typedef struct {
 	 * unmarshalling procedure.
 	 */
 	uint32_t n_series;
-
-	/*
-	 * This field refers to the series array. If it's true it means that 
-	 * series points to an already allocated chunk of memory. It's primarily 
-	 * used to know if the old series should be deallocated in order to set 
-	 * a new one. It should be *always* checked before calling the function 
-	 * `set_series`
-	 */
-	bool is_dirty;
 
 	/*
 	 * It represents the time (measured in seconds) that each series last. The
@@ -426,12 +417,17 @@ uint16_t unmarshal(adf_t *, const uint8_t *);
 uint16_t update_series(adf_t *, const series_t *, uint64_t);
 
 /*
+ * 
+ */
+uint16_t set_series(adf_t *, const series_t *, uint32_t);
+
+/*
  *
  */
 uint16_t reindex_additives(adf_t *);
 
 /* */
-uint16_t init_series_list(series_list_t *list, const adf_t *adf);
+uint16_t cpy_series_starting_at(series_t *, const adf_t *, uint32_t);
 
 /*
  * !!! This function doesn't compare the field `code_idx` !!!

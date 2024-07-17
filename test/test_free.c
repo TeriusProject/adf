@@ -75,8 +75,14 @@ void test_free_series(void)
 				"(series) atm_additives is NULL after adf_free is called");
 }
 
+void test_free_sereies_list(void)
+{
+
+}
+
 int main(void)
 {
 	test_free_adf();
 	test_free_series();
+	test_free_sereies_list();
 }

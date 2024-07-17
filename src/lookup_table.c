@@ -154,4 +154,8 @@ void pair_free(pair_t *pair)
 void table_free(table_t *table)
 {
     free(table->pairs);
+	table->increment = 0;
+	table->max_size = 0;
+	table->size = 0;
+	table->pairs = NULL;
 }

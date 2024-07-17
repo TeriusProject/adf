@@ -207,8 +207,8 @@ void test_update_series_within_repeated_series_between_others(void)
 				"adf.series[1] == series2");
 	assert_true(are_series_equal(adf.series + 2, &to_update, &adf),
 				"adf.series[2] == to_update");
-	assert_true(are_series_equal(adf.series + 3, &series1, &adf),
-				"adf.series[3] == series1");
+	assert_true(are_series_equal(adf.series + 3, &series2, &adf),
+				"adf.series[3] == series2");
 }
 
 int main(void)

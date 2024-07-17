@@ -211,6 +211,41 @@ void push_and_pop_one_additive(void)
 	table_free(&t);
 }
 
+void test_free_lookup_table(void)
+{
+	uint8_t size = 250;
+	uint16_t res;
+	table_t t;
+	additive_t *adds;
+
+	res = table_init(&t, 1024, 1024, &fn);
+	if (res != LM_OK) {
+		printf("[%x] %s", res, "An error occurred\n");
+		exit(1);
+	}
+	adds = malloc(size * sizeof(additive_t));
+	for (uint8_t i = 0; i < size; i++) {
+		adds[i] = (additive_t) {
+			.code = {1234},
+			.code_idx = {12},
+			.concentration = {0.56789}
+		};
+		res = table_put(&t, 13, adds + i);
+		if (res != LM_OK) {
+			printf("[%x] %s", res, "An error occurred\n");
+			exit(1);
+		}
+	}
+
+	assert_true(t.size == 250, "table has size equal to 250");
+	table_free(&t);
+	assert_true(t.size == 0, "After free table has size equal to 0");
+	assert_true(t.max_size == 0, "After free table has max_size equal to 0");
+	assert_true(t.increment == 0, "After free table has increment equal to 0");
+	assert_true(t.pairs == NULL, "table has pairs equal to NULL");
+}
+
+
 int main(void)
 {
 	srand(time(NULL));
@@ -220,4 +255,5 @@ int main(void)
 	push_and_update();
 	map_should_resize_when_half_full();
 	table_keys_should_return_the_list_of_the_inserted_keys();
+	test_free_lookup_table();
 }
