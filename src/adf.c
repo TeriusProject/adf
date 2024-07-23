@@ -28,19 +28,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SHIFT_COUNTER(n) (byte_c += n)
+#define SHIFT1(byte_counter) (byte_counter++)
+#define SHIFT2(byte_counter) (byte_counter += 2)
+#define SHIFT4(byte_counter) (byte_counter += 4)
 
 typedef void (*number_bytes_copy)(uint8_t *, const uint8_t *);
-
-/*
- * Hash function.
- * Since the additive code is a unique integer id we do not need an hash 
- * function. Hence, the `id` function just return the 4-byte additive code
- */
-static uint32_t id(void *key)
-{
-	return *((uint32_t *) key);
-}
 
 static number_bytes_copy cpy_4_bytes_fn;
 static number_bytes_copy cpy_2_bytes_fn;
@@ -113,7 +105,7 @@ size_t size_medatata_t(adf_meta_t metadata)
 size_t size_header(void)
 {
 	return 4	/* signature */
-		   + 1	/* version */
+		   + 2	/* version */
 		   + 1	/* farming_tec */
 		   + 4	/* n_wavelength */
 		   + 4	/* min_w_len_nm */
@@ -147,28 +139,40 @@ uint16_t marshal(uint8_t *bytes, adf_t data)
 					 : &to_little_endian_2_bytes;
 	if (!bytes) { return ADF_RUNTIME_ERROR; }
 	cpy_4_bytes_fn((bytes + byte_c), data.header.signature.bytes);
-	SHIFT_COUNTER(4);
-	*(bytes + byte_c) = data.header.version;
-	SHIFT_COUNTER(1);
+	SHIFT4(byte_c);
+	cpy_2_bytes_fn(bytes + byte_c, data.header.version.bytes);
+	SHIFT2(byte_c);
 	*(bytes + byte_c) = data.header.farming_tec;
-	SHIFT_COUNTER(1);
+	SHIFT1(byte_c);
+	*(bytes + byte_c) = data.header.omega;
+	SHIFT1(byte_c);
 	cpy_4_bytes_fn((bytes + byte_c), data.header.n_wavelength.bytes);
-	SHIFT_COUNTER(4);
-	cpy_4_bytes_fn((bytes + byte_c), data.header.min_w_len_nm.bytes);
-	SHIFT_COUNTER(4);
-	cpy_4_bytes_fn((bytes + byte_c), data.header.max_w_len_nm.bytes);
-	SHIFT_COUNTER(4);
+	SHIFT4(byte_c);
+	cpy_2_bytes_fn((bytes + byte_c), data.header.min_w_len_nm.bytes);
+	SHIFT2(byte_c);
+	cpy_2_bytes_fn((bytes + byte_c), data.header.max_w_len_nm.bytes);
+	SHIFT2(byte_c);
+	cpy_4_bytes_fn((bytes + byte_c), data.header.n_depth.bytes);
+	SHIFT4(byte_c);
+	cpy_2_bytes_fn((bytes + byte_c), data.header.min_soil_depth_mm.bytes);
+	SHIFT2(byte_c);
+	cpy_2_bytes_fn((bytes + byte_c), data.header.max_soil_depth_mm.bytes);
+	SHIFT2(byte_c);
 	cpy_4_bytes_fn((bytes + byte_c), data.header.n_chunks.bytes);
-	SHIFT_COUNTER(4);
+	SHIFT4(byte_c);
 	crc_16bits.val = crc16(bytes, byte_c);
 	cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
-	SHIFT_COUNTER(2);
+	SHIFT2(byte_c);
 	cpy_4_bytes_fn((bytes + byte_c), data.metadata.size_series.bytes);
-	SHIFT_COUNTER(4);
+	SHIFT4(byte_c);
 	cpy_4_bytes_fn((bytes + byte_c), data.metadata.period_sec.bytes);
-	SHIFT_COUNTER(4);
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn((bytes + byte_c), data.metadata.seeded.bytes);
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn((bytes + byte_c), data.metadata.harvested.bytes);
+	SHIFT4(byte_c);
 	cpy_2_bytes_fn((bytes + byte_c), data.metadata.n_additives.bytes);
-	SHIFT_COUNTER(2);
+	SHIFT2(byte_c);
 
 	for (uint16_t i = 0, l = data.metadata.n_additives.val; i < l;
 		 i++, byte_c += 4) {
@@ -177,7 +181,7 @@ uint16_t marshal(uint8_t *bytes, adf_t data)
 
 	crc_16bits.val = crc16((bytes + size_header()), byte_c - size_header());
 	cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
-	SHIFT_COUNTER(2);
+	SHIFT2(byte_c);
 
 	for (uint32_t i = 0, n_iter = data.metadata.size_series.val; i < n_iter;
 		 i++) {
@@ -201,37 +205,37 @@ uint16_t marshal(uint8_t *bytes, adf_t data)
 			cpy_4_bytes_fn((bytes + byte_c), current.water_use_ml[w_i].bytes);
 		}
 		*(bytes + byte_c) = current.pH;
-		SHIFT_COUNTER(1);
+		SHIFT1(byte_c);
 		cpy_4_bytes_fn((bytes + byte_c), current.p_bar.bytes);
-		SHIFT_COUNTER(4);
+		SHIFT4(byte_c);
 		cpy_4_bytes_fn((bytes + byte_c), current.soil_density_kg_m3.bytes);
-		SHIFT_COUNTER(4);
+		SHIFT4(byte_c);
 		cpy_2_bytes_fn((bytes + byte_c), current.n_soil_adds.bytes);
-		SHIFT_COUNTER(2);
+		SHIFT2(byte_c);
 		cpy_2_bytes_fn((bytes + byte_c), current.n_atm_adds.bytes);
-		SHIFT_COUNTER(2);
+		SHIFT2(byte_c);
 		for (uint16_t j = 0, l = current.n_soil_adds.val; j < l; j++) {
 			cpy_2_bytes_fn((bytes + byte_c),
 						   current.soil_additives[j].code_idx.bytes);
-			SHIFT_COUNTER(2);
+			SHIFT2(byte_c);
 			cpy_4_bytes_fn((bytes + byte_c),
 						   current.soil_additives[j].concentration.bytes);
-			SHIFT_COUNTER(4);
+			SHIFT4(byte_c);
 		}
 		for (uint16_t j = 0, l = current.n_atm_adds.val; j < l; j++) {
 			cpy_2_bytes_fn((bytes + byte_c),
 						   current.atm_additives[j].code_idx.bytes);
-			SHIFT_COUNTER(2);
+			SHIFT2(byte_c);
 			cpy_4_bytes_fn((bytes + byte_c),
 						   current.atm_additives[j].concentration.bytes);
-			SHIFT_COUNTER(4);
+			SHIFT4(byte_c);
 		}
 		cpy_4_bytes_fn((bytes + byte_c), current.repeated.bytes);
-		SHIFT_COUNTER(4);
+		SHIFT4(byte_c);
 
 		crc_16bits.val = crc16((bytes + starting_byte), byte_c - starting_byte);
 		cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
-		SHIFT_COUNTER(2);
+		SHIFT2(byte_c);
 	}
 	return ADF_OK;
 }
@@ -252,32 +256,44 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	if (!bytes || !adf) { return ADF_RUNTIME_ERROR; }
 
 	cpy_4_bytes_fn(adf->header.signature.bytes, (bytes + byte_c));
-	SHIFT_COUNTER(4);
-	adf->header.version = *(bytes + byte_c);
-	SHIFT_COUNTER(1);
+	SHIFT4(byte_c);
+	cpy_2_bytes_fn(adf->header.version.bytes, bytes + byte_c);
+	SHIFT2(byte_c);
 	adf->header.farming_tec = *(bytes + byte_c);
-	SHIFT_COUNTER(1);
+	SHIFT1(byte_c);
+	adf->header.omega = *(bytes + byte_c);
+	SHIFT1(byte_c);
 	cpy_4_bytes_fn(adf->header.n_wavelength.bytes, (bytes + byte_c));
-	SHIFT_COUNTER(4);
-	cpy_4_bytes_fn(adf->header.min_w_len_nm.bytes, (bytes + byte_c));
-	SHIFT_COUNTER(4);
-	cpy_4_bytes_fn(adf->header.max_w_len_nm.bytes, (bytes + byte_c));
-	SHIFT_COUNTER(4);
+	SHIFT4(byte_c);
+	cpy_2_bytes_fn(adf->header.min_w_len_nm.bytes, (bytes + byte_c));
+	SHIFT2(byte_c);
+	cpy_2_bytes_fn(adf->header.max_w_len_nm.bytes, (bytes + byte_c));
+	SHIFT2(byte_c);
+	cpy_4_bytes_fn(adf->header.n_depth.bytes, (bytes + byte_c));
+	SHIFT4(byte_c);
+	cpy_2_bytes_fn(adf->header.min_soil_depth_mm.bytes, (bytes + byte_c));
+	SHIFT2(byte_c);
+	cpy_2_bytes_fn(adf->header.max_soil_depth_mm.bytes, (bytes + byte_c));
+	SHIFT2(byte_c);
 	cpy_4_bytes_fn(adf->header.n_chunks.bytes, (bytes + byte_c));
-	SHIFT_COUNTER(4);
+	SHIFT4(byte_c);
 	header_crc = crc16(bytes, byte_c);
 	cpy_2_bytes_fn(expected_crc.bytes, (bytes + byte_c));
-	SHIFT_COUNTER(2);
+	SHIFT2(byte_c);
 
 	if (header_crc != expected_crc.val) { return ADF_HEADER_CORRUPTED; }
 
 	cpy_4_bytes_fn(adf->metadata.size_series.bytes, (bytes + byte_c));
-	SHIFT_COUNTER(4);
-	n_series = adf->metadata.size_series.val;
+	SHIFT4(byte_c);
+	// n_series = adf->metadata.size_series.val;
 	cpy_4_bytes_fn(adf->metadata.period_sec.bytes, (bytes + byte_c));
-	SHIFT_COUNTER(4);
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn(adf->metadata.seeded.bytes, (bytes + byte_c));
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn(adf->metadata.harvested.bytes, (bytes + byte_c));
+	SHIFT4(byte_c);
 	cpy_2_bytes_fn(adf->metadata.n_additives.bytes, (bytes + byte_c));
-	SHIFT_COUNTER(2);
+	SHIFT2(byte_c);
 
 	adf->metadata.additive_codes = malloc(adf->metadata.n_additives.val 
 										  * sizeof(uint_t));
@@ -290,7 +306,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 
 	meta_crc = crc16((bytes + size_header()), byte_c - size_header());
 	cpy_2_bytes_fn(expected_crc.bytes, (bytes + byte_c));
-	SHIFT_COUNTER(2);
+	SHIFT2(byte_c);
 	if (meta_crc != expected_crc.val) { return ADF_METADATA_CORRUPTED; }
 
 	adf->series = malloc(adf->metadata.size_series.val * sizeof(series_t));
@@ -326,15 +342,15 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 		}
 
 		current.pH = *(bytes + byte_c);
-		SHIFT_COUNTER(1);
+		SHIFT1(byte_c);
 		cpy_4_bytes_fn(current.p_bar.bytes, (bytes + byte_c));
-		SHIFT_COUNTER(4);
+		SHIFT4(byte_c);
 		cpy_4_bytes_fn(current.soil_density_kg_m3.bytes, (bytes + byte_c));
-		SHIFT_COUNTER(4);
+		SHIFT4(byte_c);
 		cpy_2_bytes_fn(current.n_soil_adds.bytes, (bytes + byte_c));
-		SHIFT_COUNTER(2);
+		SHIFT2(byte_c);
 		cpy_2_bytes_fn(current.n_atm_adds.bytes, (bytes + byte_c));
-		SHIFT_COUNTER(2);
+		SHIFT2(byte_c);
 
 		current.soil_additives = NULL;
 		current.atm_additives = NULL;
@@ -354,10 +370,10 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 			code_idx = current.soil_additives[j].code_idx.val;
 			current.soil_additives[j].code.val
 				= adf->metadata.additive_codes[code_idx].val;
-			SHIFT_COUNTER(2);
+			SHIFT2(byte_c);
 			cpy_4_bytes_fn(current.soil_additives[j].concentration.bytes,
 						   (bytes + byte_c));
-			SHIFT_COUNTER(4);
+			SHIFT4(byte_c);
 		}
 		for (uint16_t j = 0, l = current.n_atm_adds.val; j < l; j++) {
 			cpy_2_bytes_fn(current.atm_additives[j].code_idx.bytes,
@@ -365,19 +381,19 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 			code_idx = current.atm_additives[j].code_idx.val;
 			current.atm_additives[j].code.val
 				= adf->metadata.additive_codes[code_idx].val;
-			SHIFT_COUNTER(2);
+			SHIFT2(byte_c);
 			cpy_4_bytes_fn(current.atm_additives[j].concentration.bytes,
 						   (bytes + byte_c));
-			SHIFT_COUNTER(4);
+			SHIFT4(byte_c);
 		}
 		cpy_4_bytes_fn(current.repeated.bytes, (bytes + byte_c));
-		SHIFT_COUNTER(4);
+		SHIFT4(byte_c);
 
 		if (current.repeated.val == 0) { return ADF_ZERO_REPEATED_SERIES; }
 		
 		series_crc = crc16((bytes + starting_byte), byte_c - starting_byte);
 		cpy_2_bytes_fn(expected_crc.bytes, (bytes + byte_c));
-		SHIFT_COUNTER(2);
+		SHIFT2(byte_c);
 
 		if (series_crc != expected_crc.val) { return ADF_SERIES_CORRUPTED; }
 		n_series += current.repeated.val - 1;
@@ -736,6 +752,11 @@ static uint_t *get_additive_codes(pair_t *pairs, size_t size)
 	return additives;
 }
 
+static uint32_t id(void *key)
+{
+	return *((uint32_t *) key);
+}
+
 uint16_t reindex_additives(adf_t *adf)
 {
 	table_t lookup_table;
@@ -749,6 +770,10 @@ uint16_t reindex_additives(adf_t *adf)
 		return ADF_OK;
 	}
 
+	/*
+	 * Since the additive code is a unique integer id we do not need an hash 
+	 * function. Hence, the `id` function just return the 4-byte additive code
+	 */
 	if ((table_code = table_init(&lookup_table, 1024, 1024, &id)) != LM_OK)
 		return ADF_RUNTIME_ERROR;
 
@@ -797,11 +822,12 @@ uint16_t reindex_additives(adf_t *adf)
 											  current->code.val));
 			current->code_idx.val = add_idx;
 		}
-		for (uint16_t j = 0; j < n_atm; j++)
+		for (uint16_t j = 0; j < n_atm; j++) {
 			current = (adf->series[i].atm_additives + j);
 			add_idx = *((uint16_t *)table_get(&lookup_table, 
 											  current->code.val));
 			current->code_idx.val = add_idx;
+		}
 	}
 
 	table_free(&lookup_table);
@@ -815,7 +841,7 @@ adf_header_t create_header(uint8_t farming_tec, uint32_t n_chunks,
 {
 	return (adf_header_t) {
 	    .signature = { __ADF_SIGNATURE__ },
-	    .version = __ADF_VERSION__,
+	    .version = { __ADF_VERSION__ },
 	    .farming_tec = farming_tec,
 	    .max_w_len_nm = { max_w_len_nm },
 	    .min_w_len_nm = { min_w_len_nm },

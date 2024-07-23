@@ -161,7 +161,9 @@ void assert_header_equal_verbose(adf_header_t target, adf_header_t expected)
 	assert_int_equal(
 		target.signature, expected.signature, "are signatures equals"
 	);
-	assert_true(target.version == expected.version, "are versions equals");
+	assert_small_int_equal(
+		target.version, expected.version, "are versions equals"
+	);
 	assert_true(
 		target.farming_tec == expected.farming_tec,
 		"are farming tecniques equals"
@@ -169,10 +171,10 @@ void assert_header_equal_verbose(adf_header_t target, adf_header_t expected)
 	assert_int_equal(
 		target.n_wavelength, expected.n_wavelength, "are n_wavelengths equal"
 	);
-	assert_int_equal(
+	assert_small_int_equal(
 		target.min_w_len_nm, expected.min_w_len_nm, "are min_w_len_nms equal"
 	);
-	assert_int_equal(
+	assert_small_int_equal(
 		target.max_w_len_nm, expected.max_w_len_nm, "are max_w_len_nms equal"
 	);
 	assert_int_equal(target.n_chunks, expected.n_chunks, "are n_chunks equal");
@@ -182,11 +184,11 @@ void assert_header_equal(adf_header_t target, adf_header_t expected,
 						 const char *label)
 {
 	bool c = are_ints_equal(target.signature, expected.signature)
-			 && target.version == expected.version
+			 && are_small_ints_equal(target.version, expected.version)
 			 && target.farming_tec == expected.farming_tec
 			 && are_ints_equal(target.n_wavelength, expected.n_wavelength)
-			 && are_ints_equal(target.min_w_len_nm, expected.min_w_len_nm)
-			 && are_ints_equal(target.max_w_len_nm, expected.max_w_len_nm)
+			 && are_small_ints_equal(target.min_w_len_nm, expected.min_w_len_nm)
+			 && are_small_ints_equal(target.max_w_len_nm, expected.max_w_len_nm)
 			 && are_ints_equal(target.n_chunks, expected.n_chunks);
 	assert_true(c, label);
 }

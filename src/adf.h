@@ -39,7 +39,7 @@ extern "C" {
  * Version is an unsigned int between 0 and 255. Versions are numbered in
  * progressive way, without any distinction between major and minor releases.
  */
-#define __ADF_VERSION__ 0x0001u
+#define __ADF_VERSION__ 0x0009u
 
 /* 
  * Used for the comparison of floating point numbers: numbers that have the 
@@ -268,6 +268,16 @@ typedef struct {
 	uint_t period_sec;
 
 	/*
+	 * 
+	 */
+	uint_t seeded;
+
+	/*
+	 * 
+	 */
+	uint_t harvested;
+
+	/*
 	 * Contains the number of elements of the array `additive_codes`.
 	 */
 	uint_small_t n_additives;
@@ -288,11 +298,11 @@ typedef struct {
 	uint_t signature;
 
 	/*
-	 * Version is an 8-bit unsigned integer that contains the
-	 * (progressive) version of the format. Yhis byte is
-	 * contained in the macro __ADF_VERSION__
+	 * Version is an 16-bit unsigned integer that contains the
+	 * version of the ADF format. These bytes is contained in
+	 * the macro __ADF_VERSION__
 	 */
-	uint8_t version;
+	uint_small_t version;
 
 	/*
 	 *
@@ -300,14 +310,19 @@ typedef struct {
 	uint8_t farming_tec;
 
 	/*
+	 *
+	 */
+	uint8_t omega;
+
+	/*
 	 * The lower bound of the light spectrum.
 	 */
-	uint_t min_w_len_nm;
+	uint_small_t min_w_len_nm;
 
 	/*
 	 * The upper bound of the light spectrum.
 	 */
-	uint_t max_w_len_nm;
+	uint_small_t max_w_len_nm;
 
 	/*
 	 * A 4 byte unsigned integer that represents the number of steps in which
@@ -316,6 +331,21 @@ typedef struct {
 	 *         [min_w_len_nm, max_w_len_nm]
 	 */
 	uint_t n_wavelength;
+
+	/*
+	 * 
+	 */
+	uint_small_t min_soil_depth_mm;
+
+	/*
+	 * 
+	 */
+	uint_small_t max_soil_depth_mm;
+
+	/*
+	 * 
+	 */
+	uint_t n_depth;
 
 	/*
 	 * The number of chunks in which each data series is (equally) divided.

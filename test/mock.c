@@ -106,7 +106,7 @@ adf_t get_object_with_zero_series(void)
 	return (adf_t) {
 		.header = (adf_header_t) { 
 			.signature = { __ADF_SIGNATURE__ },
-			.version = __ADF_VERSION__,
+			.version = { __ADF_VERSION__ },
 			.farming_tec = 3,
 			.min_w_len_nm = { 0 },
 			.max_w_len_nm = { 10000 },
@@ -183,7 +183,7 @@ adf_t get_default_object(void)
 	return (adf_t) {
 		.header = (adf_header_t) { 
 			.signature = { __ADF_SIGNATURE__ },
-			.version = __ADF_VERSION__,
+			.version = { __ADF_VERSION__ },
 			.farming_tec = 3,
 			.min_w_len_nm = { 0 },
 			.max_w_len_nm = { 10000 },
