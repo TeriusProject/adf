@@ -187,6 +187,9 @@ adf_t get_default_object(void)
 			.farming_tec = 3,
 			.min_w_len_nm = { 0 },
 			.max_w_len_nm = { 10000 },
+			.n_depth = { 2 },
+			.min_soil_depth_mm = { 0 },
+			.max_soil_depth_mm = { 20 },
 			.n_chunks = { 10 },
 			.n_wavelength = { 10 }
 		},
@@ -194,6 +197,8 @@ adf_t get_default_object(void)
 			.period_sec = { 1345 },
 			.n_additives = { 1 },
 			.size_series = { 2 },
+			.seeded = { 0 },
+			.harvested = { 1345 },
 			.n_series = 4,
 			.additive_codes = codes
 		},

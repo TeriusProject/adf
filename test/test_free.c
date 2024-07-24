@@ -38,7 +38,7 @@ void test_free_adf(void)
 		.n_chunks = { 10 },
 		.n_wavelength = { 150 },
 		.signature = { __ADF_SIGNATURE__ },
-		.version = __ADF_VERSION__
+		.version = { __ADF_VERSION__ }
 	};
 	series = get_series();
 

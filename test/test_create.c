@@ -33,7 +33,7 @@ void test_init_adf(void)
 		.n_chunks = { 10 },
 		.n_wavelength = { 150 },
 		.signature = { __ADF_SIGNATURE__ },
-		.version = __ADF_VERSION__
+		.version = { __ADF_VERSION__ }
 	};
 	adf_init(&adf, header, 3600);
 	assert_header_equal(adf.header, header, "headers should be equal");

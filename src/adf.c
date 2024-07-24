@@ -396,7 +396,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 		SHIFT2(byte_c);
 
 		if (series_crc != expected_crc.val) { return ADF_SERIES_CORRUPTED; }
-		n_series += current.repeated.val - 1;
+		n_series += (current.repeated.val == 1) ? 1 : current.repeated.val - 1;
 		adf->series[i] = current;
 	}
 	adf->metadata.n_series = n_series;

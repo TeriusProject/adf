@@ -40,7 +40,7 @@ void series_have_more_additives_than_metadata(void)
 	format = (adf_t) { 
 		.header = (adf_header_t) { 
 			.signature = { __ADF_SIGNATURE__ },
-			.version = __ADF_VERSION__,
+			.version = { __ADF_VERSION__ },
 			.farming_tec = 3,
 			.min_w_len_nm = { 0 },
 			.max_w_len_nm = { 10000 },
