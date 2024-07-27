@@ -67,11 +67,11 @@ int main(void)
 	}
 
 	/* Header */
-	printf("%s\n", "(header - from byte 0)");
+	printf("(header - from byte 0)\n");
 	assert_header_equal_verbose(new.header, expected.header);
 
 	/* Metadata */
-	printf("%s\n", "(metadata - from byte 24)");
+	printf("(metadata - from byte %lu)\n", size_header());
 	assert_metadata_equal_verbose(new.metadata, expected.metadata);
 
 	/* Series */

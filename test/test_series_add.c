@@ -126,7 +126,7 @@ void test_add_to_empty_series(void)
 	assert_int_equal(adf.metadata.size_series, expected_series_size,
 					 "The size of series array is 1");
 	assert_true(adf.metadata.n_series == expected_n_series,
-				"There are 1 series");
+				"There is 1 series");
 
 	adf_free(&adf);
 	series_free(&series);

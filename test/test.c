@@ -158,26 +158,27 @@ void assert_additive_arrays_equal(additive_t *x, additive_t *y, uint32_t size,
 
 void assert_header_equal_verbose(adf_header_t target, adf_header_t expected)
 {
-	assert_int_equal(
-		target.signature, expected.signature, "are signatures equals"
-	);
-	assert_small_int_equal(
-		target.version, expected.version, "are versions equals"
-	);
-	assert_true(
-		target.farming_tec == expected.farming_tec,
-		"are farming tecniques equals"
-	);
-	assert_int_equal(
-		target.n_wavelength, expected.n_wavelength, "are n_wavelengths equal"
-	);
-	assert_small_int_equal(
-		target.min_w_len_nm, expected.min_w_len_nm, "are min_w_len_nms equal"
-	);
-	assert_small_int_equal(
-		target.max_w_len_nm, expected.max_w_len_nm, "are max_w_len_nms equal"
-	);
-	assert_int_equal(target.n_chunks, expected.n_chunks, "are n_chunks equal");
+	assert_int_equal(target.signature, expected.signature,
+					 "are signatures equals");
+	assert_small_int_equal(target.version, expected.version,
+						   "are versions equals");
+	assert_true(target.farming_tec == expected.farming_tec,
+				"are farming tecniques equals");
+	assert_true(target.omega == expected.omega, "are omega equal");
+	assert_int_equal(target.n_wavelength, expected.n_wavelength,
+					 "are n_wavelengths equal");
+	assert_small_int_equal(target.min_w_len_nm, expected.min_w_len_nm,
+						   "are min_w_len_nms equal");
+	assert_small_int_equal(target.max_w_len_nm, expected.max_w_len_nm,
+						   "are max_w_len_nms equal");
+	assert_int_equal(target.n_depth, expected.n_depth,
+					 "are n_depth equal");
+	assert_small_int_equal(target.min_soil_depth_mm, expected.min_soil_depth_mm,
+						   "are min_soil_depth_mm equal");
+	assert_small_int_equal(target.max_soil_depth_mm, expected.max_soil_depth_mm,
+						   "are max_soil_depth_mm equal");
+	assert_int_equal(target.n_chunks, expected.n_chunks,
+					 "are n_chunks equal");
 }
 
 void assert_header_equal(adf_header_t target, adf_header_t expected,
@@ -186,9 +187,13 @@ void assert_header_equal(adf_header_t target, adf_header_t expected,
 	bool c = are_ints_equal(target.signature, expected.signature)
 			 && are_small_ints_equal(target.version, expected.version)
 			 && target.farming_tec == expected.farming_tec
+			 && target.omega == expected.omega
 			 && are_ints_equal(target.n_wavelength, expected.n_wavelength)
 			 && are_small_ints_equal(target.min_w_len_nm, expected.min_w_len_nm)
 			 && are_small_ints_equal(target.max_w_len_nm, expected.max_w_len_nm)
+			 && are_ints_equal(target.n_depth, expected.n_depth)
+			 && are_small_ints_equal(target.min_soil_depth_mm, expected.min_soil_depth_mm)
+			 && are_small_ints_equal(target.max_soil_depth_mm, expected.max_soil_depth_mm)
 			 && are_ints_equal(target.n_chunks, expected.n_chunks);
 	assert_true(c, label);
 }
@@ -199,6 +204,8 @@ void assert_metadata_equal(adf_meta_t target, adf_meta_t expected,
 	bool c = are_ints_equal(target.size_series, expected.size_series)
 			 && target.n_series == expected.n_series
 			 && are_ints_equal(target.period_sec, expected.period_sec)
+			 && are_ints_equal(target.seeded, expected.seeded)
+			 && are_ints_equal(target.harvested, expected.harvested)
 			 && are_small_ints_equal(target.n_additives, expected.n_additives)
 			 && are_int_arrays_equal(target.additive_codes, 
 			 						 expected.additive_codes,
@@ -214,6 +221,8 @@ void assert_metadata_equal_verbose(adf_meta_t target, adf_meta_t expected)
 	assert_true(target.n_series == expected.n_series, "are n_series equal");
 	assert_int_equal(target.period_sec, expected.period_sec, 
 					 "are periods equal");
+	assert_int_equal(target.seeded, expected.seeded, "are seeded equal");
+	assert_int_equal(target.harvested, expected.harvested, "are harvested equal");
 	assert_small_int_equal(target.n_additives, expected.n_additives,
 						   "are number of additive codes equal");
 	assert_int_arrays_equal(target.additive_codes, expected.additive_codes,

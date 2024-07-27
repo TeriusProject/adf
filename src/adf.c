@@ -98,6 +98,8 @@ size_t size_medatata_t(adf_meta_t metadata)
 	return 4								/* size_series */
 		   + 4								/* period_sec */
 		   + 2								/* n_additives */
+		   + 4								/* seeded */
+		   + 4								/* harvested */
 		   + (metadata.n_additives.val * 4) /* additive_codes */
 		   + 2;								/* crc */
 }
@@ -107,9 +109,13 @@ size_t size_header(void)
 	return 4	/* signature */
 		   + 2	/* version */
 		   + 1	/* farming_tec */
+		   + 1 	/* omega */
 		   + 4	/* n_wavelength */
-		   + 4	/* min_w_len_nm */
-		   + 4	/* max_w_len_nm */
+		   + 2	/* min_w_len_nm */
+		   + 2	/* max_w_len_nm */
+		   + 4	/* n_depth */
+		   + 2	/* min_soil_depth_mm */
+		   + 2	/* max_soil_depth_mm */
 		   + 4	/* n_chunks */
 		   + 2; /* crc */
 }
@@ -285,7 +291,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 
 	cpy_4_bytes_fn(adf->metadata.size_series.bytes, (bytes + byte_c));
 	SHIFT4(byte_c);
-	// n_series = adf->metadata.size_series.val;
+	n_series = adf->metadata.size_series.val;
 	cpy_4_bytes_fn(adf->metadata.period_sec.bytes, (bytes + byte_c));
 	SHIFT4(byte_c);
 	cpy_4_bytes_fn(adf->metadata.seeded.bytes, (bytes + byte_c));
@@ -396,7 +402,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 		SHIFT2(byte_c);
 
 		if (series_crc != expected_crc.val) { return ADF_SERIES_CORRUPTED; }
-		n_series += (current.repeated.val == 1) ? 1 : current.repeated.val - 1;
+		n_series += current.repeated.val - 1;
 		adf->series[i] = current;
 	}
 	adf->metadata.n_series = n_series;
