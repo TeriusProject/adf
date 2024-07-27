@@ -75,13 +75,13 @@ series_t get_series(uint32_t n_chunks, uint32_t n_wavelength)
 	series.n_atm_adds.val = 1;
 
 	series.light_exposure = malloc(n_wavelength * sizeof(real_t));
-	series.temp_celsius = malloc(n_chunks * sizeof(real_t));
+	series.env_temp_c = malloc(n_chunks * sizeof(real_t));
 	series.water_use_ml = malloc(n_chunks * sizeof(real_t));
 	series.soil_additives = malloc(sizeof(additive_t));
 	series.atm_additives = malloc(sizeof(additive_t));
 
 	for (uint32_t i = 0; i < n_chunks; i++) {
-		series.temp_celsius[i].val = (float)rand()/(float)(RAND_MAX);
+		series.env_temp_c[i].val = (float)rand()/(float)(RAND_MAX);
 		series.water_use_ml[i].val = (float)rand()/(float)(RAND_MAX);
 	}
 

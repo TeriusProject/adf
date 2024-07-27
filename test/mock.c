@@ -41,7 +41,7 @@ series_t get_series(void)
 	};
 	return (series_t) { 
 		.light_exposure = get_real_array(),
-		.temp_celsius = get_real_array(),
+		.env_temp_c = get_real_array(),
 		.water_use_ml = get_real_array(),
 		.pH = 11,
 		.p_bar = { 13.56789 },
@@ -66,7 +66,7 @@ series_t get_repeated_series(void)
 
 	return (series_t) { 
 		.light_exposure = get_real_array(),
-		.temp_celsius = get_real_array(),
+		.env_temp_c = get_real_array(),
 		.water_use_ml = get_real_array(),
 		.pH = 7,
 		.p_bar = { 0.4567 },
@@ -88,7 +88,7 @@ series_t get_series_with_two_soil_additives(void)
 	*add_code = add_2;
 	return (series_t) { 
 		.light_exposure = get_real_array(),
-		.temp_celsius = get_real_array(),
+		.env_temp_c = get_real_array(),
 		.water_use_ml = get_real_array(),
 		.pH = 7,
 		.p_bar = { 0.4567 },
@@ -144,7 +144,7 @@ series_t *get_default_series(void)
 
 	iter1 = (series_t) { 
 		.light_exposure = get_real_array(),
-		.temp_celsius = get_real_array(),
+		.env_temp_c = get_real_array(),
 		.water_use_ml = get_real_array(),
 		.pH = 7,
 		.p_bar = { 0 },
@@ -157,7 +157,7 @@ series_t *get_default_series(void)
 	};
 	iter2 = (series_t) {
 		.light_exposure = get_real_array(),
-		.temp_celsius = get_real_array(),
+		.env_temp_c = get_real_array(),
 		.water_use_ml = get_real_array(),
 		.pH = 7,
 		.p_bar = { 0.4567 },

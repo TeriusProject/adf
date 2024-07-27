@@ -184,9 +184,9 @@ void copied_series_arrays_should_have_different_mem_address(void)
 		exit(1);
 	}
 
-	assert_true(target.temp_celsius != source.temp_celsius
-				|| !target.temp_celsius,
-				"temp_celsius arrays have different memory address");
+	assert_true(target.env_temp_c != source.env_temp_c
+				|| !target.env_temp_c,
+				"env_temp_c arrays have different memory address");
 	assert_true(target.water_use_ml != source.water_use_ml
 				|| !target.water_use_ml,
 				"water_use_ml arrays have different memory address");

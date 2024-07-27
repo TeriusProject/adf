@@ -190,7 +190,7 @@ void test_additive_overflow(void)
 
 	series1 = (series_t) { 
 		.light_exposure = get_real_array(),
-		.temp_celsius = get_real_array(),
+		.env_temp_c = get_real_array(),
 		.water_use_ml = get_real_array(),
 		.pH = 11,
 		.p_bar = { 13.56789 },
@@ -203,7 +203,7 @@ void test_additive_overflow(void)
 	};
 	series2 = (series_t) { 
 		.light_exposure = get_real_array(),
-		.temp_celsius = get_real_array(),
+		.env_temp_c = get_real_array(),
 		.water_use_ml = get_real_array(),
 		.pH = 2,
 		.p_bar = { 3.89 },

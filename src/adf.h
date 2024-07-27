@@ -145,7 +145,7 @@ typedef union {
 
 typedef union {
 	uint16_t val;
-	uint8_t bytes[4];
+	uint8_t bytes[2];
 } uint_small_t;
 
 typedef struct {
@@ -174,13 +174,15 @@ typedef struct {
 	 * It represents the series of data collecting the energy flux
 	 * of light radiation measured in W/m2 and divided in n_chunks.
 	 */
-	real_t *light_exposure;
+	real_t **light_exposure;
+
+	real_t **soil_temp_c;
 
 	/*
-	 * It represents the series of data collecting the temperature
+	 * It represents the series of data collecting the environment temperature
 	 * measured in ºC and divided in n_chunks.
 	 */
-	real_t *temp_celsius;
+	real_t *env_temp_c;
 
 	/*
 	 * It represents the series of data collecting the water use

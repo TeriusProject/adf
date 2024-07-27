@@ -27,5 +27,6 @@
 #include <stdlib.h>
 
 uint16_t crc16(const uint8_t *, size_t);
+uint32_t crc32(const uint8_t *, size_t);
 
 #endif /* __CRC_H__ */

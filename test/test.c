@@ -237,7 +237,7 @@ void assert_series_equal_verbose(adf_t data, series_t x, series_t y)
 		"are light_exposures equal"
 	);
 	assert_real_arrays_equal(
-		x.temp_celsius, y.temp_celsius, data.header.n_chunks.val,
+		x.env_temp_c, y.env_temp_c, data.header.n_chunks.val,
 		"are temp_celsiuss equal"
 	);
 	assert_real_arrays_equal(
@@ -271,7 +271,7 @@ void assert_series_equal(adf_t data, series_t x, series_t y, const char *label)
 {
 	bool c = are_real_arrays_equal(x.light_exposure, y.light_exposure,
 								   data.header.n_chunks.val)
-			&& are_real_arrays_equal(x.temp_celsius, y.temp_celsius,
+			&& are_real_arrays_equal(x.env_temp_c, y.env_temp_c,
 									 data.header.n_chunks.val)
 			&& are_real_arrays_equal(x.water_use_ml, y.water_use_ml,
  									 data.header.n_chunks.val)

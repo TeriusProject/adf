@@ -25,6 +25,7 @@
 #include "crc.h"
 #include "lookup_table.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -80,7 +81,7 @@ uint8_t get_version(void) { return __ADF_VERSION__; }
 size_t size_series_t(uint32_t n_chunks, series_t series)
 {
 	return (n_chunks * 4)				  /* light_exposure */
-		   + (n_chunks * 4)				  /* temp_celsius */
+		   + (n_chunks * 4)				  /* env_temp_c */
 		   + (n_chunks * 4)				  /* water_use_ml */
 		   + 1							  /* pH */
 		   + 4							  /* p_bar */
@@ -194,16 +195,18 @@ uint16_t marshal(uint8_t *bytes, adf_t data)
 		series_t current = data.series[i];
 		size_t starting_byte = byte_c;
 		if (!current.light_exposure) { return ADF_RUNTIME_ERROR; }
-		for (uint32_t mask_i = 0; mask_i < data.header.n_wavelength.val;
-			 mask_i++, byte_c += 4) {
-			cpy_4_bytes_fn((bytes + byte_c),
-						   current.light_exposure[mask_i].bytes);
+		for (uint32_t l_row = 0; l_row < data.header.n_chunks.val; l_row++) {
+			for (uint32_t mask_i = 0; mask_i < data.header.n_wavelength.val;
+				 mask_i++, byte_c += 4) {
+					cpy_4_bytes_fn((bytes + byte_c),
+								current.light_exposure[l_row][mask_i].bytes);
+				}
 		}
-		if (!current.temp_celsius) { return ADF_RUNTIME_ERROR; }
+		if (!current.env_temp_c) { return ADF_RUNTIME_ERROR; }
 		for (uint32_t temp_i = 0; temp_i < data.header.n_chunks.val;
 			 temp_i++, byte_c += 4) {
 			cpy_4_bytes_fn((bytes + byte_c),
-						   current.temp_celsius[temp_i].bytes);
+						   current.env_temp_c[temp_i].bytes);
 		}
 		if (!current.water_use_ml) { return ADF_RUNTIME_ERROR; }
 		for (uint32_t w_i = 0; w_i < data.header.n_chunks.val;
@@ -328,19 +331,21 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 		current.light_exposure = malloc(n_waves * sizeof(real_t));
 		if (!current.light_exposure) { return ADF_RUNTIME_ERROR; }
 
-		current.temp_celsius = malloc(n_chunks * sizeof(real_t));
-		if (!current.temp_celsius) { return ADF_RUNTIME_ERROR; }
+		current.env_temp_c = malloc(n_chunks * sizeof(real_t));
+		if (!current.env_temp_c) { return ADF_RUNTIME_ERROR; }
 
 		current.water_use_ml = malloc(n_chunks * sizeof(real_t));
 		if (!current.water_use_ml) { return ADF_RUNTIME_ERROR; }
 
-		for (u_int32_t mask_i = 0; mask_i < adf->header.n_wavelength.val;
-			 mask_i++, byte_c += 4) {
-			cpy_4_bytes_fn(current.light_exposure[mask_i].bytes,
-						   (bytes + byte_c));
+		for (uint32_t l_row = 0; l_row < adf->header.n_chunks.val; l_row++) {
+			for (uint32_t mask_i = 0; mask_i < adf->header.n_wavelength.val;
+				 mask_i++, byte_c += 4) {
+					cpy_4_bytes_fn(current.light_exposure[l_row][mask_i].bytes,
+						   		   bytes + byte_c);
+				}
 		}
 		for (u_int32_t temp_i = 0; temp_i < n_chunks; temp_i++, byte_c += 4) {
-			cpy_4_bytes_fn(current.temp_celsius[temp_i].bytes,
+			cpy_4_bytes_fn(current.env_temp_c[temp_i].bytes,
 						   (bytes + byte_c));
 		}
 		for (u_int32_t w_i = 0; w_i < n_chunks; w_i++, byte_c += 4) {
@@ -442,15 +447,17 @@ bool are_series_equal(const series_t *first, const series_t *second,
 
 	/* lastly, we need to check the arrays :( */
 	for (uint32_t i = 0; i < n_chunks; i++) {
-		if (!(are_reals_equal(first->temp_celsius[i], second->temp_celsius[i])
+		if (!(are_reals_equal(first->env_temp_c[i], second->env_temp_c[i])
 			  && are_reals_equal(first->water_use_ml[i],
 								 second->water_use_ml[i])))
 			return false;
 	}
 
-	for (uint16_t i = 0; i < n_wavelength; i++) {
-		if (!are_reals_equal(first->light_exposure[i], second->light_exposure[i]))
-			return false;
+	for (uint32_t i = 0; i < n_chunks; i++) {
+		for(uint16_t j = 0; j < n_wavelength; j++)
+			if (!are_reals_equal(first->light_exposure[i][j],
+				second->light_exposure[i][j]))
+				return false;
 	}
 
 	for (uint16_t i = 0, l = first->n_soil_adds.val; i < l; i++) {
@@ -887,13 +894,13 @@ uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
 {
 	series->n_soil_adds.val = n_soil_additives;
 	series->n_atm_adds.val = n_atm_additives;
-	series->temp_celsius = malloc(n_chunks * sizeof(real_t));
+	series->env_temp_c = malloc(n_chunks * sizeof(real_t));
 	series->water_use_ml = malloc(n_chunks * sizeof(real_t));
 	series->light_exposure = malloc(n_wavelenght * sizeof(real_t));
 	series->soil_additives = malloc(n_soil_additives * sizeof(additive_t));
 	series->atm_additives = malloc(n_atm_additives * sizeof(additive_t));
 	
-	if (!series->temp_celsius  
+	if (!series->env_temp_c  
 		|| !series->water_use_ml  
 		|| !series->light_exposure
 		|| !series->soil_additives
@@ -912,13 +919,13 @@ void metadata_free(adf_meta_t *metadata)
 void series_free(series_t *series)
 { 
 	free(series->light_exposure);
-	free(series->temp_celsius);
+	free(series->env_temp_c);
 	free(series->water_use_ml);
 	if (series->n_soil_adds.val > 0) { free(series->soil_additives); }
 	if (series->n_atm_adds.val > 0) { free(series->atm_additives); }
 
 	series->light_exposure = NULL;
-	series->temp_celsius = NULL;
+	series->env_temp_c = NULL;
 	series->water_use_ml = NULL;
 	series->soil_additives = NULL;
 	series->atm_additives = NULL;
@@ -964,14 +971,14 @@ uint16_t cpy_adf_series(series_t *target, const series_t *source,
 	target->repeated = source->repeated;
 	target->soil_density_kg_m3 = source->soil_density_kg_m3;
 	target->water_use_ml = malloc(n_chunks * sizeof(real_t));
-	target->temp_celsius = malloc(n_chunks * sizeof(real_t));
+	target->env_temp_c = malloc(n_chunks * sizeof(real_t));
 	target->light_exposure = malloc(n_wavelength * sizeof(real_t));
 	target->soil_additives = NULL;
 	target->atm_additives = NULL;
 
 	for (uint32_t i = 0; i < n_chunks; i++) {
 		target->water_use_ml[i] = source->water_use_ml[i];
-		target->temp_celsius[i] = source->temp_celsius[i];
+		target->env_temp_c[i] = source->env_temp_c[i];
 	}
 	for (uint32_t i = 0; i < n_wavelength; i++) 
 		target->light_exposure[i] = source->light_exposure[i];
@@ -1001,6 +1008,8 @@ uint16_t cpy_adf_metadata(adf_meta_t *target, const adf_meta_t *source)
 	target->size_series = source->size_series;
 	target->period_sec = source->period_sec;
 	target->n_series = source->n_series;
+	target->seeded = source->seeded;
+	target->harvested = source->harvested;
 	target->n_additives = source->n_additives;
 	target->additive_codes = malloc(target->n_additives.val
 									* sizeof(uint_t));

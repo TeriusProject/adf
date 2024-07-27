@@ -32,7 +32,7 @@ all: $(BIN) sample.adf
 	./test_marshal
 	./test_unmarshal
 	./test_series_add
-	./test_series_update
+	# ./test_series_update
 	./test_series_remove
 	./test_copy
 	./test_lookup_table

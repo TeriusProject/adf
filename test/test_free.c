@@ -65,8 +65,8 @@ void test_free_series(void)
 
 	assert_true(series.water_use_ml == NULL, 
 				"(series) water_use_ml is NULL after adf_free is called");
-	assert_true(series.temp_celsius == NULL, 
-				"(series) temp_celsius is NULL after adf_free is called");
+	assert_true(series.env_temp_c == NULL, 
+				"(series) env_temp_c is NULL after adf_free is called");
 	assert_true(series.light_exposure == NULL, 
 				"(series) light_exposure is NULL after adf_free is called");
 	assert_true(series.soil_additives == NULL, 
