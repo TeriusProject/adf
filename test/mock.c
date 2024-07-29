@@ -23,12 +23,27 @@
 #include "mock.h"
 #include "../src/adf.h"
 
-real_t *get_real_array(void)
+real_t *get_real_array(int n_chunks)
 {
-	real_t *light_mask = malloc(10 * sizeof(real_t));
+	real_t *light_mask = malloc(n_chunks * sizeof(real_t));
 	float f = 0.0;
-	for (int i = 0; i < 10; i++, f += 0.25)
+	for (int i = 0; i < n_chunks; i++, f += 0.25)
 		light_mask[i].val = f;
+	return light_mask;
+}
+
+real_t **get_real_matrix(int n_rows, int n_columns)
+{
+	float f;
+	real_t **light_mask = malloc(n_rows * sizeof(real_t *));
+
+	for (int i = 0; i < n_rows; i++) {
+		f = 0.0;
+		light_mask[i] = malloc(n_columns * sizeof(real_t));
+		for (int j = 0; j < n_columns; j++, f += 0.25) {
+			light_mask[i][j].val = f;
+		}
+	}
 	return light_mask;
 }
 
@@ -40,9 +55,9 @@ series_t get_series(void)
 		.concentration = { 1.234 }
 	};
 	return (series_t) { 
-		.light_exposure = get_real_array(),
-		.env_temp_c = get_real_array(),
-		.water_use_ml = get_real_array(),
+		.light_exposure = get_real_matrix(10, 20),
+		.env_temp_c = get_real_array(10),
+		.water_use_ml = get_real_array(10),
 		.pH = 11,
 		.p_bar = { 13.56789 },
 		.soil_density_kg_m3 = { 123.345 },
@@ -65,9 +80,9 @@ series_t get_repeated_series(void)
 	};
 
 	return (series_t) { 
-		.light_exposure = get_real_array(),
-		.env_temp_c = get_real_array(),
-		.water_use_ml = get_real_array(),
+		.light_exposure = get_real_matrix(10, 20),
+		.env_temp_c = get_real_array(10),
+		.water_use_ml = get_real_array(10),
 		.pH = 7,
 		.p_bar = { 0.4567 },
 		.soil_density_kg_m3 = { 678.345 },
@@ -87,9 +102,9 @@ series_t get_series_with_two_soil_additives(void)
 	*add_code = add_1;
 	*add_code = add_2;
 	return (series_t) { 
-		.light_exposure = get_real_array(),
-		.env_temp_c = get_real_array(),
-		.water_use_ml = get_real_array(),
+		.light_exposure = get_real_matrix(10, 20),
+		.env_temp_c = get_real_array(10),
+		.water_use_ml = get_real_array(10),
 		.pH = 7,
 		.p_bar = { 0.4567 },
 		.soil_density_kg_m3 = { 678.345 },
@@ -143,9 +158,9 @@ series_t *get_default_series(void)
 	};
 
 	iter1 = (series_t) { 
-		.light_exposure = get_real_array(),
-		.env_temp_c = get_real_array(),
-		.water_use_ml = get_real_array(),
+		.light_exposure = get_real_matrix(10, 20),
+		.env_temp_c = get_real_array(10),
+		.water_use_ml = get_real_array(10),
 		.pH = 7,
 		.p_bar = { 0 },
 		.soil_density_kg_m3 = { 0.345 },
@@ -156,9 +171,9 @@ series_t *get_default_series(void)
 		.repeated = { 1 }
 	};
 	iter2 = (series_t) {
-		.light_exposure = get_real_array(),
-		.env_temp_c = get_real_array(),
-		.water_use_ml = get_real_array(),
+		.light_exposure = get_real_matrix(10, 20),
+		.env_temp_c = get_real_array(10),
+		.water_use_ml = get_real_array(10),
 		.pH = 7,
 		.p_bar = { 0.4567 },
 		.soil_density_kg_m3 = { 678.345 },
@@ -185,13 +200,13 @@ adf_t get_default_object(void)
 			.signature = { __ADF_SIGNATURE__ },
 			.version = { __ADF_VERSION__ },
 			.farming_tec = 3,
+			.n_wavelength = { 20},
 			.min_w_len_nm = { 0 },
 			.max_w_len_nm = { 10000 },
 			.n_depth = { 2 },
 			.min_soil_depth_mm = { 0 },
 			.max_soil_depth_mm = { 20 },
-			.n_chunks = { 10 },
-			.n_wavelength = { 10 }
+			.n_chunks = { 10 }
 		},
 		.metadata = (adf_meta_t) { 
 			.period_sec = { 1345 },

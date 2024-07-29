@@ -75,10 +75,15 @@ int main(void)
 	assert_metadata_equal_verbose(new.metadata, expected.metadata);
 
 	/* Series */
-	if (new.metadata.size_series.val == 0) return 0;
+	if (new.metadata.size_series.val == 0) {
+		free(bytes);
+		adf_free(&expected);
+		adf_free(&new);
+		return 0;
+	}
 
-	h_and_meta_size = size_header() + size_medatata_t(new.metadata);
-	series_size = size_series_t(new.header.n_chunks.val, new.series[0]);
+	h_and_meta_size = size_header() + size_medatata_t(&new.metadata);
+	series_size = size_series_t(&new, new.series);
 	for (uint32_t i = 0; i < new.metadata.size_series.val; i++) {
 		printf("(iteration %u - from byte %lu)\n", i,
 			   h_and_meta_size + (i * series_size));

@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+#define __ADF_DEBUG__
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -46,6 +48,25 @@ extern "C" {
  * first three decimals equal, are considered equals.
  */
 #define EPSILON 1e-3
+
+/*
+ * The size of the datatypes used in the ADF format
+ */
+#define UINT_T_SIZE			4
+#define UINT_SMALL_T_SIZE	2
+#define UINT_TINY_T_SIZE	1
+#define REAL_T_SIZE			4
+#define ADD_T_SIZE			6
+
+/*
+ * Some useful constants. All numbers are expressed in seconds
+ */
+#define ADF_DAY			86'400
+#define ADF_WEEK		604'800
+#define ADF_MONTH_28	2'419'200
+#define ADF_MONTH_29	2'505'600
+#define ADF_MONTH_30	2'592'000
+#define ADF_MONTH_31	2'678'400
 
 /*
  * It contains the exit code of the functions that handle the adf_t structure.
@@ -176,6 +197,9 @@ typedef struct {
 	 */
 	real_t **light_exposure;
 
+	/*
+	 *
+	 */
 	real_t **soil_temp_c;
 
 	/*
@@ -289,6 +313,16 @@ typedef struct {
 	 * additive should appear just once.
 	 */
 	uint_t *additive_codes;
+
+	/*
+	 *
+	 */
+	uint8_t soil_density_red_mode;
+	uint8_t pressure_red_mode;
+	uint8_t light_exposure_red_mode;
+	uint8_t water_use_red_mode;
+	uint8_t soil_temp_red_mode;
+	uint8_t env_temp_red_mode;
 } __attribute__((packed)) adf_meta_t;
 
 typedef struct {
@@ -310,11 +344,6 @@ typedef struct {
 	 *
 	 */
 	uint8_t farming_tec;
-
-	/*
-	 *
-	 */
-	uint8_t omega;
 
 	/*
 	 * The lower bound of the light spectrum.
@@ -390,7 +419,7 @@ size_t size_header(void);
  * adf_meta_t structure may be bigger, due to some redundant fields that
  * speed up the mashalling and unmarshalling process.
  */
-size_t size_medatata_t(adf_meta_t);
+size_t size_medatata_t(adf_meta_t *);
 
 /*
  * The size (bytes) of *one* adf series, including the crc field. It takes the
@@ -404,7 +433,7 @@ size_t size_medatata_t(adf_meta_t);
  * structure may be bigger, due to some redundant fields that speed up the
  * mashalling and unmarshalling process.
  */
-size_t size_series_t(uint32_t, series_t);
+size_t size_series_t(adf_t *, series_t *);
 
 /*
  * The size (bytes) of the adf object, including all the crc fields.
@@ -421,6 +450,11 @@ size_t size_adf_t(adf_t);
  * `size_adf_t`.
  */
 uint8_t *adf_bytes_alloc(adf_t);
+
+/*
+ *
+ */
+void adf_bytes_free(uint8_t *);
 
 /*
  * 
@@ -484,7 +518,7 @@ void metadata_init(adf_meta_t *, uint32_t);
 void adf_init(adf_t *, adf_header_t, uint32_t);
 
 void metadata_free(adf_meta_t *);
-void series_free(series_t *);
+void series_free(series_t *, uint32_t);
 void adf_free(adf_t *);
 void series_list_free(series_list_t *);
 

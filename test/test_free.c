@@ -49,7 +49,7 @@ void test_free_adf(void)
 		exit(1);
 	}
 	adf_free(&adf);
-	series_free(&series);
+	series_free(&series, adf.header.n_chunks.val);
 
 	assert_true(adf.metadata.additive_codes == NULL, 
 				"additive_codes is NULL after adf_free is called");
@@ -61,7 +61,7 @@ void test_free_series(void)
 {
 	series_t series = get_series();
 
-	series_free(&series);
+	series_free(&series, 10);
 
 	assert_true(series.water_use_ml == NULL, 
 				"(series) water_use_ml is NULL after adf_free is called");
@@ -75,14 +75,8 @@ void test_free_series(void)
 				"(series) atm_additives is NULL after adf_free is called");
 }
 
-void test_free_sereies_list(void)
-{
-
-}
-
 int main(void)
 {
 	test_free_adf();
 	test_free_series();
-	test_free_sereies_list();
 }

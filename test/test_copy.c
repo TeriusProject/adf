@@ -167,7 +167,7 @@ void series_are_equal(void)
 	}
 	assert_series_equal_verbose(adf, source, target);
 
-	series_free(&target);
+	series_free(&target, adf.header.n_chunks.val);
 	adf_free(&adf);
 }
 
@@ -201,7 +201,7 @@ void copied_series_arrays_should_have_different_mem_address(void)
 				"atm_additives arrays have different memory address");
 	
 	adf_free(&adf);
-	series_free(&target);
+	series_free(&target, adf.header.n_chunks.val);
 }
 
 void copy_adf_with_null_target(void)

@@ -58,7 +58,7 @@ void test_update_one_series(void)
 	assert_series_equal(adf, adf.series[0], to_update, "Series are equal");
 	assert_true(adf.metadata.n_series == 5, "There should be 5 series in adf");
 
-	series_free(&to_update);
+	series_free(&to_update, adf.header.n_chunks.val);
 	adf_free(&adf);
 }
 
@@ -86,7 +86,7 @@ void update_one_series_with_an_equal_one(void)
 	assert_int_equal(to_update.repeated, adf.series[0].repeated,
 					 "Repeated field should be updated");
 
-	series_free(&to_update);
+	series_free(&to_update, adf.header.n_chunks.val);
 	adf_free(&adf);
 }
 
@@ -118,7 +118,7 @@ void update_one_series_with_an_equal_one_with_different_repetition(void)
 	assert_int_equal(adf.series->repeated, expected_repeated,
 					 "Repeated field should be updated");
 
-	series_free(&to_update);
+	series_free(&to_update, adf.header.n_chunks.val);
 	adf_free(&adf);
 }
 
@@ -160,8 +160,8 @@ void test_update_series_within_repeated_series(void)
 	assert_true(adf.series[2].repeated.val == 1,
 				"Third series should be repeated 1 time");
 
-	series_free(&to_update);
-	series_free(&series1);
+	series_free(&to_update, adf.header.n_chunks.val);
+	series_free(&series1, adf.header.n_chunks.val);
 	adf_free(&adf);
 }
 
