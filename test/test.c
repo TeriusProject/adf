@@ -1,4 +1,5 @@
-/* test.c - A minimal unit test framework implementation
+/* 
+ * test.c - A minimal unit test framework implementation
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -267,18 +268,17 @@ void assert_metadata_equal_verbose(adf_meta_t target, adf_meta_t expected)
 
 void assert_series_equal_verbose(adf_t data, series_t x, series_t y)
 {
-	assert_real_matrices_equal(
-		x.light_exposure, y.light_exposure, data.header.n_chunks.val,
-		data.header.n_wavelength.val, "are light_exposures equal"
-	);
-	assert_real_matrices_equal(
-		x.soil_temp_c, y.soil_temp_c, data.header.n_chunks.val,
-		data.header.n_depth.val, "are soil_temp_c equal"
-	);
+	uint32_t light_exposure_dim = data.header.n_chunks.val
+								  * data.header.n_wavelength.val,
+			 soil_temp_dim = data.header.n_chunks.val
+			 				 * data.header.n_depth.val;
+	assert_real_arrays_equal(x.light_exposure, y.light_exposure,
+						 light_exposure_dim, "are light_exposures equal");
+	assert_real_arrays_equal(x.soil_temp_c, y.soil_temp_c, soil_temp_dim, 
+							"are soil_temp_c equal");
 	assert_real_arrays_equal(
 		x.env_temp_c, y.env_temp_c, data.header.n_chunks.val,
-		"are temp_celsius equal"
-	);
+		"are temp_celsius equal");
 	assert_real_arrays_equal(
 		x.water_use_ml, y.water_use_ml, data.header.n_chunks.val,
 		"are water_use_mls equal"
@@ -308,12 +308,14 @@ void assert_series_equal_verbose(adf_t data, series_t x, series_t y)
 
 void assert_series_equal(adf_t data, series_t x, series_t y, const char *label)
 {
-	bool c = are_real_matrices_equal(x.light_exposure, y.light_exposure,
-								    data.header.n_chunks.val,
-								    data.header.n_wavelength.val)
-			&& are_real_matrices_equal(x.soil_temp_c, y.soil_temp_c,
-								    data.header.n_chunks.val,
-								    data.header.n_depth.val)
+	uint32_t light_exposure_dim = data.header.n_chunks.val
+								  * data.header.n_wavelength.val,
+			 soil_temp_dim = data.header.n_chunks.val
+			 				 * data.header.n_depth.val;
+	bool c = are_real_arrays_equal(x.light_exposure, y.light_exposure,
+								   light_exposure_dim)
+			&& are_real_arrays_equal(x.soil_temp_c, y.soil_temp_c,
+									 soil_temp_dim)
 			&& are_real_arrays_equal(x.env_temp_c, y.env_temp_c,
 									 data.header.n_chunks.val)
 			&& are_real_arrays_equal(x.water_use_ml, y.water_use_ml,

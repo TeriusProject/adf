@@ -28,8 +28,6 @@
 extern "C" {
 #endif
 
-#define __ADF_DEBUG__
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -195,12 +193,12 @@ typedef struct {
 	 * It represents the series of data collecting the energy flux
 	 * of light radiation measured in W/m2 and divided in n_chunks.
 	 */
-	real_t **light_exposure;
+	real_t *light_exposure;
 
 	/*
 	 *
 	 */
-	real_t **soil_temp_c;
+	real_t *soil_temp_c;
 
 	/*
 	 * It represents the series of data collecting the environment temperature
@@ -509,7 +507,7 @@ void metadata_init(adf_meta_t *, uint32_t);
 void adf_init(adf_t *, adf_header_t, uint32_t);
 
 void metadata_free(adf_meta_t *);
-void series_free(series_t *, uint32_t);
+void series_free(series_t *);
 void adf_free(adf_t *);
 
 uint16_t cpy_additive(additive_t *, const additive_t *);

@@ -230,24 +230,19 @@ uint16_t marshal(uint8_t *bytes, adf_t data)
 	#endif /* __ADF_DEBUG__ */
 
 	uint32_t n_iter = data.metadata.size_series.val;
-	uint32_t n_wave = data.header.n_wavelength.val;
-	uint32_t n_depth = data.header.n_depth.val;
+	uint32_t n_chunks = data.header.n_chunks.val;
+	uint16_t n_wave = data.header.n_wavelength.val;
+	uint16_t n_depth = data.header.n_depth.val;
 	for (uint32_t i = 0; i < n_iter; i++) {
 		series_t current = data.series[i];
 		size_t starting_byte = byte_c;
 		if (!current.light_exposure) { return ADF_RUNTIME_ERROR; }
-		for (uint32_t l_row = 0; l_row < data.header.n_chunks.val; l_row++) {
-			real_t *current_row = *(current.light_exposure + l_row);
-			for (uint16_t mask_i = 0; mask_i < n_wave; mask_i++, byte_c += 4) {
-				cpy_4_bytes_fn((bytes + byte_c), current_row[mask_i].bytes);
-			}
+		for (uint32_t w = 0; w < n_chunks * n_wave; w++, byte_c += 4) {
+			cpy_4_bytes_fn((bytes + byte_c), current.light_exposure[w].bytes);
 		}
 		if (!current.soil_temp_c) { return ADF_RUNTIME_ERROR; }
-		for (uint32_t t_row = 0; t_row < data.header.n_chunks.val; t_row++) {
-			real_t *current_row = *(current.soil_temp_c + t_row);
-			for (uint16_t mask_i = 0; mask_i < n_depth; mask_i++, byte_c += 4) {
-				cpy_4_bytes_fn((bytes + byte_c), current_row[mask_i].bytes);
-			}
+		for (uint32_t t = 0; t < n_chunks * n_depth; t++, byte_c += 4) {
+			cpy_4_bytes_fn((bytes + byte_c), current.soil_temp_c[t].bytes);
 		}
 		if (!current.env_temp_c) { return ADF_RUNTIME_ERROR; }
 		for (uint32_t temp_i = 0; temp_i < data.header.n_chunks.val;
@@ -398,10 +393,10 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	for (uint32_t i = 0; i < n_iter; i++) {
 		series_t current;
 		size_t starting_byte = byte_c;
-		current.light_exposure = malloc(n_chunks * sizeof(real_t *));
+		current.light_exposure = malloc(n_chunks * n_waves* sizeof(real_t));
 		if (!current.light_exposure) { return ADF_RUNTIME_ERROR; }
 
-		current.soil_temp_c = malloc(n_chunks * sizeof(real_t *));
+		current.soil_temp_c = malloc(n_chunks * n_depth * sizeof(real_t));
 		if (!current.soil_temp_c) { return ADF_RUNTIME_ERROR; }
 
 		current.env_temp_c = malloc(n_chunks * sizeof(real_t));
@@ -410,23 +405,14 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 		current.water_use_ml = malloc(n_chunks * sizeof(real_t));
 		if (!current.water_use_ml) { return ADF_RUNTIME_ERROR; }
 
-		for (uint32_t l_row = 0; l_row < n_chunks; l_row++) {
-			current.light_exposure[l_row] = malloc(n_waves * sizeof(real_t));
-			for (uint32_t mask_i = 0; mask_i < n_waves; mask_i++, byte_c += 4) {
-				cpy_4_bytes_fn(current.light_exposure[l_row][mask_i].bytes,
-							   bytes + byte_c);
-			}
+		for (uint32_t w = 0; w < n_chunks * n_waves; w++, byte_c += 4) {
+			cpy_4_bytes_fn(current.light_exposure[w].bytes, bytes + byte_c);
 		}
-		for (uint32_t t_row = 0; t_row < n_chunks; t_row++) {
-			current.soil_temp_c[t_row] = malloc(n_depth * sizeof(real_t));
-			for (uint32_t mask_i = 0; mask_i < n_depth; mask_i++, byte_c += 4) {
-				cpy_4_bytes_fn(current.soil_temp_c[t_row][mask_i].bytes,
-							   bytes + byte_c);
-			}
+		for (uint32_t t = 0; t < n_chunks * n_depth; t++, byte_c += 4) {
+			cpy_4_bytes_fn(current.soil_temp_c[t].bytes, bytes + byte_c);
 		}
 		for (u_int32_t temp_i = 0; temp_i < n_chunks; temp_i++, byte_c += 4) {
-			cpy_4_bytes_fn(current.env_temp_c[temp_i].bytes,
-						   (bytes + byte_c));
+			cpy_4_bytes_fn(current.env_temp_c[temp_i].bytes, (bytes + byte_c));
 		}
 		for (u_int32_t w_i = 0; w_i < n_chunks; w_i++, byte_c += 4) {
 			cpy_4_bytes_fn(current.water_use_ml[w_i].bytes, (bytes + byte_c));
@@ -514,7 +500,7 @@ bool are_series_equal(const series_t *first, const series_t *second,
 					  const adf_t *adf)
 {
 	uint32_t n_chunks = adf->header.n_chunks.val;
-	uint16_t n_wavelength = adf->header.n_wavelength.val;
+	uint16_t n_waves = adf->header.n_wavelength.val;
 	uint16_t n_depth = adf->header.n_depth.val;
 	bool int_fields_eq, real_fields_eq;
 
@@ -538,18 +524,16 @@ bool are_series_equal(const series_t *first, const series_t *second,
 			return false;
 	}
 
-	for (uint32_t i = 0; i < n_chunks; i++) {
-		for(uint16_t j = 0; j < n_wavelength; j++)
-			if (!are_reals_equal(first->light_exposure[i][j],
-				second->light_exposure[i][j]))
-				return false;
+	for (uint32_t i = 0; i < n_chunks * n_waves; i++) {
+		if (!are_reals_equal(first->light_exposure[i],
+			second->light_exposure[i]))
+			return false;
 	}
 
-	for (uint32_t i = 0; i < n_chunks; i++) {
-		for(uint16_t j = 0; j < n_depth; j++)
-			if (!are_reals_equal(first->soil_temp_c[i][j],
-				second->soil_temp_c[i][j]))
-				return false;
+	for (uint32_t i = 0; i < n_chunks * n_depth; i++) {
+		if (!are_reals_equal(first->soil_temp_c[i],
+			second->soil_temp_c[i]))
+			return false;
 	}
 
 	for (uint16_t i = 0, l = first->n_soil_adds.val; i < l; i++) {
@@ -658,7 +642,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	uint32_t items_to_add = soil_addtocopy_idx + atm_addtocopy_idx;
 	total_additives = adf->metadata.n_additives.val + items_to_add;
 	if (total_additives > 0xFFFF) {
-		series_free(last, adf->header.n_chunks.val);
+		series_free(last);
 		if (n_soil_add > 0) { free(soil_add); }
 		if (n_atm_add > 0) { free(atm_add); }
 		return ADF_ADDITIVE_OVERFLOW; 
@@ -669,7 +653,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 										   new_size_additives);
 
 	if (!adf->metadata.additive_codes) {
-		series_free(last, adf->header.n_chunks.val);
+		series_free(last);
 		if (n_soil_add > 0) { free(soil_add); }
 		if (n_atm_add > 0) { free(atm_add); }
 		return ADF_RUNTIME_ERROR; 
@@ -727,7 +711,7 @@ uint16_t remove_series(adf_t *adf)
 	adf->metadata.size_series.val--;
 	new_size = adf->metadata.size_series.val;
 
-	series_free(last, adf->header.n_chunks.val);
+	series_free(last);
 
 	/* just one series, not repeated */
 	if (new_size == 0) {
@@ -789,7 +773,7 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 
 			adf->metadata.n_series += (series->repeated.val 
 									  - current->repeated.val);
-			series_free(current, adf->header.n_chunks.val);
+			series_free(current);
 			cpy_adf_series(current, series, adf);
 			return ADF_OK;
 		}
@@ -839,7 +823,7 @@ uint16_t set_series(adf_t *adf, const series_t *series, uint32_t size)
 {
 	uint16_t res;
 	for (uint32_t i = 0; i < adf->metadata.size_series.val; i++) {
-		series_free(adf->series + i, adf->header.n_chunks.val);
+		series_free(adf->series + i);
 	}
 	if (adf->metadata.size_series.val > 0)
 		free(adf->series);
@@ -987,24 +971,19 @@ adf_t create_empty_adf(adf_header_t header, uint16_t period_sec)
 }
 
 uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
-						   uint16_t n_wavelenght, uint16_t n_depth,
+						   uint16_t n_waves, uint16_t n_depth,
 						   uint16_t n_soil_additives, uint16_t n_atm_additives)
 {
 	series->n_soil_adds.val = n_soil_additives;
 	series->n_atm_adds.val = n_atm_additives;
-	series->env_temp_c = malloc(n_chunks * sizeof(real_t));
-	series->water_use_ml = malloc(n_chunks * sizeof(real_t));
-	series->soil_additives = malloc(n_soil_additives
-									* sizeof(additive_t));
-	series->atm_additives = malloc(n_atm_additives
-								   * sizeof(additive_t));
-	series->light_exposure = malloc(n_chunks * sizeof(real_t *));
-	series->soil_temp_c = malloc(n_chunks * sizeof(real_t *));
-
-	for (uint32_t i = 0; i < n_chunks; i++) {
-		series->light_exposure[i] = malloc(n_wavelenght * sizeof(real_t));
-		series->soil_temp_c[i] = malloc(n_depth * sizeof(real_t));
-	}
+	series->env_temp_c = calloc(n_chunks, sizeof(real_t));
+	series->water_use_ml = calloc(n_chunks, sizeof(real_t));
+	series->soil_additives = calloc(n_soil_additives,
+									sizeof(additive_t));
+	series->atm_additives = calloc(n_atm_additives,
+								   sizeof(additive_t));
+	series->light_exposure = calloc(n_chunks * n_waves, sizeof(real_t));
+	series->soil_temp_c = calloc(n_chunks * n_depth, sizeof(real_t));
 
 	if (!series->env_temp_c  
 		|| !series->water_use_ml  
@@ -1022,12 +1001,8 @@ void metadata_free(adf_meta_t *metadata)
 	metadata->additive_codes = NULL;
 }
 
-void series_free(series_t *series, uint32_t n_chunks)
+void series_free(series_t *series)
 { 
-	for (uint32_t i = 0; i < n_chunks; i++) {
-		free(series->light_exposure[i]);
-		free(series->soil_temp_c[i]);
-	}
 	free(series->light_exposure);
 	free(series->soil_temp_c);
 	free(series->env_temp_c);
@@ -1047,7 +1022,7 @@ void adf_free(adf_t *adf)
 	adf_meta_t *metadata = (adf_meta_t *) &(adf->metadata);
 	metadata_free(metadata);
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) 
-		series_free(adf->series + i, adf->header.n_chunks.val);
+		series_free(adf->series + i);
 	free(adf->series);
 	adf->series = NULL;
 }
@@ -1068,13 +1043,13 @@ uint16_t cpy_adf_series(series_t *target, const series_t *source,
 						const adf_t *adf)
 {
 	uint32_t n_chunks;
-	uint16_t res, n_wavelength, n_depth;
+	uint16_t res, n_waves, n_depth;
 
 	if (!source) { return ADF_NULL_SERIES_SOURCE; }
 	if (!target) { return ADF_NULL_SERIES_TARGET; }
 
 	n_chunks = adf->header.n_chunks.val;
-	n_wavelength = adf->header.n_wavelength.val;
+	n_waves = adf->header.n_wavelength.val;
 	n_depth = adf->header.n_depth.val;
 	target->n_atm_adds = source->n_atm_adds;
 	target->n_soil_adds = source->n_soil_adds;
@@ -1084,8 +1059,8 @@ uint16_t cpy_adf_series(series_t *target, const series_t *source,
 	target->soil_density_kg_m3 = source->soil_density_kg_m3;
 	target->water_use_ml = malloc(n_chunks * sizeof(real_t));
 	target->env_temp_c = malloc(n_chunks * sizeof(real_t));
-	target->light_exposure = malloc(n_chunks * sizeof(real_t *));
-	target->soil_temp_c = malloc(n_chunks * sizeof(real_t *));
+	target->light_exposure = malloc(n_chunks * n_waves * sizeof(real_t));
+	target->soil_temp_c = malloc(n_chunks * n_depth * sizeof(real_t));
 	target->soil_additives = NULL;
 	target->atm_additives = NULL;
 
@@ -1093,17 +1068,11 @@ uint16_t cpy_adf_series(series_t *target, const series_t *source,
 		target->water_use_ml[i] = source->water_use_ml[i];
 		target->env_temp_c[i] = source->env_temp_c[i];
 	}
-	for (uint32_t i = 0; i < n_chunks; i++) {
-		target->light_exposure[i] = malloc(n_wavelength * sizeof(real_t));
-		for (uint16_t j = 0; j < n_wavelength; j++) {
-			target->light_exposure[i][j] = source->light_exposure[i][j];
-		}
+	for (uint32_t i = 0; i < n_chunks * n_waves; i++) {
+		target->light_exposure[i] = source->light_exposure[i];
 	}
-	for (uint32_t i = 0; i < n_chunks; i++) {
-		target->soil_temp_c[i] = malloc(n_depth * sizeof(real_t));
-		for (uint16_t j = 0; j < n_depth; j++) {
-			target->soil_temp_c[i][j] = source->soil_temp_c[i][j];
-		}
+	for (uint32_t i = 0; i < n_chunks * n_depth; i++) {
+		target->soil_temp_c[i] = source->soil_temp_c[i];
 	}
 
 	if (source->n_soil_adds.val > 0) {

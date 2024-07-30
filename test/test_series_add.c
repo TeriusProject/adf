@@ -46,7 +46,7 @@ void test_add_series(void)
 				"There are 5 series");
 
 	adf_free(&adf);
-	series_free(&series, adf.header.n_chunks.val);
+	series_free(&series);
 }
 
 void test_add_repeated_series(void)
@@ -73,7 +73,7 @@ void test_add_repeated_series(void)
 	assert_true(adf.metadata.n_series == expected_n_series,
 				"There are 6 series");
 	adf_free(&adf);
-	series_free(&series, adf.header.n_chunks.val);
+	series_free(&series);
 }
 
 void test_add_repeated_and_non_repeated_series(void)
@@ -105,8 +105,8 @@ void test_add_repeated_and_non_repeated_series(void)
 				"There are 7 series");
 	
 	adf_free(&adf);
-	series_free(&series1, adf.header.n_chunks.val);
-	series_free(&series2, adf.header.n_chunks.val);
+	series_free(&series1);
+	series_free(&series2);
 }
 
 void test_add_to_empty_series(void)
@@ -129,7 +129,7 @@ void test_add_to_empty_series(void)
 				"There is 1 series");
 
 	adf_free(&adf);
-	series_free(&series, adf.header.n_chunks.val);
+	series_free(&series);
 }
 
 void test_add_series_should_merge_additives(void)
@@ -161,8 +161,8 @@ void test_add_series_should_merge_additives(void)
 				"additives should be inserted by push_back");
 
 	adf_free(&adf);
-	series_free(&series1, adf.header.n_chunks.val);
-	series_free(&series2, adf.header.n_chunks.val);
+	series_free(&series1);
+	series_free(&series2);
 }
 
 void test_additive_overflow(void)
@@ -189,9 +189,9 @@ void test_additive_overflow(void)
 		};
 
 	series1 = (series_t) { 
-		.light_exposure = get_real_matrix(adf.header.n_chunks.val,
+		.light_exposure = get_real_inline_matrix(adf.header.n_chunks.val,
 										  adf.header.n_wavelength.val),
-		.soil_temp_c = get_real_matrix(adf.header.n_chunks.val,
+		.soil_temp_c = get_real_inline_matrix(adf.header.n_chunks.val,
 										  adf.header.n_depth.val),
 		.env_temp_c = get_real_array(adf.header.n_chunks.val),
 		.water_use_ml = get_real_array(adf.header.n_chunks.val),
@@ -205,9 +205,9 @@ void test_additive_overflow(void)
 		.repeated = { 1 }
 	};
 	series2 = (series_t) { 
-		.light_exposure = get_real_matrix(adf.header.n_chunks.val,
+		.light_exposure = get_real_inline_matrix(adf.header.n_chunks.val,
 										  adf.header.n_wavelength.val),
-		.soil_temp_c = get_real_matrix(adf.header.n_chunks.val,
+		.soil_temp_c = get_real_inline_matrix(adf.header.n_chunks.val,
 										  adf.header.n_depth.val),
 		.env_temp_c = get_real_array(adf.header.n_chunks.val),
 		.water_use_ml = get_real_array(adf.header.n_chunks.val),
@@ -231,8 +231,8 @@ void test_additive_overflow(void)
 				"too many additives, should return ADF_ADDITIVE_OVERFLOW");
 	
 	adf_free(&adf);
-	series_free(&series1, adf.header.n_chunks.val);
-	series_free(&series2, adf.header.n_chunks.val);
+	series_free(&series1);
+	series_free(&series2);
 }
 
 int main(void)

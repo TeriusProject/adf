@@ -22,6 +22,7 @@
 CC = gcc
 CFLAGS = -pedantic -Wall -Wextra -O3 -std=c2x
 SRC = ../src/
+ADF_SOURCE = $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
 BIN = test_create test_reindex test_marshal test_unmarshal test_series_add \
 	  test_series_update test_series_remove test_lookup_table test_copy    \
 	  test_free
@@ -39,7 +40,7 @@ all: $(BIN) sample.adf
 	./test_lookup_table
 	./test_free
 
-test_create: test_create.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
+test_create: test_create.c test.c mock.c $(ADF_SOURCE)
 	$(CC) $(CFLAGS) $^  -o $@  
 
 test_reindex: test_reindex.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c

@@ -31,10 +31,9 @@ INCLUDE = /usr/local/include
 LIB_DIR = /usr/local/lib
 
 $(LIB): $(OBJS)
-	@echo "*****************************\n  Building libadf\n*****************************"
 	$(AR) cr $@ $^
 
-adf.o: adf.c
+adf.o: $(HEADER) adf.c
 	$(CC) $(CFLAGS) -c $^
 
 crc.o: crc.c

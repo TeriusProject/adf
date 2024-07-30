@@ -25,6 +25,7 @@ LIB = /usr/local/lib
 all: adf test
 
 adf:
+	@echo "*****************************\n  Building libadf\n*****************************"
 	@$(MAKE) -C src/
 
 .PHONY : test

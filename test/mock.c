@@ -1,4 +1,5 @@
-/* mock.c
+/* 
+ * mock.c
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -32,6 +33,20 @@ real_t *get_real_array(int n_chunks)
 	return light_mask;
 }
 
+real_t *get_real_inline_matrix(int n_rows, int n_columns)
+{
+	float f;
+	real_t *mat = malloc(n_rows * n_columns* sizeof(real_t));
+
+	for (int i = 0; i < n_rows; i++) {
+		f = 0.0;
+		for (int j = 0; j < n_columns; j++, f += 0.25) {
+			mat[j + i * n_columns].val = f;
+		}
+	}
+	return mat;
+}
+
 real_t **get_real_matrix(int n_rows, int n_columns)
 {
 	float f;
@@ -55,8 +70,8 @@ series_t get_series(void)
 		.concentration = { 1.234 }
 	};
 	return (series_t) { 
-		.light_exposure = get_real_matrix(10, 20),
-		.soil_temp_c = get_real_matrix(10, 2),
+		.light_exposure = get_real_inline_matrix(10, 20),
+		.soil_temp_c = get_real_inline_matrix(10, 2),
 		.env_temp_c = get_real_array(10),
 		.water_use_ml = get_real_array(10),
 		.pH = 11,
@@ -81,8 +96,8 @@ series_t get_repeated_series(void)
 	};
 
 	return (series_t) { 
-		.light_exposure = get_real_matrix(10, 20),
-		.soil_temp_c = get_real_matrix(10, 2),
+		.light_exposure = get_real_inline_matrix(10, 20),
+		.soil_temp_c = get_real_inline_matrix(10, 2),
 		.env_temp_c = get_real_array(10),
 		.water_use_ml = get_real_array(10),
 		.pH = 7,
@@ -104,8 +119,8 @@ series_t get_series_with_two_soil_additives(void)
 	*add_code = add_1;
 	*add_code = add_2;
 	return (series_t) { 
-		.light_exposure = get_real_matrix(10, 20),
-		.soil_temp_c = get_real_matrix(10, 2),
+		.light_exposure = get_real_inline_matrix(10, 20),
+		.soil_temp_c = get_real_inline_matrix(10, 2),
 		.env_temp_c = get_real_array(10),
 		.water_use_ml = get_real_array(10),
 		.pH = 7,
@@ -164,8 +179,8 @@ series_t *get_default_series(void)
 	};
 
 	iter1 = (series_t) { 
-		.light_exposure = get_real_matrix(10, 20),
-		.soil_temp_c = get_real_matrix(10, 2),
+		.light_exposure = get_real_inline_matrix(10, 20),
+		.soil_temp_c = get_real_inline_matrix(10, 2),
 		.env_temp_c = get_real_array(10),
 		.water_use_ml = get_real_array(10),
 		.pH = 7,
@@ -178,8 +193,8 @@ series_t *get_default_series(void)
 		.repeated = { 1 }
 	};
 	iter2 = (series_t) {
-		.light_exposure = get_real_matrix(10, 20),
-		.soil_temp_c = get_real_matrix(10, 2),
+		.light_exposure = get_real_inline_matrix(10, 20),
+		.soil_temp_c = get_real_inline_matrix(10, 2),
 		.env_temp_c = get_real_array(10),
 		.water_use_ml = get_real_array(10),
 		.pH = 7,
