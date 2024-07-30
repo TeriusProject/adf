@@ -22,6 +22,7 @@
  */
 
 #include <adf.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,7 +57,7 @@ void write_file(adf_t adf)
  * from an agricolture database or - if you have a tech greenhouse - from 
  * your own sensors.
  */
-series_t get_series(uint32_t n_chunks, uint32_t n_wavelength)
+series_t get_series(uint32_t n_chunks, uint16_t n_wavelength, uint16_t n_depth)
 {
 	series_t series;
 	additive_t sample_additive;
@@ -74,7 +75,8 @@ series_t get_series(uint32_t n_chunks, uint32_t n_wavelength)
 	series.n_soil_adds.val = 1;
 	series.n_atm_adds.val = 1;
 
-	series.light_exposure = malloc(n_wavelength * sizeof(real_t));
+	series.light_exposure = malloc(n_chunks * sizeof(real_t *));
+	series.soil_temp_c = malloc(n_chunks * sizeof(real_t *));
 	series.env_temp_c = malloc(n_chunks * sizeof(real_t));
 	series.water_use_ml = malloc(n_chunks * sizeof(real_t));
 	series.soil_additives = malloc(sizeof(additive_t));
@@ -83,10 +85,15 @@ series_t get_series(uint32_t n_chunks, uint32_t n_wavelength)
 	for (uint32_t i = 0; i < n_chunks; i++) {
 		series.env_temp_c[i].val = (float)rand()/(float)(RAND_MAX);
 		series.water_use_ml[i].val = (float)rand()/(float)(RAND_MAX);
-	}
+		series.light_exposure[i] = malloc(n_wavelength * sizeof(real_t));
+		series.soil_temp_c[i] = malloc(n_depth * sizeof(real_t));
 
-	for (uint32_t i = 0; i < n_wavelength; i++)
-		series.light_exposure[i].val = (float)rand()/(float)(RAND_MAX);
+		for (uint16_t j = 0; j < n_wavelength; j++) 
+			series.light_exposure[i][j].val = (float)rand()/(float)(RAND_MAX);
+		for (uint16_t j = 0; j < n_depth; j++) 
+			series.soil_temp_c[i][j].val = (float)rand()/(float)(RAND_MAX);
+
+	}
 
 	*series.soil_additives = sample_additive;
 	*series.atm_additives = sample_additive;
@@ -102,7 +109,8 @@ void register_data(adf_t *adf)
 	for (uint16_t i = 1, n = rand() % 10'000; i <= n; i++) {
 		printf("Adding series %d/%d\n", i, n);
 		series_to_add = get_series(adf->header.n_chunks.val, 
-								   adf->header.n_wavelength.val);
+								   adf->header.n_wavelength.val,
+								   adf->header.n_depth.val);
 		res = add_series(adf, &series_to_add);
 		if (res != ADF_OK) {
 			printf("An error occurred while adding the series [code:%x]", res);
@@ -118,12 +126,15 @@ int main(void)
 	
 	header = (adf_header_t) { 
 		.signature = { __ADF_SIGNATURE__ },
-		.version = __ADF_VERSION__,
+		.version = { __ADF_VERSION__ },
 		.farming_tec = 0x01u,
 		.min_w_len_nm = { 0 },
 		.max_w_len_nm = { 10000 },
 		.n_chunks = { 10 },
-		.n_wavelength = { 10 } 
+		.n_wavelength = { 10 },
+		.n_depth = { 3 },
+		.min_soil_depth_mm = { 0 },
+		.max_soil_depth_mm = { 300 }
 	};
 	adf_init(&adf, header, 86400); // each series takes 1 day
 
