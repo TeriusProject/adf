@@ -136,7 +136,7 @@ int main(void)
 		.min_soil_depth_mm = { 0 },
 		.max_soil_depth_mm = { 300 }
 	};
-	adf_init(&adf, header, 86400); // each series takes 1 day
+	adf_init(&adf, header, ADF_DAY); // each series takes 1 day
 
 	srand(time(NULL));
 	register_data(&adf);
