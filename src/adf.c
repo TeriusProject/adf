@@ -778,7 +778,15 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 			return ADF_OK;
 		}
 
+		#ifdef __ADF_DEBUG__
+		printf(DEBUG_STR "Series to update is not equal to the previous one\n");
+		#endif /* __ADF_DEBUG__ */
+
 		if (current->repeated.val == 1) {
+			#ifdef __ADF_DEBUG__
+			printf(DEBUG_STR "Repeated just one time, nothing to split\n");
+			#endif /* __ADF_DEBUG__ */
+
 			adf->metadata.n_series += (series->repeated.val 
 									  - current->repeated.val);
 			series_free(current, adf->header.n_chunks.val);
@@ -819,6 +827,7 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 				res = cpy_adf_series(adf->series + k1, tmp + k2, adf);
 				if (res != ADF_OK) { return res; }
 			}
+			free(tmp);
 			return ADF_OK;
 		}
 	}
@@ -851,7 +860,7 @@ static uint_t *get_additive_codes(pair_t *pairs, size_t size)
 	uint_t *additives = malloc(size * sizeof(uint_t));
 	for (size_t i = 0; i < size; i++) {
 		additives[i].val = pairs[i].key;
-		pairs[i].value = &i;
+		pairs[i].value = i;
 	}
 	return additives;
 }
@@ -864,8 +873,7 @@ static uint32_t id(void *key)
 uint16_t reindex_additives(adf_t *adf)
 {
 	table_t lookup_table;
-	uint16_t table_code, add_idx;
-	uint32_t default_val = 1;
+	uint16_t table_code, add_idx, n_soil, n_atm;
 	pair_t *additives_keys;
 
 	if (adf->metadata.n_series == 0) {
@@ -882,28 +890,26 @@ uint16_t reindex_additives(adf_t *adf)
 		return ADF_RUNTIME_ERROR;
 
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
-		uint16_t n_soil = adf->series[i].n_soil_adds.val;
-		uint16_t n_atm = adf->series[i].n_atm_adds.val;
+		n_soil = adf->series[i].n_soil_adds.val;
+		n_atm = adf->series[i].n_atm_adds.val;
 		for (uint16_t j = 0; j < n_soil; j++) {
 			table_code = table_put(&lookup_table, 
 								   adf->series[i].soil_additives[j].code.val,
-								   &default_val);
-			if (table_code == LM_MAP_SIZE_OVERFLOW) {
+								   j);
+			if (table_code == LM_MAP_SIZE_OVERFLOW)
 				return ADF_ADDITIVE_OVERFLOW;
-			} else if (table_code != LM_OK) {
+			if (table_code != LM_OK)
 				return ADF_RUNTIME_ERROR; 
-			}
 		}
 	
 		for (uint16_t j = 0; j < n_atm; j++) {
 			table_code = table_put(&lookup_table,
 								   adf->series[i].atm_additives[j].code.val,
-								   &default_val);
-			if (table_code == LM_MAP_SIZE_OVERFLOW) {
+								   j);
+			if (table_code == LM_MAP_SIZE_OVERFLOW)
 				return ADF_ADDITIVE_OVERFLOW;
-			} else if (table_code != LM_OK) {
+			if (table_code != LM_OK)
 				return ADF_RUNTIME_ERROR; 
-			}
 		}
 	}
 
@@ -917,25 +923,26 @@ uint16_t reindex_additives(adf_t *adf)
 	adf->metadata.n_additives.val = (uint16_t)lookup_table.size;
 	
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
-		uint16_t n_soil = adf->series[i].n_soil_adds.val;
-		uint16_t n_atm = adf->series[i].n_atm_adds.val;
+		n_soil = adf->series[i].n_soil_adds.val;
+		n_atm = adf->series[i].n_atm_adds.val;
 		additive_t *current;
 		for (uint16_t j = 0; j < n_soil; j++) {
 			current = (adf->series[i].soil_additives + j);
-			add_idx = *((uint16_t *)table_get(&lookup_table, 
-											  current->code.val));
+			add_idx = (uint16_t) table_get(&lookup_table, 
+										   current->code.val);
 			current->code_idx.val = add_idx;
 		}
 		for (uint16_t j = 0; j < n_atm; j++) {
 			current = (adf->series[i].atm_additives + j);
-			add_idx = *((uint16_t *)table_get(&lookup_table, 
-											  current->code.val));
+			add_idx = (uint16_t) table_get(&lookup_table, 
+										   current->code.val);
 			current->code_idx.val = add_idx;
 		}
 	}
 
 	table_free(&lookup_table);
 	free(additives_keys);
+
 	return ADF_OK;
 }
 
@@ -1061,8 +1068,7 @@ uint16_t cpy_adf_series(series_t *target, const series_t *source,
 						const adf_t *adf)
 {
 	uint32_t n_chunks;
-	uint16_t n_wavelength;
-	uint16_t n_depth;
+	uint16_t res, n_wavelength, n_depth;
 
 	if (!source) { return ADF_NULL_SERIES_SOURCE; }
 	if (!target) { return ADF_NULL_SERIES_TARGET; }
@@ -1100,18 +1106,24 @@ uint16_t cpy_adf_series(series_t *target, const series_t *source,
 		}
 	}
 
-	if (target->n_soil_adds.val > 0) {
+	if (source->n_soil_adds.val > 0) {
 		target->soil_additives = malloc(target->n_soil_adds.val
 										* sizeof(additive_t));
-		for (uint16_t i = 0, l = target->n_soil_adds.val; i < l; i++)
-			target->soil_additives[i] = source->soil_additives[i];
+		for (uint16_t i = 0, l = target->n_soil_adds.val; i < l; i++) {
+			res = cpy_additive(target->soil_additives + i, 
+							   source->soil_additives + i);
+			if (res != ADF_OK) { return res; }
+		}
 	}
 
-	if (target->n_atm_adds.val > 0) {
+	if (source->n_atm_adds.val > 0) {
 		target->atm_additives = malloc(target->n_atm_adds.val
 									   * sizeof(additive_t));
-		for (uint16_t i = 0, l = target->n_atm_adds.val; i < l; i++)
-			target->atm_additives[i] = source->atm_additives[i];
+		for (uint16_t i = 0, l = target->n_atm_adds.val; i < l; i++) {
+			res = cpy_additive(target->atm_additives + i, 
+							   source->atm_additives + i);
+			if (res != ADF_OK) { return res; }
+		}
 	}
 
 	return ADF_OK;

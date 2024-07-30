@@ -25,12 +25,11 @@ LIB = /usr/local/lib
 all: adf test
 
 adf:
-	@echo "*****************************\n  Building libadf\n*****************************"
 	@$(MAKE) -C src/
 
 .PHONY : test
 test:
-	@echo "*****************************\n  Building tests\n*****************************"
+	@echo "*****************************\n  TESTS\n*****************************"
 	@$(MAKE) -C test/
 
 .PHONY : clean

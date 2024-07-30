@@ -45,7 +45,10 @@ void series_have_more_additives_than_metadata(void)
 			.min_w_len_nm = { 0 },
 			.max_w_len_nm = { 10000 },
 			.n_chunks = { 10 },
-			.n_wavelength = { 10 } 
+			.n_wavelength = { 10 },
+			.n_depth = { 2 },
+			.min_soil_depth_mm = { 0 },
+			.max_soil_depth_mm = { 20 }
 		},
 		.metadata = (adf_meta_t) {
 			.period_sec = { 1345 },

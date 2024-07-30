@@ -27,12 +27,13 @@ BIN = test_create test_reindex test_marshal test_unmarshal test_series_add \
 	  test_free
 
 all: $(BIN) sample.adf
+	@echo "*****************************\n  Executing tests\n*****************************"
 	./test_create
 	./test_reindex
 	./test_marshal
 	./test_unmarshal
 	./test_series_add
-	# ./test_series_update
+	./test_series_update
 	./test_series_remove
 	./test_copy
 	./test_lookup_table

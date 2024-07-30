@@ -76,7 +76,7 @@ series_t get_repeated_series(void)
 
 	add_code = malloc(sizeof(additive_t));
 	*add_code = (additive_t) {
-		.code_idx = { 2345 },
+		.code = { 2345 },
 		.concentration = { 3.33 }
 	};
 
@@ -99,8 +99,8 @@ series_t get_repeated_series(void)
 series_t get_series_with_two_soil_additives(void)
 {
 	additive_t *add_code = malloc(2 * sizeof(additive_t));
-	additive_t add_1 = { .code_idx = { 2345 }, .concentration = { 1.234 } };
-	additive_t add_2 = { .code_idx = { 6789 }, .concentration = { 6.789 } };
+	additive_t add_1 = { .code = { 2345 }, .concentration = { 1.234 } };
+	additive_t add_2 = { .code = { 6789 }, .concentration = { 6.789 } };
 	*add_code = add_1;
 	*add_code = add_2;
 	return (series_t) { 
@@ -129,7 +129,10 @@ adf_t get_object_with_zero_series(void)
 			.min_w_len_nm = { 0 },
 			.max_w_len_nm = { 10000 },
 			.n_chunks = { 10 },
-			.n_wavelength = { 10 }
+			.n_wavelength = { 10 },
+			.n_depth = {2},
+			.min_soil_depth_mm = { 0 },
+			.max_soil_depth_mm = { 20} 
 		},
 		.metadata = (adf_meta_t) {
 			.period_sec = { 1345 },
@@ -150,13 +153,13 @@ series_t *get_default_series(void)
 
 	add_code_series_1 = malloc(sizeof(additive_t));
 	*add_code_series_1 = (additive_t) {
-		.code_idx = { 2345 },
+		.code = { 2345 },
 		.concentration = { 1.234 }
 	};
 	
 	add_code_series_2 = malloc(sizeof(additive_t));
 	*add_code_series_2 = (additive_t) {
-		.code_idx = { 2345 },
+		.code = { 2345 },
 		.concentration = { 3.33 }
 	};
 

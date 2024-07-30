@@ -38,7 +38,7 @@ static uint16_t increase_table_size(table_t *table)
 
 	for (size_t i = old_size; i < new_size; i++) {
 		table->pairs[i].key = 0;
-		table->pairs[i].value = NULL;
+		table->pairs[i].value = 0;
 	}
 
 	table->max_size = new_size;
@@ -64,12 +64,10 @@ uint16_t table_init(table_t *table, size_t capacity, size_t increment,
 	return LM_OK;
 }
 
-uint16_t table_put(table_t *table, uint32_t key, void *val)
+uint16_t table_put(table_t *table, uint32_t key, uint32_t val)
 {
 	uint32_t hash;
     size_t idx;
-
-	if (!val) { return LM_NULL_VALUE_NOT_ALLOWED; }
 
 	if (should_be_resized(table)) {
 		uint16_t res = increase_table_size(table);
@@ -89,7 +87,7 @@ uint16_t table_put(table_t *table, uint32_t key, void *val)
     return LM_CANNOT_INSERT_VALUE;
 }
 
-uint16_t table_update(table_t *table, uint32_t key, void *val)
+uint16_t table_update(table_t *table, uint32_t key, uint32_t val)
 {
 	uint32_t hash;
     size_t idx;
@@ -106,7 +104,7 @@ uint16_t table_update(table_t *table, uint32_t key, void *val)
     return LM_CANNOT_INSERT_VALUE;
 }
 
-void *table_get(const table_t * table, uint32_t key)
+uint32_t table_get(const table_t * table, uint32_t key)
 {
     uint16_t hash;
     size_t idx;
@@ -118,15 +116,26 @@ void *table_get(const table_t * table, uint32_t key)
 			return table->pairs[idx].value;
 		}
 	}
-	return NULL;
+	return 0;
 }
 
 uint16_t table_remove(table_t * table, uint32_t key)
 {
-    uint16_t res = table_update(table, key, NULL);
-	if (res != LM_OK) { return res; }
-	table->size--;
-	return LM_OK;
+	uint32_t hash;
+    size_t idx;
+
+	hash = table->hash(&key);
+
+	for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
+		idx = (hash + i) % (max_size - 1);
+		if (table->pairs[idx].key == key) {
+			table->pairs[idx].value = 0;
+			table->pairs[idx].key = 0;
+			table->size--;
+			return LM_OK;
+		}
+	}
+    return LM_CANNOT_REMOVE_NONEXISTENT_VALUE;
 }
 
 uint16_t table_get_pairs(const table_t *table, pair_t *keys)
@@ -144,11 +153,6 @@ uint16_t table_get_pairs(const table_t *table, pair_t *keys)
 	}
 
 	return LM_OK;
-}
-
-void pair_free(pair_t *pair)
-{
-	if (pair->value) { free(pair->value); }
 }
 
 void table_free(table_t *table)

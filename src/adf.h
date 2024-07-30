@@ -173,7 +173,7 @@ typedef struct {
 
 	/*
 	 * The index is the 4-byte unsigned index of the additive in
-	 * metadata.additives
+	 * metadata.additives.
 	 */
 	uint_small_t code_idx;
 
