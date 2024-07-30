@@ -191,6 +191,8 @@ void test_additive_overflow(void)
 	series1 = (series_t) { 
 		.light_exposure = get_real_matrix(adf.header.n_chunks.val,
 										  adf.header.n_wavelength.val),
+		.soil_temp_c = get_real_matrix(adf.header.n_chunks.val,
+										  adf.header.n_depth.val),
 		.env_temp_c = get_real_array(adf.header.n_chunks.val),
 		.water_use_ml = get_real_array(adf.header.n_chunks.val),
 		.pH = 11,
@@ -205,6 +207,8 @@ void test_additive_overflow(void)
 	series2 = (series_t) { 
 		.light_exposure = get_real_matrix(adf.header.n_chunks.val,
 										  adf.header.n_wavelength.val),
+		.soil_temp_c = get_real_matrix(adf.header.n_chunks.val,
+										  adf.header.n_depth.val),
 		.env_temp_c = get_real_array(adf.header.n_chunks.val),
 		.water_use_ml = get_real_array(adf.header.n_chunks.val),
 		.pH = 2,

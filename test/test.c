@@ -182,14 +182,14 @@ void assert_header_equal_verbose(adf_header_t target, adf_header_t expected)
 						   "are versions equals");
 	assert_true(target.farming_tec == expected.farming_tec,
 				"are farming tecniques equals");
-	assert_int_equal(target.n_wavelength, expected.n_wavelength,
-					 "are n_wavelengths equal");
+	assert_small_int_equal(target.n_wavelength, expected.n_wavelength,
+						   "are n_wavelengths equal");
 	assert_small_int_equal(target.min_w_len_nm, expected.min_w_len_nm,
 						   "are min_w_len_nms equal");
 	assert_small_int_equal(target.max_w_len_nm, expected.max_w_len_nm,
 						   "are max_w_len_nms equal");
-	assert_int_equal(target.n_depth, expected.n_depth,
-					 "are n_depth equal");
+	assert_small_int_equal(target.n_depth, expected.n_depth,
+						   "are n_depth equal");
 	assert_small_int_equal(target.min_soil_depth_mm, expected.min_soil_depth_mm,
 						   "are min_soil_depth_mm equal");
 	assert_small_int_equal(target.max_soil_depth_mm, expected.max_soil_depth_mm,
@@ -204,10 +204,10 @@ void assert_header_equal(adf_header_t target, adf_header_t expected,
 	bool c = are_ints_equal(target.signature, expected.signature)
 			 && are_small_ints_equal(target.version, expected.version)
 			 && target.farming_tec == expected.farming_tec
-			 && are_ints_equal(target.n_wavelength, expected.n_wavelength)
+			 && are_small_ints_equal(target.n_wavelength, expected.n_wavelength)
 			 && are_small_ints_equal(target.min_w_len_nm, expected.min_w_len_nm)
 			 && are_small_ints_equal(target.max_w_len_nm, expected.max_w_len_nm)
-			 && are_ints_equal(target.n_depth, expected.n_depth)
+			 && are_small_ints_equal(target.n_depth, expected.n_depth)
 			 && are_small_ints_equal(target.min_soil_depth_mm, expected.min_soil_depth_mm)
 			 && are_small_ints_equal(target.max_soil_depth_mm, expected.max_soil_depth_mm)
 			 && are_ints_equal(target.n_chunks, expected.n_chunks);
@@ -271,6 +271,10 @@ void assert_series_equal_verbose(adf_t data, series_t x, series_t y)
 		x.light_exposure, y.light_exposure, data.header.n_chunks.val,
 		data.header.n_wavelength.val, "are light_exposures equal"
 	);
+	assert_real_matrices_equal(
+		x.soil_temp_c, y.soil_temp_c, data.header.n_chunks.val,
+		data.header.n_depth.val, "are soil_temp_c equal"
+	);
 	assert_real_arrays_equal(
 		x.env_temp_c, y.env_temp_c, data.header.n_chunks.val,
 		"are temp_celsius equal"
@@ -307,6 +311,9 @@ void assert_series_equal(adf_t data, series_t x, series_t y, const char *label)
 	bool c = are_real_matrices_equal(x.light_exposure, y.light_exposure,
 								    data.header.n_chunks.val,
 								    data.header.n_wavelength.val)
+			&& are_real_matrices_equal(x.soil_temp_c, y.soil_temp_c,
+								    data.header.n_chunks.val,
+								    data.header.n_depth.val)
 			&& are_real_arrays_equal(x.env_temp_c, y.env_temp_c,
 									 data.header.n_chunks.val)
 			&& are_real_arrays_equal(x.water_use_ml, y.water_use_ml,

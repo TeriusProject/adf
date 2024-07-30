@@ -257,17 +257,6 @@ typedef struct {
 	uint_t repeated;
 } __attribute__((packed)) series_t;
 
-typedef struct series_list_node {
-	uint32_t n;
-	series_t val;
-	struct series_list_node *next;
-} series_node_t;
-
-typedef struct {
-	uint32_t size;
-	series_node_t *head;
-} series_list_t;
-
 typedef struct {
 	/*
 	 * The number of series registered. The number 0 is used to
@@ -361,7 +350,7 @@ typedef struct {
 	 * is bounded between:
 	 *         [min_w_len_nm, max_w_len_nm]
 	 */
-	uint_t n_wavelength;
+	uint_small_t n_wavelength;
 
 	/*
 	 * 
@@ -376,7 +365,7 @@ typedef struct {
 	/*
 	 * 
 	 */
-	uint_t n_depth;
+	uint_small_t n_depth;
 
 	/*
 	 * The number of chunks in which each data series is (equally) divided.
@@ -512,7 +501,9 @@ adf_header_t create_header(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t);
 adf_t create_empty_adf(adf_header_t, uint16_t);
 
 /* Just an helper function to create an empty series*/
-uint16_t init_empty_series(series_t *, uint32_t, uint32_t, uint16_t, uint16_t);
+uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
+						   uint16_t n_wavelenght, uint16_t n_depth,
+						   uint16_t n_soil_additives, uint16_t n_atm_additives);
 
 void metadata_init(adf_meta_t *, uint32_t);
 void adf_init(adf_t *, adf_header_t, uint32_t);
@@ -520,7 +511,6 @@ void adf_init(adf_t *, adf_header_t, uint32_t);
 void metadata_free(adf_meta_t *);
 void series_free(series_t *, uint32_t);
 void adf_free(adf_t *);
-void series_list_free(series_list_t *);
 
 uint16_t cpy_additive(additive_t *, const additive_t *);
 uint16_t cpy_adf(adf_t *, const adf_t *);
