@@ -77,8 +77,10 @@ test/test_perf
 # Memgraph
 *.memgraph
 
-.DS_Store
-api/
+# Examples
 example/example
 example/output.adf
 example/example
+
+.DS_Store
+api/go/

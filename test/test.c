@@ -175,6 +175,73 @@ void assert_additive_arrays_equal(additive_t *x, additive_t *y, uint32_t size,
 	assert_true(are_additive_arrays_equal(x, y, size), label);
 }
 
+bool are_wave_info_equal(wavelength_info_t target, 
+						 wavelength_info_t expected)
+{
+	return are_small_ints_equal(target.n_wavelength, expected.n_wavelength)
+		   && are_small_ints_equal(target.min_w_len_nm, expected.min_w_len_nm)
+		   && are_small_ints_equal(target.max_w_len_nm, expected.max_w_len_nm);
+}
+
+bool are_soil_depth_info_equal(soil_depth_info_t target, 
+							   soil_depth_info_t expected)
+{
+	return are_small_ints_equal(target.n_depth, expected.n_depth)
+		   && are_small_ints_equal(target.min_soil_depth_mm,
+		   						   expected.min_soil_depth_mm)
+		   && are_small_ints_equal(target.max_soil_depth_mm,
+		   						   expected.max_soil_depth_mm);
+}
+
+bool are_reduction_info_equal(reduction_info_t target, 
+							  reduction_info_t expected)
+{
+	return target.soil_density_red_mode == expected.soil_density_red_mode
+		   && target.pressure_red_mode == expected.pressure_red_mode
+		   && target.light_exposure_red_mode == expected.light_exposure_red_mode
+		   && target.water_use_red_mode == expected.water_use_red_mode
+		   && target.soil_temp_red_mode == expected.soil_temp_red_mode
+		   && target.env_temp_red_mode == expected.env_temp_red_mode;
+}
+
+void assert_wave_info_equal_verbose(wavelength_info_t target, 
+									wavelength_info_t expected)
+{
+	assert_small_int_equal(target.n_wavelength, expected.n_wavelength,
+						   "are n_wavelengths equal");
+	assert_small_int_equal(target.min_w_len_nm, expected.min_w_len_nm,
+						   "are min_w_len_nms equal");
+	assert_small_int_equal(target.max_w_len_nm, expected.max_w_len_nm,
+						   "are max_w_len_nms equal"); 
+}
+
+void assert_soil_depth_info_equal_verbose(soil_depth_info_t target, 
+										  soil_depth_info_t expected)
+{
+	assert_small_int_equal(target.n_depth, expected.n_depth,
+						   "are n_depth equal");
+	assert_small_int_equal(target.min_soil_depth_mm, expected.min_soil_depth_mm,
+						   "are min_soil_depth_mm equal");
+	assert_small_int_equal(target.max_soil_depth_mm, expected.max_soil_depth_mm,
+						   "are max_soil_depth_mm equal");
+}
+
+void assert_reduction_info_equal_verbose(reduction_info_t target, 
+										  reduction_info_t expected)
+{
+	assert_true(target.soil_density_red_mode == expected.soil_density_red_mode,
+				"are soil density's reduction mode equal");
+	assert_true(target.pressure_red_mode == expected.pressure_red_mode,
+				"are pressure's reduction mode equal");
+	assert_true(target.light_exposure_red_mode == expected.light_exposure_red_mode,
+				"are light exposures's reduction mode equal");
+	assert_true(target.water_use_red_mode == expected.water_use_red_mode,
+				"are water use's reduction mode equal");
+	assert_true(target.soil_temp_red_mode == expected.soil_temp_red_mode,
+				"are soil temperature's reduction mode equal");
+	assert_true(target.env_temp_red_mode == expected.env_temp_red_mode,
+				"are environment temperature's reduction mode equal");
+}
 void assert_header_equal_verbose(adf_header_t target, adf_header_t expected)
 {
 	assert_int_equal(target.signature, expected.signature,
@@ -183,18 +250,10 @@ void assert_header_equal_verbose(adf_header_t target, adf_header_t expected)
 						   "are versions equals");
 	assert_true(target.farming_tec == expected.farming_tec,
 				"are farming tecniques equals");
-	assert_small_int_equal(target.n_wavelength, expected.n_wavelength,
-						   "are n_wavelengths equal");
-	assert_small_int_equal(target.min_w_len_nm, expected.min_w_len_nm,
-						   "are min_w_len_nms equal");
-	assert_small_int_equal(target.max_w_len_nm, expected.max_w_len_nm,
-						   "are max_w_len_nms equal");
-	assert_small_int_equal(target.n_depth, expected.n_depth,
-						   "are n_depth equal");
-	assert_small_int_equal(target.min_soil_depth_mm, expected.min_soil_depth_mm,
-						   "are min_soil_depth_mm equal");
-	assert_small_int_equal(target.max_soil_depth_mm, expected.max_soil_depth_mm,
-						   "are max_soil_depth_mm equal");
+	assert_wave_info_equal_verbose(target.wave_info, expected.wave_info);
+	assert_soil_depth_info_equal_verbose(target.soil_info, expected.soil_info);
+	assert_reduction_info_equal_verbose(target.reduction_info,
+										expected.reduction_info);
 	assert_int_equal(target.n_chunks, expected.n_chunks,
 					 "are n_chunks equal");
 }
@@ -205,12 +264,9 @@ void assert_header_equal(adf_header_t target, adf_header_t expected,
 	bool c = are_ints_equal(target.signature, expected.signature)
 			 && are_small_ints_equal(target.version, expected.version)
 			 && target.farming_tec == expected.farming_tec
-			 && are_small_ints_equal(target.n_wavelength, expected.n_wavelength)
-			 && are_small_ints_equal(target.min_w_len_nm, expected.min_w_len_nm)
-			 && are_small_ints_equal(target.max_w_len_nm, expected.max_w_len_nm)
-			 && are_small_ints_equal(target.n_depth, expected.n_depth)
-			 && are_small_ints_equal(target.min_soil_depth_mm, expected.min_soil_depth_mm)
-			 && are_small_ints_equal(target.max_soil_depth_mm, expected.max_soil_depth_mm)
+			 && are_wave_info_equal(target.wave_info, expected.wave_info)
+			 && are_soil_depth_info_equal(target.soil_info, expected.soil_info)
+			 && are_reduction_info_equal(target.reduction_info, expected.reduction_info)
 			 && are_ints_equal(target.n_chunks, expected.n_chunks);
 	assert_true(c, label);
 }
@@ -223,12 +279,6 @@ void assert_metadata_equal(adf_meta_t target, adf_meta_t expected,
 			 && are_ints_equal(target.period_sec, expected.period_sec)
 			 && are_ints_equal(target.seeded, expected.seeded)
 			 && are_ints_equal(target.harvested, expected.harvested)
-			 && target.soil_density_red_mode == expected.soil_density_red_mode
-			 && target.pressure_red_mode == expected.pressure_red_mode
-			 && target.light_exposure_red_mode == expected.light_exposure_red_mode
-			 && target.water_use_red_mode == expected.water_use_red_mode
-			 && target.soil_temp_red_mode == expected.soil_temp_red_mode
-			 && target.env_temp_red_mode == expected.env_temp_red_mode
 			 && are_small_ints_equal(target.n_additives, expected.n_additives)
 			 && are_int_arrays_equal(target.additive_codes, 
 			 						 expected.additive_codes,
@@ -245,18 +295,6 @@ void assert_metadata_equal_verbose(adf_meta_t target, adf_meta_t expected)
 	assert_true(target.n_series == expected.n_series, "are n_series equal");
 	assert_int_equal(target.period_sec, expected.period_sec, 
 					 "are periods equal");
-	assert_true(target.soil_density_red_mode == expected.soil_density_red_mode,
-				"are soil density's reduction modes equal");
-	assert_true(target.pressure_red_mode == expected.pressure_red_mode,
-				"are pressure's reduction modes equal");
-	assert_true(target.light_exposure_red_mode == expected.light_exposure_red_mode,
-				"are light exposures's reduction modes equal");
-	assert_true(target.water_use_red_mode == expected.water_use_red_mode,
-				"are water use's reduction modes equal");
-	assert_true(target.soil_temp_red_mode == expected.soil_temp_red_mode,
-				"are soil temperature's reduction modes equal");
-	assert_true(target.env_temp_red_mode == expected.env_temp_red_mode,
-				"are environment temperature's reduction modes equal");
 	assert_int_equal(target.seeded, expected.seeded, "are seeded equal");
 	assert_int_equal(target.harvested, expected.harvested, "are harvested equal");
 	assert_small_int_equal(target.n_additives, expected.n_additives,
@@ -269,9 +307,9 @@ void assert_metadata_equal_verbose(adf_meta_t target, adf_meta_t expected)
 void assert_series_equal_verbose(adf_t data, series_t x, series_t y)
 {
 	uint32_t light_exposure_dim = data.header.n_chunks.val
-								  * data.header.n_wavelength.val,
+								  * data.header.wave_info.n_wavelength.val,
 			 soil_temp_dim = data.header.n_chunks.val
-			 				 * data.header.n_depth.val;
+			 				 * data.header.soil_info.n_depth.val;
 	assert_real_arrays_equal(x.light_exposure, y.light_exposure,
 						 light_exposure_dim, "are light_exposures equal");
 	assert_real_arrays_equal(x.soil_temp_c, y.soil_temp_c, soil_temp_dim, 
@@ -309,9 +347,9 @@ void assert_series_equal_verbose(adf_t data, series_t x, series_t y)
 void assert_series_equal(adf_t data, series_t x, series_t y, const char *label)
 {
 	uint32_t light_exposure_dim = data.header.n_chunks.val
-								  * data.header.n_wavelength.val,
+								  * data.header.wave_info.n_wavelength.val,
 			 soil_temp_dim = data.header.n_chunks.val
-			 				 * data.header.n_depth.val;
+			 				 * data.header.soil_info.n_depth.val;
 	bool c = are_real_arrays_equal(x.light_exposure, y.light_exposure,
 								   light_exposure_dim)
 			&& are_real_arrays_equal(x.soil_temp_c, y.soil_temp_c,

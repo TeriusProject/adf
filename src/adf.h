@@ -302,17 +302,59 @@ typedef struct {
 	 * additive should appear just once.
 	 */
 	uint_t *additive_codes;
+} __attribute__((packed)) adf_meta_t;
+
+typedef struct {
+	/*
+	 * The lower bound of the light spectrum.
+	 */
+	uint_small_t min_w_len_nm;
 
 	/*
-	 *
+	 * The upper bound of the light spectrum.
 	 */
+	uint_small_t max_w_len_nm;
+
+	/*
+	 * A 4 byte unsigned integer that represents the number of steps in which
+	 * the light spectrum is (equally) divided. The spectrum represented here
+	 * is bounded between:
+	 *         [min_w_len_nm, max_w_len_nm]
+	 */
+	uint_small_t n_wavelength;
+} __attribute__((packed)) wavelength_info_t;
+
+typedef struct {
+	/*
+	 * 
+	 */
+	uint_small_t min_soil_depth_mm;
+
+	/*
+	 * 
+	 */
+	uint_small_t max_soil_depth_mm;
+
+	/*
+	 * 
+	 */
+	uint_small_t n_depth;
+} __attribute__((packed)) soil_depth_info_t;
+
+/*
+ * Each of the following fields contain information about the statistical
+ * procedure used to reduce the data in the series.
+ *     Default value: 0
+ *     Meaning: No statistical procedure has been applied.
+ */
+typedef struct {
 	uint8_t soil_density_red_mode;
 	uint8_t pressure_red_mode;
 	uint8_t light_exposure_red_mode;
 	uint8_t water_use_red_mode;
 	uint8_t soil_temp_red_mode;
 	uint8_t env_temp_red_mode;
-} __attribute__((packed)) adf_meta_t;
+} __attribute__((packed)) reduction_info_t;
 
 typedef struct {
 	/*
@@ -334,39 +376,12 @@ typedef struct {
 	 */
 	uint8_t farming_tec;
 
-	/*
-	 * The lower bound of the light spectrum.
-	 */
-	uint_small_t min_w_len_nm;
+	wavelength_info_t wave_info;
 
-	/*
-	 * The upper bound of the light spectrum.
-	 */
-	uint_small_t max_w_len_nm;
+	soil_depth_info_t soil_info;
 
-	/*
-	 * A 4 byte unsigned integer that represents the number of steps in which
-	 * the light spectrum is (equally) divided. The spectrum represented here
-	 * is bounded between:
-	 *         [min_w_len_nm, max_w_len_nm]
-	 */
-	uint_small_t n_wavelength;
-
-	/*
-	 * 
-	 */
-	uint_small_t min_soil_depth_mm;
-
-	/*
-	 * 
-	 */
-	uint_small_t max_soil_depth_mm;
-
-	/*
-	 * 
-	 */
-	uint_small_t n_depth;
-
+	reduction_info_t reduction_info;
+	
 	/*
 	 * The number of chunks in which each data series is (equally) divided.
 	 */
@@ -494,11 +509,13 @@ bool are_additive_t_equal(additive_t, additive_t);
  */
 bool are_series_equal(const series_t *, const series_t *, const adf_t*);
 
-/* Just an helper function to create an header */
-adf_header_t create_header(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t);
-
+/*
+ *
+ */
 additive_t create_additive(uint32_t code, float concentration);
-
+adf_header_t create_header(uint8_t farming_tec, wavelength_info_t wave_info,
+						   soil_depth_info_t soil_info, 
+						   reduction_info_t reduction_info, uint32_t n_chunks);
 series_t create_series(float *light_exposure, float *soil_temp_c,
 					   float *env_temp_c, float *water_use_ml, uint8_t pH, 
 					   float p_bar, float soil_density_kg_m3,
@@ -506,12 +523,14 @@ series_t create_series(float *light_exposure, float *soil_temp_c,
 					   additive_t *soil_additives, additive_t *atm_additives, 
 					   uint32_t repeated);
 
-/* Just an helper function to create an empty series*/
+/*
+ *
+ */
+void metadata_init(adf_meta_t *, uint32_t);
+void adf_init(adf_t *, adf_header_t, uint32_t);
 uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
 						   uint16_t n_wavelenght, uint16_t n_depth,
 						   uint16_t n_soil_additives, uint16_t n_atm_additives);
-void metadata_init(adf_meta_t *, uint32_t);
-void adf_init(adf_t *, adf_header_t, uint32_t);
 
 void metadata_free(adf_meta_t *);
 void series_free(series_t *);
