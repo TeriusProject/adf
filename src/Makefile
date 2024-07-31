@@ -32,6 +32,7 @@ LIB_DIR = /usr/local/lib
 
 $(LIB): $(OBJS)
 	$(AR) cr $@ $^
+	ranlib $(LIB)
 
 adf.o: $(HEADER) adf.c
 	$(CC) $(CFLAGS) -c $^

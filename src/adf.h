@@ -40,6 +40,8 @@ extern "C" {
  * progressive way, without any distinction between major and minor releases.
  */
 #define __ADF_VERSION__ 0x0009u
+#define MAJOR_VERSION_MASK 0xFF00u
+#define MINOR_VERSION_MASK 0x00FFu
 
 /* 
  * Used for the comparison of floating point numbers: numbers that have the 
@@ -388,7 +390,7 @@ typedef struct {
 /*
  * Returns the current version of ADF.
  */
-uint8_t get_version(void);
+uint16_t get_version(void);
 
 /*
  * The size (bytes) of the adf header, including its crc field.

@@ -49,7 +49,7 @@ static bool is_big_endian(void)
 	return endianess.bytes[0];
 }
 
-static void to_big_endian_4_bytes(uint8_t *dest, const uint8_t *source)
+static void from_to_big_endian_4_bytes(uint8_t *dest, const uint8_t *source)
 {
 	*(dest) = *source;
 	*(dest + 1) = *(source + 1);
@@ -57,7 +57,7 @@ static void to_big_endian_4_bytes(uint8_t *dest, const uint8_t *source)
 	*(dest + 3) = *(source + 3);
 }
 
-static void to_little_endian_4_bytes(uint8_t *dest, const uint8_t *source)
+static void from_to_little_endian_4_bytes(uint8_t *dest, const uint8_t *source)
 {
 	*(dest) = *(source + 3);
 	*(dest + 1) = *(source + 2);
@@ -65,19 +65,19 @@ static void to_little_endian_4_bytes(uint8_t *dest, const uint8_t *source)
 	*(dest + 3) = *source;
 }
 
-static void to_big_endian_2_bytes(uint8_t *dest, const uint8_t *source)
+static void from_to_big_endian_2_bytes(uint8_t *dest, const uint8_t *source)
 {
 	*(dest) = *source;
 	*(dest + 1) = *(source + 1);
 }
 
-static void to_little_endian_2_bytes(uint8_t *dest, const uint8_t *source)
+static void from_to_little_endian_2_bytes(uint8_t *dest, const uint8_t *source)
 {
 	*(dest) = *(source + 1);
 	*(dest + 1) = *source;
 }
 
-uint8_t get_version(void) { return __ADF_VERSION__; }
+uint16_t get_version(void) { return __ADF_VERSION__; }
 
 size_t size_series_t(adf_t *adf, series_t *series)
 {
@@ -136,8 +136,8 @@ size_t size_header(void)
 
 size_t size_adf_t(adf_t data)
 {
-	const size_t head_metadata_size
-		= size_header() + size_medatata_t(&data.metadata);
+	const size_t head_metadata_size = size_header() 
+									  + size_medatata_t(&data.metadata);
 	size_t series_size = 0;
 	for (uint32_t i = 0, l = data.metadata.size_series.val; i < l; i++) {
 		series_size += size_series_t(&data, data.series + i);
@@ -159,11 +159,11 @@ uint16_t marshal(uint8_t *bytes, adf_t data)
 	size_t byte_c = 0;
 	uint_small_t crc_16bits;
 	cpy_4_bytes_fn = is_big_endian()
-					 ? &to_big_endian_4_bytes 
-					 : &to_little_endian_4_bytes;
+					 ? &from_to_big_endian_4_bytes 
+					 : &from_to_little_endian_4_bytes;
 	cpy_2_bytes_fn = is_big_endian()
-					 ? &to_big_endian_2_bytes 
-					 : &to_little_endian_2_bytes;
+					 ? &from_to_big_endian_2_bytes 
+					 : &from_to_little_endian_2_bytes;
 	if (!bytes) { return ADF_RUNTIME_ERROR; }
 	cpy_4_bytes_fn((bytes + byte_c), data.header.signature.bytes);
 	SHIFT4(byte_c);
@@ -302,11 +302,11 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	uint16_t header_crc, meta_crc, series_crc;
 	uint32_t n_series = 0, n_iter, n_chunks, n_waves, n_depth;
 	cpy_4_bytes_fn = is_big_endian()
-					 ? &to_big_endian_4_bytes 
-					 : &to_little_endian_4_bytes;
+					 ? &from_to_big_endian_4_bytes 
+					 : &from_to_little_endian_4_bytes;
 	cpy_2_bytes_fn = is_big_endian()
-					 ? &to_big_endian_2_bytes 
-					 : &to_little_endian_2_bytes;
+					 ? &from_to_big_endian_2_bytes 
+					 : &from_to_little_endian_2_bytes;
 
 	if (!bytes || !adf) { return ADF_RUNTIME_ERROR; }
 
@@ -569,8 +569,8 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 			 res;
 	uint32_t total_additives;
 	cpy_2_bytes_fn = is_big_endian() 
-					 ? &to_big_endian_2_bytes 
-					 : &to_little_endian_2_bytes;
+					 ? &from_to_big_endian_2_bytes 
+					 : &from_to_little_endian_2_bytes;
 
 	if (series_to_add->repeated.val == 0) { return ADF_ZERO_REPEATED_SERIES; }
 
@@ -1021,9 +1021,19 @@ void adf_free(adf_t *adf)
 {
 	adf_meta_t *metadata = (adf_meta_t *) &(adf->metadata);
 	metadata_free(metadata);
-	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) 
+	#ifdef __ADF_DEBUG__
+	printf(DEBUG_STR "metadata has been freed\n");
+	#endif /* __ADF_DEBUG__ */
+	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
 		series_free(adf->series + i);
+		#ifdef __ADF_DEBUG__
+		printf(DEBUG_STR "series #%u has been freed\n", i);
+		#endif /* __ADF_DEBUG__ */
+	}
 	free(adf->series);
+	#ifdef __ADF_DEBUG__
+	printf(DEBUG_STR "Series array has been freed\n");
+	#endif /* __ADF_DEBUG__ */
 	adf->series = NULL;
 }
 
