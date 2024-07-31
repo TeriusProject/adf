@@ -54,10 +54,10 @@ int main(void)
 	fclose(sample_file);
 
 	expected = get_default_object();
-	printf("expected bytes: %zu\n", size_adf_t(expected));
+	printf("expected bytes: %zu\n", size_adf_t(&expected));
 	printf("read bytes: %ld\n", file_len);
 	assert_true(
-		size_adf_t(expected) == (unsigned long)file_len,
+		size_adf_t(&expected) == (unsigned long)file_len,
 		"are byte arrays of the same length"
 	);
 

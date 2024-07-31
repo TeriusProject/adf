@@ -431,14 +431,14 @@ size_t size_series_t(adf_t *, series_t *);
  * structure may be bigger, due to some redundant fields that speed up
  * the mashalling and unmarshalling process.
  */
-size_t size_adf_t(adf_t);
+size_t size_adf_t(adf_t *);
 
 /*
  * It returns a pointer to a chunk of memory that could contain the bytes
  * serialization of an adf object. The size of the returned byte array is
  * `size_adf_t`.
  */
-uint8_t *adf_bytes_alloc(adf_t);
+uint8_t *adf_bytes_alloc(adf_t *);
 
 /*
  *
@@ -460,7 +460,7 @@ uint16_t remove_series(adf_t *);
  * byte size to be allocated by the function `size_adf_t`. Alternatively, you
  * can allocate it directly with `bytes_alloc`. 
  */
-uint16_t marshal(uint8_t *, adf_t);
+uint16_t marshal(uint8_t *, adf_t *);
 
 /* Assumes the `adf_t *` structure to be allocated. */
 uint16_t unmarshal(adf_t *, const uint8_t *);
@@ -497,14 +497,19 @@ bool are_series_equal(const series_t *, const series_t *, const adf_t*);
 /* Just an helper function to create an header */
 adf_header_t create_header(uint8_t, uint32_t, uint32_t, uint32_t, uint32_t);
 
-/* */
-adf_t create_empty_adf(adf_header_t, uint16_t);
+additive_t create_additive(uint32_t code, float concentration);
+
+series_t create_series(float *light_exposure, float *soil_temp_c,
+					   float *env_temp_c, float *water_use_ml, uint8_t pH, 
+					   float p_bar, float soil_density_kg_m3,
+					   uint16_t n_soil_adds, uint16_t n_atm_adds, 
+					   additive_t *soil_additives, additive_t *atm_additives, 
+					   uint32_t repeated);
 
 /* Just an helper function to create an empty series*/
 uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
 						   uint16_t n_wavelenght, uint16_t n_depth,
 						   uint16_t n_soil_additives, uint16_t n_atm_additives);
-
 void metadata_init(adf_meta_t *, uint32_t);
 void adf_init(adf_t *, adf_header_t, uint32_t);
 

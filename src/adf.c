@@ -134,18 +134,18 @@ size_t size_header(void)
 		   + UINT_SMALL_T_SIZE;	/* crc */
 }
 
-size_t size_adf_t(adf_t data)
+size_t size_adf_t(adf_t *data)
 {
 	const size_t head_metadata_size = size_header() 
-									  + size_medatata_t(&data.metadata);
+									  + size_medatata_t(&data->metadata);
 	size_t series_size = 0;
-	for (uint32_t i = 0, l = data.metadata.size_series.val; i < l; i++) {
-		series_size += size_series_t(&data, data.series + i);
+	for (uint32_t i = 0, l = data->metadata.size_series.val; i < l; i++) {
+		series_size += size_series_t(data, data->series + i);
 	}
 	return head_metadata_size + series_size;
 }
 
-uint8_t *adf_bytes_alloc(adf_t data) {
+uint8_t *adf_bytes_alloc(adf_t *data) {
 	return (uint8_t *)malloc(size_adf_t(data));
 }
 
@@ -154,10 +154,13 @@ void adf_bytes_free(uint8_t *bytes) {
 	bytes = NULL;
 }
 
-uint16_t marshal(uint8_t *bytes, adf_t data)
+uint16_t marshal(uint8_t *bytes, adf_t *data)
 {
 	size_t byte_c = 0;
 	uint_small_t crc_16bits;
+	adf_header_t *header;
+	adf_meta_t *metadata;
+	series_t *current;
 	cpy_4_bytes_fn = is_big_endian()
 					 ? &from_to_big_endian_4_bytes 
 					 : &from_to_little_endian_4_bytes;
@@ -165,25 +168,26 @@ uint16_t marshal(uint8_t *bytes, adf_t data)
 					 ? &from_to_big_endian_2_bytes 
 					 : &from_to_little_endian_2_bytes;
 	if (!bytes) { return ADF_RUNTIME_ERROR; }
-	cpy_4_bytes_fn((bytes + byte_c), data.header.signature.bytes);
+	header = &data->header;
+	cpy_4_bytes_fn((bytes + byte_c), header->signature.bytes);
 	SHIFT4(byte_c);
-	cpy_2_bytes_fn(bytes + byte_c, data.header.version.bytes);
+	cpy_2_bytes_fn(bytes + byte_c, header->version.bytes);
 	SHIFT2(byte_c);
-	*(bytes + byte_c) = data.header.farming_tec;
+	*(bytes + byte_c) = header->farming_tec;
 	SHIFT1(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), data.header.n_wavelength.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), header->n_wavelength.bytes);
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), data.header.min_w_len_nm.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), header->min_w_len_nm.bytes);
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), data.header.max_w_len_nm.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), header->max_w_len_nm.bytes);
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), data.header.n_depth.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), header->n_depth.bytes);
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), data.header.min_soil_depth_mm.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), header->min_soil_depth_mm.bytes);
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), data.header.max_soil_depth_mm.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), header->max_soil_depth_mm.bytes);
 	SHIFT2(byte_c);
-	cpy_4_bytes_fn((bytes + byte_c), data.header.n_chunks.bytes);
+	cpy_4_bytes_fn((bytes + byte_c), header->n_chunks.bytes);
 	SHIFT4(byte_c);
 	crc_16bits.val = crc16(bytes, byte_c);
 	cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
@@ -193,32 +197,33 @@ uint16_t marshal(uint8_t *bytes, adf_t data)
 	printf(DEBUG_STR "Marshal header done\n");
 	#endif /* __ADF_DEBUG__ */
 
-	cpy_4_bytes_fn((bytes + byte_c), data.metadata.size_series.bytes);
+	metadata = &data->metadata;
+	cpy_4_bytes_fn((bytes + byte_c), metadata->size_series.bytes);
 	SHIFT4(byte_c);
-	cpy_4_bytes_fn((bytes + byte_c), data.metadata.period_sec.bytes);
+	cpy_4_bytes_fn((bytes + byte_c), metadata->period_sec.bytes);
 	SHIFT4(byte_c);
-	cpy_4_bytes_fn((bytes + byte_c), data.metadata.seeded.bytes);
+	cpy_4_bytes_fn((bytes + byte_c), metadata->seeded.bytes);
 	SHIFT4(byte_c);
-	cpy_4_bytes_fn((bytes + byte_c), data.metadata.harvested.bytes);
+	cpy_4_bytes_fn((bytes + byte_c), metadata->harvested.bytes);
 	SHIFT4(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), data.metadata.n_additives.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), metadata->n_additives.bytes);
 	SHIFT2(byte_c);
-	*(bytes + byte_c) = data.metadata.soil_density_red_mode;
+	*(bytes + byte_c) = metadata->soil_density_red_mode;
 	SHIFT1(byte_c);
-	*(bytes + byte_c) = data.metadata.pressure_red_mode;
+	*(bytes + byte_c) = metadata->pressure_red_mode;
 	SHIFT1(byte_c);
-	*(bytes + byte_c) = data.metadata.light_exposure_red_mode;
+	*(bytes + byte_c) = metadata->light_exposure_red_mode;
 	SHIFT1(byte_c);
-	*(bytes + byte_c) = data.metadata.water_use_red_mode;
+	*(bytes + byte_c) = metadata->water_use_red_mode;
 	SHIFT1(byte_c);
-	*(bytes + byte_c) = data.metadata.soil_temp_red_mode;
+	*(bytes + byte_c) = metadata->soil_temp_red_mode;
 	SHIFT1(byte_c);
-	*(bytes + byte_c) = data.metadata.env_temp_red_mode;
+	*(bytes + byte_c) = metadata->env_temp_red_mode;
 	SHIFT1(byte_c);
 
-	for (uint16_t i = 0, l = data.metadata.n_additives.val; i < l;
+	for (uint16_t i = 0, l = metadata->n_additives.val; i < l;
 		 i++, byte_c += 4) {
-		cpy_4_bytes_fn((bytes + byte_c), data.metadata.additive_codes[i].bytes);
+		cpy_4_bytes_fn((bytes + byte_c), metadata->additive_codes[i].bytes);
 	}
 
 	crc_16bits.val = crc16((bytes + size_header()), byte_c - size_header());
@@ -229,59 +234,59 @@ uint16_t marshal(uint8_t *bytes, adf_t data)
 	printf(DEBUG_STR "Marshal metadata done\n");
 	#endif /* __ADF_DEBUG__ */
 
-	uint32_t n_iter = data.metadata.size_series.val;
-	uint32_t n_chunks = data.header.n_chunks.val;
-	uint16_t n_wave = data.header.n_wavelength.val;
-	uint16_t n_depth = data.header.n_depth.val;
+	uint32_t n_iter = metadata->size_series.val;
+	uint32_t n_chunks = header->n_chunks.val;
+	uint16_t n_wave = header->n_wavelength.val;
+	uint16_t n_depth = header->n_depth.val;
 	for (uint32_t i = 0; i < n_iter; i++) {
-		series_t current = data.series[i];
+		current = data->series + i;
 		size_t starting_byte = byte_c;
-		if (!current.light_exposure) { return ADF_RUNTIME_ERROR; }
+		if (!current->light_exposure) { return ADF_RUNTIME_ERROR; }
 		for (uint32_t w = 0; w < n_chunks * n_wave; w++, byte_c += 4) {
-			cpy_4_bytes_fn((bytes + byte_c), current.light_exposure[w].bytes);
+			cpy_4_bytes_fn((bytes + byte_c), current->light_exposure[w].bytes);
 		}
-		if (!current.soil_temp_c) { return ADF_RUNTIME_ERROR; }
+		if (!current->soil_temp_c) { return ADF_RUNTIME_ERROR; }
 		for (uint32_t t = 0; t < n_chunks * n_depth; t++, byte_c += 4) {
-			cpy_4_bytes_fn((bytes + byte_c), current.soil_temp_c[t].bytes);
+			cpy_4_bytes_fn((bytes + byte_c), current->soil_temp_c[t].bytes);
 		}
-		if (!current.env_temp_c) { return ADF_RUNTIME_ERROR; }
-		for (uint32_t temp_i = 0; temp_i < data.header.n_chunks.val;
+		if (!current->env_temp_c) { return ADF_RUNTIME_ERROR; }
+		for (uint32_t temp_i = 0; temp_i < n_chunks;
 			 temp_i++, byte_c += 4) {
 			cpy_4_bytes_fn((bytes + byte_c),
-						   current.env_temp_c[temp_i].bytes);
+						   current->env_temp_c[temp_i].bytes);
 		}
-		if (!current.water_use_ml) { return ADF_RUNTIME_ERROR; }
-		for (uint32_t w_i = 0; w_i < data.header.n_chunks.val;
+		if (!current->water_use_ml) { return ADF_RUNTIME_ERROR; }
+		for (uint32_t w_i = 0; w_i < n_chunks;
 			 w_i++, byte_c += 4) {
-			cpy_4_bytes_fn((bytes + byte_c), current.water_use_ml[w_i].bytes);
+			cpy_4_bytes_fn((bytes + byte_c), current->water_use_ml[w_i].bytes);
 		}
-		*(bytes + byte_c) = current.pH;
+		*(bytes + byte_c) = current->pH;
 		SHIFT1(byte_c);
-		cpy_4_bytes_fn((bytes + byte_c), current.p_bar.bytes);
+		cpy_4_bytes_fn((bytes + byte_c), current->p_bar.bytes);
 		SHIFT4(byte_c);
-		cpy_4_bytes_fn((bytes + byte_c), current.soil_density_kg_m3.bytes);
+		cpy_4_bytes_fn((bytes + byte_c), current->soil_density_kg_m3.bytes);
 		SHIFT4(byte_c);
-		cpy_2_bytes_fn((bytes + byte_c), current.n_soil_adds.bytes);
+		cpy_2_bytes_fn((bytes + byte_c), current->n_soil_adds.bytes);
 		SHIFT2(byte_c);
-		cpy_2_bytes_fn((bytes + byte_c), current.n_atm_adds.bytes);
+		cpy_2_bytes_fn((bytes + byte_c), current->n_atm_adds.bytes);
 		SHIFT2(byte_c);
-		for (uint16_t j = 0, l = current.n_soil_adds.val; j < l; j++) {
+		for (uint16_t j = 0, l = current->n_soil_adds.val; j < l; j++) {
 			cpy_2_bytes_fn((bytes + byte_c),
-						   current.soil_additives[j].code_idx.bytes);
+						   current->soil_additives[j].code_idx.bytes);
 			SHIFT2(byte_c);
 			cpy_4_bytes_fn((bytes + byte_c),
-						   current.soil_additives[j].concentration.bytes);
+						   current->soil_additives[j].concentration.bytes);
 			SHIFT4(byte_c);
 		}
-		for (uint16_t j = 0, l = current.n_atm_adds.val; j < l; j++) {
+		for (uint16_t j = 0, l = current->n_atm_adds.val; j < l; j++) {
 			cpy_2_bytes_fn((bytes + byte_c),
-						   current.atm_additives[j].code_idx.bytes);
+						   current->atm_additives[j].code_idx.bytes);
 			SHIFT2(byte_c);
 			cpy_4_bytes_fn((bytes + byte_c),
-						   current.atm_additives[j].concentration.bytes);
+						   current->atm_additives[j].concentration.bytes);
 			SHIFT4(byte_c);
 		}
-		cpy_4_bytes_fn((bytes + byte_c), current.repeated.bytes);
+		cpy_4_bytes_fn((bytes + byte_c), current->repeated.bytes);
 		SHIFT4(byte_c);
 
 		crc_16bits.val = crc16((bytes + starting_byte), byte_c - starting_byte);
@@ -963,13 +968,6 @@ void adf_init(adf_t *adf, adf_header_t header, uint32_t period_sec)
 	adf->series = NULL;
 }
 
-adf_t create_empty_adf(adf_header_t header, uint16_t period_sec)
-{
-	adf_t adf;
-	adf_init(&adf, header, period_sec);
-	return adf;
-}
-
 uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
 						   uint16_t n_waves, uint16_t n_depth,
 						   uint16_t n_soil_additives, uint16_t n_atm_additives)
@@ -993,6 +991,37 @@ uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
 		return ADF_RUNTIME_ERROR;
 	
 	return ADF_OK;
+}
+
+additive_t create_additive(uint32_t code, float concentration)
+{
+	return (additive_t) {
+		.code = { code },
+		.concentration = { concentration }
+	};
+}
+
+series_t create_series(float *light_exposure, float *soil_temp_c,
+					   float *env_temp_c, float *water_use_ml, uint8_t pH, 
+					   float p_bar, float soil_density_kg_m3,
+					   uint16_t n_soil_adds, uint16_t n_atm_adds, 
+					   additive_t *soil_additives, additive_t *atm_additives, 
+					   uint32_t repeated)
+{
+	return (series_t) {
+		.light_exposure = (real_t *) light_exposure,
+		.soil_temp_c = (real_t *) soil_temp_c,
+		.env_temp_c = (real_t *) env_temp_c,
+		.water_use_ml = (real_t *) water_use_ml,
+		.pH = pH, 
+		.p_bar = { p_bar },
+		.soil_density_kg_m3 = { soil_density_kg_m3 },
+		.n_soil_adds = { n_soil_adds },
+		.n_atm_adds = { n_atm_adds }, 
+		.soil_additives = soil_additives,
+		.atm_additives = atm_additives, 
+		.repeated = { repeated }
+	};
 }
 
 void metadata_free(adf_meta_t *metadata)

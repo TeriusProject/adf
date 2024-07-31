@@ -54,15 +54,15 @@ int main(void)
 	fclose(sample_file);
 
 	/* marshalling the object */
-	bytes = malloc(size_adf_t(adf) * sizeof(uint8_t));
-	res = marshal(bytes, adf);
+	bytes = malloc(size_adf_t(&adf) * sizeof(uint8_t));
+	res = marshal(bytes, &adf);
 	if (res != ADF_OK) {
 		printf("%s", "An error occurred during marshal process\n_chunks");
 		return 1;
 	}
 
 	/* compare byte arrays */
-	assert_long_equal(file_len, size_adf_t(adf),
+	assert_long_equal(file_len, size_adf_t(&adf),
 					  "are byte arrays of the same length");
 	assert_uint8_arrays_equal(file_bytes, bytes, file_len, 
 							  "are byte arrays equal");
