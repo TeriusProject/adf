@@ -58,4 +58,9 @@ asm:
 
 .PHONY : cpp
 cpp:
-	@$(MAKE) -C api/cc 
+	@$(MAKE) -C api/cc
+
+.PHONY: cpp_install
+# currently just install on macOS and GNU/Linux
+cpp_install:
+	@$(MAKE) -C api/cc install

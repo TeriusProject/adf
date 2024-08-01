@@ -27,7 +27,8 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
-#include <stdint.h>
+#include <cstdint>
+#include <string> 
 #include <vector>
 
 namespace adf {
@@ -65,7 +66,7 @@ reduction_info_t ReductionInfo::toCReductionInfo(void)
 	return r_info;
 }
 
-adf_header_t AdfHeader::toCHeader(void)
+adf_header_t Header::toCHeader(void)
 {
 	return create_header(
 		this->getFarmingTec(),
@@ -76,7 +77,7 @@ adf_header_t AdfHeader::toCHeader(void)
 	);
 }
 
-additive_t AdfAdditive::toCAdditive(void)
+additive_t Additive::toCAdditive(void)
 {
 	additive_t add =  {
 		.code = { this->code },
@@ -85,9 +86,9 @@ additive_t AdfAdditive::toCAdditive(void)
 	return add;
 }
 
-series_t AdfSeries::toCSeries(void)
+series_t Series::toCSeries(void)
 {
-	std::function<additive_t(AdfAdditive)> f = [](AdfAdditive add) { return add.toCAdditive(); };
+	std::function<additive_t(Additive)> f = [](Additive add) { return add.toCAdditive(); };
 	
 	real_t lightExposureFirstElem = { *this->getLightexposure().startPointer() };
 	real_t soilTempFirstElem = { *this->getSoilTemperatureCelsius().startPointer() };
@@ -113,22 +114,31 @@ series_t AdfSeries::toCSeries(void)
 	return cSeries;
 }
 
-std::string Adf::version(void)
+Version Adf::version(void)
 {
-	uint8_t major = (__ADF_VERSION__ & MAJOR_VERSION_MASK) >> 8;
-	uint8_t minor = (__ADF_VERSION__ & MINOR_VERSION_MASK) >> 4;
-	uint8_t patch = __ADF_VERSION__ & PATCH_VERSION_MASK;
-	return std::format("{}.{}.{}", major, minor, patch);
+	return {
+		.major = (__ADF_VERSION__ & MAJOR_VERSION_MASK) >> 8,
+		.minor = (__ADF_VERSION__ & MINOR_VERSION_MASK) >> 4,
+		.patch = __ADF_VERSION__ & PATCH_VERSION_MASK,
+	};
 }
 
-void Adf::addSeries(AdfSeries &series)
+#if __cplusplus == 202002L
+std::string Adf::versionString(void)
+{
+	Version v = this->version();
+	return std::format("{}.{}.{}", v.major, v.minor, v.patch);
+}
+#endif
+
+void Adf::addSeries(Series &series)
 {
 	series_t cSeries = series.toCSeries();
 	uint16_t res = add_series(&this->adf, &cSeries);
 	if (res != ADF_OK) throwAdfError(res);
 }
 
-void Adf::updateSeries(AdfSeries &series, uint64_t time)
+void Adf::updateSeries(Series &series, uint64_t time)
 {
 	series_t cSeries = series.toCSeries();
 	uint16_t res = update_series(&this->adf, &cSeries, time);

@@ -38,7 +38,7 @@ extern "C" {
 /*
  * Version is an unsigned 2-byte integer. 
  * The most significant byte represents the major release. The first half of
- * the least significant byte, the mino release, while the second half the 
+ * the least significant byte, the minor release, while the second half the 
  * patch release.
  *
  * Example
@@ -73,12 +73,24 @@ extern "C" {
 /*
  * Some useful constants. All numbers are expressed in seconds
  */
-#define ADF_DAY			86'400
-#define ADF_WEEK		604'800
-#define ADF_MONTH_28	2'419'200
-#define ADF_MONTH_29	2'505'600
-#define ADF_MONTH_30	2'592'000
-#define ADF_MONTH_31	2'678'400
+#define ADF_DAY			86400
+#define ADF_WEEK		604800
+#define ADF_MONTH_28	2419200
+#define ADF_MONTH_29	2505600
+#define ADF_MONTH_30	2592000
+#define ADF_MONTH_31	2678400
+
+typedef enum {
+	REGULAR				= 0x00,  
+	INDOOR				= 0x01, 
+	INDOOR_PROTECTED	= 0x02, 
+	OUTDOOR				= 0x03,
+	ARTIFICIAL_SOIL		= 0x10,
+	HYDROPONICS			= 0x20, 
+	ANTHROPONICS		= 0x21,
+	AEROPONICS			= 0x30, 
+	FOGPONICS			= 0x31
+} farming_technique;
 
 /*
  * It contains the exit code of the functions that handle the adf_t structure.

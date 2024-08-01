@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <iostream>
 #include <ostream>
+#include <string>
 #include <vector>
 
 namespace adf {
@@ -46,7 +47,7 @@ class WaveInfo {
 	uint16_t getNWavelength(void) { return this->nWavelength; }
 	uint16_t getMinWlenNm(void) { return this->minWlenNm; }
 	uint16_t getMaxWlenNm(void) { return this->maxWlenNm; }
-	friend class AdfHeader;
+	friend class Header;
 };
 
 class SoilDepthInfo {
@@ -63,7 +64,7 @@ class SoilDepthInfo {
 	uint16_t getNDepthMeasurements(void) { return this->nDepthMeasurements; }
 	uint16_t getMinDepthMm(void) { return this->minDepthMm; }
 	uint16_t getMaxDepthMm(void) { return this->maxDepthMm; }
-	friend class AdfHeader;
+	friend class Header;
 };
 
 class ReductionInfo {
@@ -88,10 +89,10 @@ class ReductionInfo {
 	uint8_t getWaterUse(void) { return this->waterUse; }
 	uint8_t getSoilTemp(void) { return this->soilTemp; }
 	uint8_t getEnvTemp(void) { return this->envTemp; }
-	friend class AdfHeader;
+	friend class Header;
 };
 
-class AdfHeader {
+class Header {
   private:
 	uint8_t farmingTec;
 	WaveInfo waveInfo;
@@ -101,7 +102,7 @@ class AdfHeader {
 	adf_header_t toCHeader(void);
 
   public:
-	AdfHeader(uint8_t farmingTec, WaveInfo waveInfo, SoilDepthInfo depthInfo, ReductionInfo reductionInfo, uint32_t nChunks)
+	Header(uint8_t farmingTec, WaveInfo waveInfo, SoilDepthInfo depthInfo, ReductionInfo reductionInfo, uint32_t nChunks)
 		: farmingTec(farmingTec), waveInfo(waveInfo), soilDepthInfo(depthInfo), reductionInfo(reductionInfo), nChunks(nChunks)
 	{ }
 
@@ -113,7 +114,7 @@ class AdfHeader {
 	friend class Adf;
 };
 
-class AdfAdditive {
+class Additive {
   private:
 	uint16_t codeIdx;
 	uint32_t code;
@@ -121,10 +122,10 @@ class AdfAdditive {
 	additive_t toCAdditive(void);
 
   public:
-	AdfAdditive(uint32_t code, float concentration)
+	Additive(uint32_t code, float concentration)
 		: code(code), concentration(concentration)
 	{ }
-	AdfAdditive(uint16_t codeIdx, uint32_t code, float concentration)
+	Additive(uint16_t codeIdx, uint32_t code, float concentration)
 		: codeIdx(codeIdx), code(code), concentration(concentration)
 	{ }
 
@@ -132,10 +133,10 @@ class AdfAdditive {
 	uint32_t getCode(void) { return this->code; }
 	float getConcentration(void) { return this->concentration; }
 
-	friend class AdfSeries;
+	friend class Series;
 };
 
-class AdfSeries {
+class Series {
 	private:
 	Matrix<float> lightExposure;
 	Matrix<float> soilTemperatureCelsius;
@@ -144,18 +145,18 @@ class AdfSeries {
 	float pH;
 	float pressureBar;
 	float soilDensityKgM3;
-	std::vector<AdfAdditive> soilAdditives;
-	std::vector<AdfAdditive> atmosphereAdditives;
+	std::vector<Additive> soilAdditives;
+	std::vector<Additive> atmosphereAdditives;
 	uint32_t repeated;
 	series_t toCSeries(void);
 
 	public:
-	AdfSeries(Matrix<float> lightExposure,
+	Series(Matrix<float> lightExposure,
 			  Matrix<float> soilTemperatureCelsius,
 			  std::vector<float> environmenttemperatureCelsius,
 			  std::vector<float> wateruseMl, float pH, float pressureBar,
-			  float soilDensityKgM3, std::vector<AdfAdditive> soilAdditives,
-			  std::vector<AdfAdditive> atmosphereAdditives, uint32_t repeated)
+			  float soilDensityKgM3, std::vector<Additive> soilAdditives,
+			  std::vector<Additive> atmosphereAdditives, uint32_t repeated)
 		: lightExposure(lightExposure), soilTemperatureCelsius(soilTemperatureCelsius), 
 		  environmenttemperatureCelsius(environmenttemperatureCelsius),
 		  wateruseMl(wateruseMl), pH(pH), pressureBar(pressureBar),
@@ -170,11 +171,17 @@ class AdfSeries {
 	float getPh(void) { return this->pH; }
 	float getPressurebar(void) { return this->pressureBar; }
 	float getSoildensitykgm3(void) { return this->soilDensityKgM3; }
-	std::vector<AdfAdditive> getSoiladditives(void) { return this->soilAdditives; }
-	std::vector<AdfAdditive> getAtmosphereadditives(void) { return this->atmosphereAdditives; }
+	std::vector<Additive> getSoiladditives(void) { return this->soilAdditives; }
+	std::vector<Additive> getAtmosphereadditives(void) { return this->atmosphereAdditives; }
 	uint32_t getRepeated(void) { return this->repeated; }
 
 	friend class Adf;
+};
+
+struct Version {
+	uint8_t major;
+	uint8_t minor;
+	uint8_t patch;
 };
 
 class Adf {
@@ -182,18 +189,21 @@ class Adf {
 	adf_t adf;
 
 	public:
-	Adf(AdfHeader header, uint32_t periodSec)
+	Adf(Header header, uint32_t periodSec)
 	{
 		adf_init(&this->adf, header.toCHeader(), periodSec);
 	}
 	/* Unmarshal and init */
 	Adf(std::vector<std::byte> bytes);
 	~Adf() { adf_free(&this->adf); }
-	std::string version(void);
+	#if __cplusplus == 202002L
+	std::string versionString(void);
+	#endif
+	Version version(void);
 	size_t size(void);
-	void addSeries(AdfSeries &series);
+	void addSeries(Series &series);
 	void removeSeries(void);
-	void updateSeries(AdfSeries &series, uint64_t time);
+	void updateSeries(Series &series, uint64_t time);
 	std::vector<std::byte> marshal();
 };
 
