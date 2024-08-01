@@ -22,6 +22,7 @@
  */
 
 #include <adf.h>
+#include <locale.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,19 +36,21 @@ void write_file(adf_t adf)
 	FILE *output_file;
 	uint8_t *bytes;
 	uint16_t res;
+	size_t adf_size_bytes = size_adf_t(&adf);
 
-	bytes = adf_bytes_alloc(adf);
-	if ((res = marshal(bytes, adf)) != ADF_OK) {
+	bytes = malloc(adf_size_bytes);
+	if ((res = marshal(bytes, &adf)) != ADF_OK) {
 		printf("An error occurred during marshal process [code: %x]\n", res);
 		exit(1);
 	}
 	output_file = fopen(OUT_FILE_PATH, "wb");
 	if (!output_file) {
-		perror("Error: ");
+		printf("Error: cannot create `%s` file.\n", OUT_FILE_PATH);
 		exit(1);
 	}
-	fwrite(bytes, 1, size_adf_t(adf), output_file);
+	fwrite(bytes, 1, size_adf_t(&adf), output_file);
 	fclose(output_file);
+	printf("Wrote %'lu bytes\n", adf_size_bytes);
 	free(bytes);
 }
 
@@ -75,8 +78,9 @@ series_t get_series(uint32_t n_chunks, uint16_t n_wavelength, uint16_t n_depth)
 	series.n_soil_adds.val = 1;
 	series.n_atm_adds.val = 1;
 
-	series.light_exposure = malloc(n_chunks * sizeof(real_t *));
-	series.soil_temp_c = malloc(n_chunks * sizeof(real_t *));
+	series.light_exposure = malloc(n_chunks * n_wavelength
+								   * sizeof(real_t *));
+	series.soil_temp_c = malloc(n_chunks * n_depth * sizeof(real_t *));
 	series.env_temp_c = malloc(n_chunks * sizeof(real_t));
 	series.water_use_ml = malloc(n_chunks * sizeof(real_t));
 	series.soil_additives = malloc(sizeof(additive_t));
@@ -85,13 +89,11 @@ series_t get_series(uint32_t n_chunks, uint16_t n_wavelength, uint16_t n_depth)
 	for (uint32_t i = 0; i < n_chunks; i++) {
 		series.env_temp_c[i].val = (float)rand()/(float)(RAND_MAX);
 		series.water_use_ml[i].val = (float)rand()/(float)(RAND_MAX);
-		series.light_exposure[i] = malloc(n_wavelength * sizeof(real_t));
-		series.soil_temp_c[i] = malloc(n_depth * sizeof(real_t));
 
 		for (uint16_t j = 0; j < n_wavelength; j++) 
-			series.light_exposure[i][j].val = (float)rand()/(float)(RAND_MAX);
+			series.light_exposure[i].val = (float)rand()/(float)(RAND_MAX);
 		for (uint16_t j = 0; j < n_depth; j++) 
-			series.soil_temp_c[i][j].val = (float)rand()/(float)(RAND_MAX);
+			series.soil_temp_c[i].val = (float)rand()/(float)(RAND_MAX);
 
 	}
 
@@ -103,14 +105,15 @@ series_t get_series(uint32_t n_chunks, uint16_t n_wavelength, uint16_t n_depth)
 
 void register_data(adf_t *adf)
 {
-	uint16_t res;
 	series_t series_to_add;
-
-	for (uint16_t i = 1, n = rand() % 10'000; i <= n; i++) {
+	uint16_t res,
+			 n_wave = adf->header.wave_info.n_wavelength.val,
+			 n_depth = adf->header.soil_info.n_depth.val;
+	for (uint16_t i = 1, n = rand() % 10000; i <= n; i++) {
 		printf("Adding series %d/%d\n", i, n);
 		series_to_add = get_series(adf->header.n_chunks.val, 
-								   adf->header.n_wavelength.val,
-								   adf->header.n_depth.val);
+								   n_wave,
+								   n_depth);
 		res = add_series(adf, &series_to_add);
 		if (res != ADF_OK) {
 			printf("An error occurred while adding the series [code:%x]", res);
@@ -121,24 +124,30 @@ void register_data(adf_t *adf)
 
 int main(void)
 {
-	adf_header_t header;
 	adf_t adf;
-	
-	header = (adf_header_t) { 
-		.signature = { __ADF_SIGNATURE__ },
-		.version = { __ADF_VERSION__ },
-		.farming_tec = 0x01u,
+	adf_header_t header;
+	wavelength_info_t w_info;
+	soil_depth_info_t s_info;
+	reduction_info_t r_info = { 0 }; // Init to 0
+
+	w_info = (wavelength_info_t) {
 		.min_w_len_nm = { 0 },
 		.max_w_len_nm = { 10000 },
-		.n_chunks = { 10 },
 		.n_wavelength = { 10 },
+	};
+
+	s_info = (soil_depth_info_t) {
 		.n_depth = { 3 },
 		.min_soil_depth_mm = { 0 },
 		.max_soil_depth_mm = { 300 }
 	};
+
+	header = create_header(REGULAR, w_info, s_info, r_info,  10);
 	adf_init(&adf, header, ADF_DAY); // each series takes 1 day
 
 	srand(time(NULL));
+	setlocale(LC_ALL, "");
+
 	register_data(&adf);
 	printf("Writing on file `%s`...\n", OUT_FILE_PATH);
 	write_file(adf);
