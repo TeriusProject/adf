@@ -196,7 +196,7 @@ class Adf {
 	/* Unmarshal and init */
 	Adf(std::vector<std::byte> bytes);
 	~Adf() { adf_free(&this->adf); }
-	#if __cplusplus == 202002L
+	#if __cplusplus >= 202002L
 	std::string versionString(void);
 	#endif
 	Version version(void);

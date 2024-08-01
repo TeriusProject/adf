@@ -123,7 +123,7 @@ Version Adf::version(void)
 	};
 }
 
-#if __cplusplus == 202002L
+#if __cplusplus >= 202002L
 std::string Adf::versionString(void)
 {
 	Version v = this->version();
