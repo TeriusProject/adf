@@ -62,6 +62,29 @@ real_t **get_real_matrix(int n_rows, int n_columns)
 	return light_mask;
 }
 
+adf_header_t get_default_header(void)
+{
+	wavelength_info_t wave_info = (wavelength_info_t) {			
+		.n_wavelength = { 20},
+		.min_w_len_nm = { 0 },
+		.max_w_len_nm = { 10000 },
+	};
+	soil_depth_info_t soil_info = (soil_depth_info_t) {
+		.n_depth = { 2 },
+		.min_soil_depth_mm = { 0 },
+		.max_soil_depth_mm = { 20 },
+	};
+	reduction_info_t reduction_info = (reduction_info_t) {
+		.soil_density_red_mode = 1,
+		.pressure_red_mode = 1,
+		.light_exposure_red_mode = 1,
+		.water_use_red_mode = 1,
+		.soil_temp_red_mode = 1,
+		.env_temp_red_mode = 1
+	};
+	return create_header(0x01u, wave_info, soil_info, reduction_info, 10);
+}
+
 series_t get_series(void)
 {
 	additive_t *soil_add_code = malloc(sizeof(additive_t));
@@ -137,18 +160,7 @@ series_t get_series_with_two_soil_additives(void)
 adf_t get_object_with_zero_series(void)
 {
 	return (adf_t) {
-		.header = (adf_header_t) { 
-			.signature = { __ADF_SIGNATURE__ },
-			.version = { __ADF_VERSION__ },
-			.farming_tec = 3,
-			.min_w_len_nm = { 0 },
-			.max_w_len_nm = { 10000 },
-			.n_chunks = { 10 },
-			.n_wavelength = { 10 },
-			.n_depth = {2},
-			.min_soil_depth_mm = { 0 },
-			.max_soil_depth_mm = { 20} 
-		},
+		.header = get_default_header(),
 		.metadata = (adf_meta_t) {
 			.period_sec = { 1345 },
 			.n_additives = { 0 },
@@ -219,18 +231,7 @@ adf_t get_default_object(void)
 	uint_t *codes = malloc(sizeof(uint_t));
 	*codes = (uint_t){ 2345 };
 	return (adf_t) {
-		.header = (adf_header_t) { 
-			.signature = { __ADF_SIGNATURE__ },
-			.version = { __ADF_VERSION__ },
-			.farming_tec = 3,
-			.n_wavelength = { 20},
-			.min_w_len_nm = { 0 },
-			.max_w_len_nm = { 10000 },
-			.n_depth = { 2 },
-			.min_soil_depth_mm = { 0 },
-			.max_soil_depth_mm = { 20 },
-			.n_chunks = { 10 }
-		},
+		.header = get_default_header(),
 		.metadata = (adf_meta_t) { 
 			.period_sec = { 1345 },
 			.n_additives = { 1 },

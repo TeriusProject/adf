@@ -38,18 +38,7 @@ void series_have_more_additives_than_metadata(void)
 	*codes = (uint_t){ 2345 };
 	
 	format = (adf_t) { 
-		.header = (adf_header_t) { 
-			.signature = { __ADF_SIGNATURE__ },
-			.version = { __ADF_VERSION__ },
-			.farming_tec = 3,
-			.min_w_len_nm = { 0 },
-			.max_w_len_nm = { 10000 },
-			.n_chunks = { 10 },
-			.n_wavelength = { 10 },
-			.n_depth = { 2 },
-			.min_soil_depth_mm = { 0 },
-			.max_soil_depth_mm = { 20 }
-		},
+		.header = get_default_header(),
 		.metadata = (adf_meta_t) {
 			.period_sec = { 1345 },
 			.n_additives = { 1 },

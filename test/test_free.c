@@ -31,15 +31,7 @@ void test_free_adf(void)
 	adf_header_t header;
 	series_t series;
 	
-	header = (adf_header_t) {
-		.farming_tec = 0x01u,
-		.max_w_len_nm = { 1000 },
-		.min_w_len_nm = { 0 },
-		.n_chunks = { 10 },
-		.n_wavelength = { 150 },
-		.signature = { __ADF_SIGNATURE__ },
-		.version = { __ADF_VERSION__ }
-	};
+	header = get_default_header();
 	series = get_series();
 
 	adf_init(&adf, header, 3600);

@@ -1,13 +1,18 @@
 CC = g++
 CXXFLAGS = -pedantic -Wall -Wextra -fPIC -std=c++20 -O3
 INCLUDE = /usr/local/include
-LIB = /usr/local/lib
-OBJ = adf
+LIB_DIR = /usr/local/lib
+OBJ = adfpp.o
+LIB = libadfpp.dylib
 
-all: $(OBJ)
+$(LIB): adf.cc adf.hpp exceptions.hpp utils.hpp
+	$(CC) $(CXXFLAGS) $< -dynamiclib -ladf -o $@ -I $(INCLUDE) -L $(LIB_DIR)
 
-$(OBJ): adf.cc adf.hpp exceptions.hpp utils.hpp
-	$(CC) $(CXXFLAGS) $< -ladf -o $(OBJ) -I $(INCLUDE) -L $(LIB)
-
-clean: $(OBJ)
+.PHONY: clean
+clean: $(LIB)
 	rm -f $^
+
+.PHONY: install
+install: adf.hpp $(LIB)
+	cp $< $(INCLUDE)
+	cp $(LIB) $(LIB_DIR)

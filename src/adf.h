@@ -36,12 +36,24 @@ extern "C" {
 #define __ADF_SIGNATURE__ 0x40414446u
 
 /*
- * Version is an unsigned int between 0 and 255. Versions are numbered in
- * progressive way, without any distinction between major and minor releases.
+ * Version is an unsigned 2-byte integer. 
+ * The most significant byte represents the major release. The first half of
+ * the least significant byte, the mino release, while the second half the 
+ * patch release.
+ *
+ * Example
+ * -------
+ * If the constant __ADF_VERSION__ hase the value 0x01A1u, it has to be 
+ * parsed as follows
+ *    Major version -> 0x01
+ *    Minor version -> 0xA
+ *    Patch version -> 0x1
+ * So, this ADF version is 1.10.1
  */
-#define __ADF_VERSION__ 0x0009u
+#define __ADF_VERSION__ 0x0090u
 #define MAJOR_VERSION_MASK 0xFF00u
-#define MINOR_VERSION_MASK 0x00FFu
+#define MINOR_VERSION_MASK 0x00F0u
+#define PATCH_VERSION_MASK 0x000Fu
 
 /* 
  * Used for the comparison of floating point numbers: numbers that have the 

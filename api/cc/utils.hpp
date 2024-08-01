@@ -80,7 +80,7 @@ class Matrix {
 	}
 
 	std::vector<T> getVector() { return this->mat; }
-	T *getFirstElement() { return this->mat.data(); }
+	T *startPointer() { return this->mat.data(); }
 	T &operator()(uint32_t row, uint32_t column) 
 	{
 		return this->mat.at(column + row * nColumns);

@@ -26,11 +26,13 @@
 
 void assert_true(bool condition, const char *label)
 {
-	if (condition) { printf(GREEN "PASSED (" TICK "): %s" RESET "\n", label); }
-	else {
-		printf(RED "FAILED (" CROSS "): %s\n" RESET, label);
-		exit(1);
+	if (condition) { 
+		printf(GREEN "PASSED (" TICK "): %s" RESET "\n", label); 
+		return;
 	}
+	
+	printf(RED "FAILED (" CROSS "): %s\n" RESET, label);
+	exit(1);
 }
 
 bool are_ints_equal(uint_t x, uint_t y) { return x.val == y.val; }

@@ -24,6 +24,7 @@
 #include "mock.h"
 #include "test.h"
 #include "../src/adf.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -171,10 +172,15 @@ void test_additive_overflow(void)
 	series_t series1, series2;
 	additive_t *series1_additives, *series2_additives;
 	uint16_t size1 = 30'000, size2 = 50'000, res;
+	uint32_t n_chunks, n_wave, n_depth;
+
 
 	adf = get_object_with_zero_series();
 	series1_additives = malloc(size1 * sizeof(additive_t));
 	series2_additives = malloc(size2 * sizeof(additive_t));
+	n_chunks = adf.header.n_chunks.val;
+	n_wave = adf.header.wave_info.n_wavelength.val;
+	n_depth = adf.header.soil_info.n_depth.val;
 
 	for (uint16_t i = 0; i < size1; i++)
 		series1_additives[i] = (additive_t) {
@@ -189,12 +195,10 @@ void test_additive_overflow(void)
 		};
 
 	series1 = (series_t) { 
-		.light_exposure = get_real_inline_matrix(adf.header.n_chunks.val,
-										  adf.header.n_wavelength.val),
-		.soil_temp_c = get_real_inline_matrix(adf.header.n_chunks.val,
-										  adf.header.n_depth.val),
-		.env_temp_c = get_real_array(adf.header.n_chunks.val),
-		.water_use_ml = get_real_array(adf.header.n_chunks.val),
+		.light_exposure = get_real_inline_matrix(n_chunks, n_wave),
+		.soil_temp_c = get_real_inline_matrix(n_chunks, n_depth),
+		.env_temp_c = get_real_array(n_chunks),
+		.water_use_ml = get_real_array(n_chunks),
 		.pH = 11,
 		.p_bar = { 13.56789 },
 		.soil_density_kg_m3 = { 123.345 },
@@ -205,12 +209,10 @@ void test_additive_overflow(void)
 		.repeated = { 1 }
 	};
 	series2 = (series_t) { 
-		.light_exposure = get_real_inline_matrix(adf.header.n_chunks.val,
-										  adf.header.n_wavelength.val),
-		.soil_temp_c = get_real_inline_matrix(adf.header.n_chunks.val,
-										  adf.header.n_depth.val),
-		.env_temp_c = get_real_array(adf.header.n_chunks.val),
-		.water_use_ml = get_real_array(adf.header.n_chunks.val),
+		.light_exposure = get_real_inline_matrix(n_chunks, n_wave),
+		.soil_temp_c = get_real_inline_matrix(n_chunks, n_depth),
+		.env_temp_c = get_real_array(n_chunks),
+		.water_use_ml = get_real_array(n_chunks),
 		.pH = 2,
 		.p_bar = { 3.89 },
 		.soil_density_kg_m3 = { 0.345 },
