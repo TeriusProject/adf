@@ -73,23 +73,23 @@ extern "C" {
 /*
  * Some useful constants. All numbers are expressed in seconds
  */
-#define ADF_DAY			86400
-#define ADF_WEEK		604800
-#define ADF_MONTH_28	2419200
-#define ADF_MONTH_29	2505600
-#define ADF_MONTH_30	2592000
-#define ADF_MONTH_31	2678400
+#define ADF_DAY         86400
+#define ADF_WEEK        604800
+#define ADF_MONTH_28    2419200
+#define ADF_MONTH_29    2505600
+#define ADF_MONTH_30    2592000
+#define ADF_MONTH_31    2678400
 
 typedef enum {
-	REGULAR				= 0x00,  
-	INDOOR				= 0x01, 
-	INDOOR_PROTECTED	= 0x02, 
-	OUTDOOR				= 0x03,
-	ARTIFICIAL_SOIL		= 0x10,
-	HYDROPONICS			= 0x20, 
-	ANTHROPONICS		= 0x21,
-	AEROPONICS			= 0x30, 
-	FOGPONICS			= 0x31
+	ADF_FT_REGULAR            = 0x00,  
+	ADF_FT_INDOOR             = 0x01, 
+	ADF_FT_INDOOR_PROTECTED   = 0x02, 
+	ADF_FT_OUTDOOR            = 0x03,
+	ADF_FT_ARTIFICIAL_SOIL    = 0x10,
+	ADF_FT_HYDROPONICS        = 0x20, 
+	ADF_FT_ANTHROPONICS       = 0x21,
+	ADF_FT_AEROPONICS         = 0x30, 
+	ADF_FT_FOGPONICS          = 0x31
 } farming_technique;
 
 /*

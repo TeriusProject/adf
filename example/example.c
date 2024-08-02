@@ -142,7 +142,7 @@ int main(void)
 		.max_soil_depth_mm = { 300 }
 	};
 
-	header = create_header(REGULAR, w_info, s_info, r_info,  10);
+	header = create_header(ADF_FT_REGULAR, w_info, s_info, r_info,  10);
 	adf_init(&adf, header, ADF_DAY); // each series takes 1 day
 
 	srand(time(NULL));

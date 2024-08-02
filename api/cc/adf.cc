@@ -20,7 +20,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
+
 #include "adf.hpp"
 #include "exceptions.hpp"
 #include <format>
@@ -123,13 +123,15 @@ Version Adf::version(void)
 	};
 }
 
-#if __cplusplus >= 202002L
 std::string Adf::versionString(void)
 {
 	Version v = this->version();
+	#if __cplusplus >= 202002L
 	return std::format("{}.{}.{}", v.major, v.minor, v.patch);
+	#else
+	return std::to_string(v.major) + "." + std::to_string(v.minor) + "." + std::to_string(v.patch);
+	#endif
 }
-#endif
 
 void Adf::addSeries(Series &series)
 {

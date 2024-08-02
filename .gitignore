@@ -81,7 +81,8 @@ test/test_perf
 example/example
 example/output.adf
 example/example
+api/cc/example
 
 .DS_Store
 api/go/
-api/cc/main.cc
+api/js/
