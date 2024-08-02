@@ -1,7 +1,9 @@
 #include <adf.hpp>
+#include <cstdio>
 #include <fstream>
 #include <random>
 
+#define FILE_NAME "output.adf"
 #define N_SERIES 250
 #define N_CHUNKS 5
 #define N_WAVELENGTH 15
@@ -55,7 +57,7 @@ void updateData(adf::Adf& adf)
 	}
 }
 
-int main(void) 
+void createAdfAndSaveToFile(void)
 {
 	adf::Header header = adf::Header(
 		ADF_FT_REGULAR,
@@ -66,11 +68,36 @@ int main(void)
 	adf::Adf adf = adf::Adf(header, ADF_DAY);
 	updateData(adf);
 	std::vector<std::byte> bytes = adf.marshal();
-	std::ofstream fs("output.adf", std::ios::out | std::ios::binary);
+	std::ofstream fs(FILE_NAME, std::ios::out | std::ios::binary);
 	fs.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
 	fs.close();
 	std::cout << "Current ADF version: " << adf.versionString() << std::endl;
-	std::cout << "Serialize ADF file (" << adf.size() << " bytes)" << std::endl;
-	std::cout << "Wrote file `output.adf`" << std::endl;
+	std::cout << "Wrote ADF file (" << adf.size() << " bytes)\nfilename:" << FILE_NAME << std::endl;
+}
+
+std::vector<std::byte> readFile(void) 
+{
+	std::ifstream in(FILE_NAME, std::ios_base::binary);
+    in.seekg(0, std::ios_base::end);
+    auto length = in.tellg();
+    in.seekg(0, std::ios_base::beg);
+    std::vector<std::byte> buffer(length);
+    in.read(reinterpret_cast<char*>(buffer.data()), length);
+    in.close();
+	std::cout << "Read file "<< FILE_NAME << " (" << length << " bytes)" << std::endl;
+	return buffer;
+}
+
+void readFileAndGenerateAdf(void)
+{
+	std::vector<std::byte> bytes = readFile();
+	adf::Adf adf(bytes);
+	std::cout << "ADF size: " << adf.size() << " bytes" << std::endl;
+}
+
+int main(void) 
+{
+	createAdfAndSaveToFile();
+	readFileAndGenerateAdf();
 	std::cout << "*DONE*" << std::endl;
 }

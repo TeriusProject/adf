@@ -5,7 +5,7 @@ LIB_DIR = /usr/local/lib
 LIB = libadfpp.dylib
 
 $(LIB): adf.cc adf.hpp exceptions.hpp
-	$(CC) $(CXXFLAGS) $< -dynamiclib -ladf -o $@ -I $(INCLUDE) -L $(LIB_DIR)
+	$(CC) $(CXXFLAGS) -dynamiclib -ladf -o $@ $< -I $(INCLUDE) -L $(LIB_DIR)
 
 .PHONY: install
 install: adf.hpp $(LIB)
@@ -14,8 +14,8 @@ install: adf.hpp $(LIB)
 
 .PHONY: example
 example: example.cc
-	DYLD_INSERT_LIBRARIES=$(LIB_DIR) $(CC) $(CXXFLAGS)  -ladfpp   -o $@ $<
+	DYLD_INSERT_LIBRARIES=$(LIB_DIR) $(CC) $(CXXFLAGS) -ladfpp -o $@ $<
 
 .PHONY: clean
 clean: 
-	rm -f adfpp.o libadfpp.dylib
+	rm -f $(LIB)

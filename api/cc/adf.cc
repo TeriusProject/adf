@@ -56,12 +56,12 @@ soil_depth_info_t SoilDepthInfo::toCSoilInfo(void)
 reduction_info_t ReductionInfo::toCReductionInfo(void)
 {
 	reduction_info_t r_info = {
-		.soil_density_red_mode = soilDensity,
-		.pressure_red_mode = pressure,
-		.light_exposure_red_mode = lightExposure,
-		.water_use_red_mode = waterUse,
-		.soil_temp_red_mode = soilTemp,
-		.env_temp_red_mode = envTemp
+		.soil_density_red_mode = (reduction_code_t) this->soilDensity,
+		.pressure_red_mode = (reduction_code_t) this->pressure,
+		.light_exposure_red_mode = (reduction_code_t) this->lightExposure,
+		.water_use_red_mode = (reduction_code_t) this->waterUse,
+		.soil_temp_red_mode = (reduction_code_t) this->soilTemp,
+		.env_temp_red_mode = (reduction_code_t) this->envTemp
 	};
 	return r_info;
 }
