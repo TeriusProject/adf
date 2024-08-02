@@ -77,10 +77,9 @@ class Matrix {
 	std::vector<T> mat;
 
 	public:
-	Matrix(uint32_t rows, uint32_t columns)
+	Matrix(uint32_t columns)
 	{
-		this->mat.resize(rows * columns, 0);
-		this->nRows = rows;
+		this->nRows = 0;
 		this->nColumns = columns;
 	}
 	Matrix(std::vector<T> init, uint32_t rows, uint32_t columns)
@@ -98,6 +97,7 @@ class Matrix {
 		if (row.size() != this->nColumns)
 			throw InvalidMatrixShapeException(row.size(), this->nRows, this->nColumns);
 		this->mat.insert(this->mat.end(), row.begin(), row.end());
+		this->nRows++;
 	}
 	T *startPointer() { return this->mat.data(); }
 	T &operator()(uint32_t row, uint32_t column) 
@@ -221,7 +221,7 @@ class Series {
 	Matrix<float> lightExposure;
 	Matrix<float> soilTempCelsius;
 	std::vector<float> environmentTempCelsius;
-	std::vector<float> wateruseMl;
+	std::vector<float> waterUseMl;
 	float pH;
 	float pressureBar;
 	float soilDensityKgM3;
@@ -239,7 +239,7 @@ class Series {
 			  std::vector<Additive> atmosphereAdditives, uint32_t repeated)
 		: lightExposure(lightExposure), soilTempCelsius(soilTemperatureCelsius),
 		  environmentTempCelsius(environmenttemperatureCelsius),
-		  wateruseMl(wateruseMl), pH(pH), pressureBar(pressureBar),
+		  waterUseMl(wateruseMl), pH(pH), pressureBar(pressureBar),
 		  soilDensityKgM3(soilDensityKgM3), soilAdditives(soilAdditives),
 		  atmosphereAdditives(atmosphereAdditives), repeated(repeated)
 	{ }
@@ -253,7 +253,7 @@ class Series {
 	{
 		return this->environmentTempCelsius;
 	}
-	std::vector<float> getWateruseml(void) { return this->wateruseMl; }
+	std::vector<float> getWaterUseMl(void) { return this->waterUseMl; }
 	float getPh(void) { return this->pH; }
 	float getPressurebar(void) { return this->pressureBar; }
 	float getSoildensitykgm3(void) { return this->soilDensityKgM3; }

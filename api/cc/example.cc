@@ -11,10 +11,10 @@
 
 adf::Series getRandomSeries()
 {
-	std::default_random_engine e;
-    std::uniform_real_distribution<> dis(0, 1);
-	adf::Matrix<float> lightExposure(N_CHUNKS, N_WAVELENGTH);
-	adf::Matrix<float> soilTemperature(N_CHUNKS, N_DEPTH);
+	static std::default_random_engine e;
+    static std::uniform_real_distribution<> dis(0, 1);
+	adf::Matrix<float> lightExposure(N_WAVELENGTH);
+	adf::Matrix<float> soilTemperature(N_DEPTH);
 	std::vector<float> temperatureCelsius;
 	std::vector<float> waterUseMl;
 	std::vector<adf::Additive> soilAdditives({adf::Additive(1, 16.504)});

@@ -22,6 +22,7 @@
  */
 
 #include "adf.hpp"
+#include "adf.h"
 #include "exceptions.hpp"
 #include <format>
 #include <fstream>
@@ -90,24 +91,26 @@ series_t Series::toCSeries(void)
 {
 	std::function<additive_t(Additive)> f = [](Additive add) { return add.toCAdditive(); };
 	
-	real_t lightExposureFirstElem = { *this->getLightexposure().startPointer() };
-	real_t soilTempFirstElem = { *this->getSoilTemperatureCelsius().startPointer() };
-	real_t envTempFirstElem =  { *this->getEnvironmenttemperatureCelsius().data() };
-	real_t waterUseFirstElem = { *this->getWateruseml().data() };
-	additive_t soilAdditives =  { *map(this->getSoiladditives(), f).data() };
-	additive_t atmosphereAdditives =  { *map(this->getAtmosphereadditives(), f).data() };
+	real_t *lightExposureFirstElem = reinterpret_cast<real_t*>(this->lightExposure.startPointer());
+	real_t *soilTempFirstElem = reinterpret_cast<real_t*>(this->soilTempCelsius.startPointer());
+	real_t *envTempFirstElem =  reinterpret_cast<real_t*>(this->environmentTempCelsius.data());
+	real_t * waterUseFirstElem = reinterpret_cast<real_t*>(this->waterUseMl.data());
+	std::vector<additive_t> soilAdditives =  map(this->soilAdditives, f);
+	additive_t *soilAdditivesFirstElem =  reinterpret_cast<additive_t*>(soilAdditives.data());
+	std::vector<additive_t> atmosphereAdditives =  map(this->atmosphereAdditives, f);
+	additive_t *atmosphereAdditivesFirstElem =  reinterpret_cast<additive_t*>(atmosphereAdditives.data());
 	series_t cSeries = {
-		.light_exposure = &lightExposureFirstElem,
-		.soil_temp_c = &soilTempFirstElem,
-		.env_temp_c = &envTempFirstElem,
-		.water_use_ml = &waterUseFirstElem,
+		.light_exposure = lightExposureFirstElem,
+		.soil_temp_c = soilTempFirstElem,
+		.env_temp_c = envTempFirstElem,
+		.water_use_ml = waterUseFirstElem,
 		.pH = (uint8_t)(this->getPh() * 10),
 		.p_bar = { this->getPressurebar() },
 		.soil_density_kg_m3 = { this->getSoildensitykgm3() },
 		.n_soil_adds= { (uint16_t)this->getSoiladditives().size() },
 		.n_atm_adds = {(uint16_t) this->getAtmosphereadditives().size() },
-		.soil_additives = &soilAdditives,
-		.atm_additives = &atmosphereAdditives,
+		.soil_additives = soilAdditivesFirstElem,
+		.atm_additives = atmosphereAdditivesFirstElem,
 		.repeated = {this->getRepeated() }
 	};
 
