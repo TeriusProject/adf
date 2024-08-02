@@ -72,7 +72,7 @@ void createAdfAndSaveToFile(void)
 	fs.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
 	fs.close();
 	std::cout << "Current ADF version: " << adf.versionString() << std::endl;
-	std::cout << "Wrote ADF file (" << adf.size() << " bytes)\nfilename:" << FILE_NAME << std::endl;
+	std::cout << "Wrote ADF file (" << adf.size() << " bytes)\nfilename: " << FILE_NAME << std::endl;
 }
 
 std::vector<std::byte> readFile(void) 

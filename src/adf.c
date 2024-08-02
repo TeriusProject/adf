@@ -86,52 +86,52 @@ size_t size_series_t(adf_t *adf, series_t *series)
 	uint32_t n_depth = adf->header.soil_info.n_depth.val;
 	uint16_t n_soil_add = series->n_soil_adds.val;
 	uint16_t n_atm_add = series->n_atm_adds.val;
-	return (n_wave * n_chunks * REAL_T_SIZE)	/* light_exposure */
+	return (n_wave * n_chunks * REAL_T_SIZE)    /* light_exposure */
 		   + (n_depth * n_chunks * REAL_T_SIZE)	/* soil_temp_c */
-		   + (n_chunks * REAL_T_SIZE)			/* env_temp_c */
-		   + (n_chunks * REAL_T_SIZE)			/* water_use_ml */
-		   + UINT_TINY_T_SIZE					/* pH */
-		   + REAL_T_SIZE						/* p_bar */
-		   + REAL_T_SIZE						/* soil_density_t_m3 */
-		   + UINT_SMALL_T_SIZE					/* n_soil_adds */
-		   + UINT_SMALL_T_SIZE					/* n_atm_adds */
-		   + (ADD_T_SIZE * n_soil_add)			/* soil_additives */
-		   + (ADD_T_SIZE * n_atm_add)			/* atm_additives */
-		   + UINT_T_SIZE						/* repeated */
-		   + UINT_SMALL_T_SIZE;					/* crc */
+		   + (n_chunks * REAL_T_SIZE)           /* env_temp_c */
+		   + (n_chunks * REAL_T_SIZE)           /* water_use_ml */
+		   + UINT_TINY_T_SIZE                   /* pH */
+		   + REAL_T_SIZE                        /* p_bar */
+		   + REAL_T_SIZE                        /* soil_density_t_m3 */
+		   + UINT_SMALL_T_SIZE                  /* n_soil_adds */
+		   + UINT_SMALL_T_SIZE                  /* n_atm_adds */
+		   + (ADD_T_SIZE * n_soil_add)          /* soil_additives */
+		   + (ADD_T_SIZE * n_atm_add)           /* atm_additives */
+		   + UINT_T_SIZE                        /* repeated */
+		   + UINT_SMALL_T_SIZE;                 /* crc */
 }
 
 size_t size_medatata_t(adf_meta_t *metadata)
 {
 	uint16_t add_codes_size = metadata->n_additives.val;
-	return UINT_T_SIZE							/* size_series */
-		   + UINT_T_SIZE						/* period_sec */
-		   + UINT_T_SIZE						/* seeded */
-		   + UINT_T_SIZE						/* harvested */
-		   + UINT_SMALL_T_SIZE					/* n_additives */
-		   + (add_codes_size * UINT_T_SIZE)		/* additive_codes */
-		   + UINT_TINY_T_SIZE					/* soil_density_red_mode */
-		   + UINT_TINY_T_SIZE					/* pressure_red_mode */
-		   + UINT_TINY_T_SIZE					/* light_exposure_red_mode */
-		   + UINT_TINY_T_SIZE					/* water_use_red_mode */
-		   + UINT_TINY_T_SIZE					/* soil_temp_red_mode */
-		   + UINT_TINY_T_SIZE					/* env_temp_red_mode */
-		   + UINT_SMALL_T_SIZE;					/* crc */
+	return UINT_T_SIZE                          /* size_series */
+		   + UINT_T_SIZE                        /* period_sec */
+		   + UINT_T_SIZE                        /* seeded */
+		   + UINT_T_SIZE                        /* harvested */
+		   + UINT_SMALL_T_SIZE                  /* n_additives */
+		   + (add_codes_size * UINT_T_SIZE)     /* additive_codes */
+		   + UINT_SMALL_T_SIZE;                 /* crc */
 }
 
 size_t size_header(void)
 {
-	return UINT_T_SIZE			/* signature */
-		   + UINT_SMALL_T_SIZE	/* version */
-		   + UINT_TINY_T_SIZE	/* farming_tec */
-		   + UINT_SMALL_T_SIZE	/* n_wavelength */
-		   + UINT_SMALL_T_SIZE	/* min_w_len_nm */
-		   + UINT_SMALL_T_SIZE	/* max_w_len_nm */
-		   + UINT_SMALL_T_SIZE	/* n_depth */
-		   + UINT_SMALL_T_SIZE	/* min_soil_depth_mm */
-		   + UINT_SMALL_T_SIZE	/* max_soil_depth_mm */
-		   + UINT_T_SIZE		/* n_chunks */
-		   + UINT_SMALL_T_SIZE;	/* crc */
+	return UINT_T_SIZE          /* signature */
+		   + UINT_SMALL_T_SIZE  /* version */
+		   + UINT_TINY_T_SIZE   /* farming_tec */
+		   + UINT_SMALL_T_SIZE  /* n_wavelength */
+		   + UINT_SMALL_T_SIZE  /* min_w_len_nm */
+		   + UINT_SMALL_T_SIZE  /* max_w_len_nm */
+		   + UINT_SMALL_T_SIZE  /* n_depth */
+		   + UINT_SMALL_T_SIZE  /* min_soil_depth_mm */
+		   + UINT_SMALL_T_SIZE  /* max_soil_depth_mm */
+		   + UINT_TINY_T_SIZE   /* soil_density_red_mode */
+		   + UINT_TINY_T_SIZE   /* pressure_red_mode */
+		   + UINT_TINY_T_SIZE   /* light_exposure_red_mode */
+		   + UINT_TINY_T_SIZE   /* water_use_red_mode */
+		   + UINT_TINY_T_SIZE   /* soil_temp_red_mode */
+		   + UINT_TINY_T_SIZE   /* env_temp_red_mode */
+		   + UINT_T_SIZE        /* n_chunks */
+		   + UINT_SMALL_T_SIZE; /* crc */
 }
 
 size_t size_adf_t(adf_t *data)
