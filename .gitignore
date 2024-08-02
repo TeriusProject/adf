@@ -77,6 +77,9 @@ test/test_perf
 # Memgraph
 *.memgraph
 
+# ADF
+*.adf
+
 # Examples
 example/example
 example/output.adf
