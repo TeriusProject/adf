@@ -90,7 +90,7 @@ typedef enum {
 	ADF_FT_ANTHROPONICS       = 0x21,
 	ADF_FT_AEROPONICS         = 0x30, 
 	ADF_FT_FOGPONICS          = 0x31
-} farming_technique;
+} farming_technique_t;
 
 /*
  * It contains the exit code of the functions that handle the adf_t structure.
@@ -365,6 +365,17 @@ typedef struct {
 	uint_small_t n_depth;
 } __attribute__((packed)) soil_depth_info_t;
 
+typedef enum {
+	/* No statistical procedure has been applied */
+	ADF_RM_NONE = 0x00,
+
+	/* Average */
+	ADF_RM_AVG  = 0x01,
+
+	/* Moving average */
+	ADF_RM_MAVG = 0x02
+} reduction_code_t;
+
 /*
  * Each of the following fields contain information about the statistical
  * procedure used to reduce the data in the series.
@@ -372,12 +383,12 @@ typedef struct {
  *     Meaning: No statistical procedure has been applied.
  */
 typedef struct {
-	uint8_t soil_density_red_mode;
-	uint8_t pressure_red_mode;
-	uint8_t light_exposure_red_mode;
-	uint8_t water_use_red_mode;
-	uint8_t soil_temp_red_mode;
-	uint8_t env_temp_red_mode;
+	reduction_code_t soil_density_red_mode;
+	reduction_code_t pressure_red_mode;
+	reduction_code_t light_exposure_red_mode;
+	reduction_code_t water_use_red_mode;
+	reduction_code_t soil_temp_red_mode;
+	reduction_code_t env_temp_red_mode;
 } __attribute__((packed)) reduction_info_t;
 
 typedef struct {
@@ -398,7 +409,7 @@ typedef struct {
 	/*
 	 *
 	 */
-	uint8_t farming_tec;
+	farming_technique_t farming_tec;
 
 	wavelength_info_t wave_info;
 

@@ -51,6 +51,12 @@ sudo make cpp_install
 This will install the **dynamic** library on your system. Unfortunately (see Further developments section later on), these scripts j 
 > **_NOTE:_** For newer version of macOS, you have to set the environment variable `export DYLD_INSERT_LIBRARIES=/usr/local/lib`
 
+An example of how to link and use this library is given in `api/cc/ecample.cc`. to compile it, run
+```bash
+cd api/cc
+make example
+```
+
 ### Go
 
 Go APIs are currently under development on the branch `go-api`
@@ -92,7 +98,7 @@ int main(void)
 		.max_soil_depth_mm = { 300 }
 	};
 
-	header = create_header(REGULAR, w_info, s_info, r_info, 10);
+	header = create_header(ADF_FT_REGULAR, w_info, s_info, r_info, 10);
 	adf_init(&adf, header, ADF_DAY); // each series takes 1 day
 	
 	/* register_data is just a procedure that adds some random series to adf. 
