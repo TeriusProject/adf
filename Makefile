@@ -37,6 +37,7 @@ test:
 clean:
 	@$(MAKE) -C src clean
 	@$(MAKE) -C test clean
+	@$(MAKE) -C api/cc clean
 
 .PHONY: init
 init:

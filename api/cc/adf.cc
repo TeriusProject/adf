@@ -81,39 +81,45 @@ adf_header_t Header::toCHeader(void)
 additive_t Additive::toCAdditive(void)
 {
 	additive_t add =  {
+		/* code_idx should be set by the add_series function */
+		.code_idx = { 0 },
 		.code = { this->code },
 		.concentration = { this->concentration }
 	};
 	return add;
 }
 
+std::vector<additive_t> AdditiveList::toCAdditives(void)
+{
+	for (Additive &add : this->additives) {
+		additive_t cAdd = add.toCAdditive();
+		this->cAdditives.push_back(cAdd);
+	}
+	return this->cAdditives;
+}
+
 series_t Series::toCSeries(void)
 {
-	std::function<additive_t(Additive)> f = [](Additive add) { return add.toCAdditive(); };
-	
 	real_t *lightExposureFirstElem = reinterpret_cast<real_t*>(this->lightExposure.startPointer());
 	real_t *soilTempFirstElem = reinterpret_cast<real_t*>(this->soilTempCelsius.startPointer());
 	real_t *envTempFirstElem =  reinterpret_cast<real_t*>(this->environmentTempCelsius.data());
-	real_t * waterUseFirstElem = reinterpret_cast<real_t*>(this->waterUseMl.data());
-	std::vector<additive_t> soilAdditives =  map(this->soilAdditives, f);
-	additive_t *soilAdditivesFirstElem =  reinterpret_cast<additive_t*>(soilAdditives.data());
-	std::vector<additive_t> atmosphereAdditives =  map(this->atmosphereAdditives, f);
-	additive_t *atmosphereAdditivesFirstElem =  reinterpret_cast<additive_t*>(atmosphereAdditives.data());
+	real_t *waterUseFirstElem = reinterpret_cast<real_t*>(this->waterUseMl.data());
+	additive_t *soilAdditivesFirstElem =  reinterpret_cast<additive_t*>(this->soilAdditives.cAdditives.data());
+	additive_t *atmosphereAdditivesFirstElem =  reinterpret_cast<additive_t*>(this->atmosphereAdditives.cAdditives.data());
 	series_t cSeries = {
 		.light_exposure = lightExposureFirstElem,
 		.soil_temp_c = soilTempFirstElem,
 		.env_temp_c = envTempFirstElem,
 		.water_use_ml = waterUseFirstElem,
-		.pH = (uint8_t)(this->getPh() * 10),
-		.p_bar = { this->getPressurebar() },
-		.soil_density_kg_m3 = { this->getSoildensitykgm3() },
-		.n_soil_adds= { (uint16_t)this->getSoiladditives().size() },
-		.n_atm_adds = {(uint16_t) this->getAtmosphereadditives().size() },
+		.pH = (uint8_t)(this->pH * 10),
+		.p_bar = { this->pressureBar },
+		.soil_density_kg_m3 = { this->soilDensityKgM3 },
+		.n_soil_adds= { (uint16_t)this->soilAdditives.size() },
+		.n_atm_adds = {(uint16_t) this->atmosphereAdditives.size() },
 		.soil_additives = soilAdditivesFirstElem,
 		.atm_additives = atmosphereAdditivesFirstElem,
-		.repeated = {this->getRepeated() }
+		.repeated = {this->repeated }
 	};
-
 	return cSeries;
 }
 
@@ -159,8 +165,6 @@ void Adf::removeSeries(void)
 std::vector<std::byte> Adf::marshal()
 {
 	std::vector<std::byte> result;
-	std::vector<uint8_t> bytesVec;
-	std::function<std::byte(uint8_t)> toCppBytes = [] (uint8_t x) {return std::byte{x};};
 	size_t adf_size = size_adf_t(&this->adf);
 	uint8_t *bytes = (uint8_t *) malloc(adf_size * sizeof(uint8_t));
 	uint16_t res = ::marshal(bytes, &this->adf);
@@ -168,8 +172,9 @@ std::vector<std::byte> Adf::marshal()
 		free(bytes);
 		throwAdfError(res);
 	}
-	bytesVec.assign(bytes, bytes + adf_size);
-	result = map(bytesVec, toCppBytes);
+	for (uint32_t i = 0; i < adf_size; i++) {
+		result.push_back(std::byte{bytes[i]});
+	}
 	free(bytes);
 	return result;
 }

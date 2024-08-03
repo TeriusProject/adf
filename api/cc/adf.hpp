@@ -213,6 +213,23 @@ class Additive {
 	uint32_t getCode(void) { return this->code; }
 	float getConcentration(void) { return this->concentration; }
 
+	friend class AdditiveList;
+};
+
+class AdditiveList {
+	private:
+	std::vector<Additive> additives;
+	std::vector<additive_t> cAdditives;
+	std::vector<additive_t> toCAdditives(void);
+
+	public:
+	AdditiveList() { }
+	AdditiveList(std::vector<Additive> additives) {
+		this->additives = additives;
+		this->toCAdditives();
+	}
+	size_t size(void) { return this->additives.size(); }
+
 	friend class Series;
 };
 
@@ -225,18 +242,18 @@ class Series {
 	float pH;
 	float pressureBar;
 	float soilDensityKgM3;
-	std::vector<Additive> soilAdditives;
-	std::vector<Additive> atmosphereAdditives;
+	AdditiveList soilAdditives;
+	AdditiveList atmosphereAdditives;
 	uint32_t repeated;
 	series_t toCSeries(void);
 
 	public:
 	Series(Matrix<float> lightExposure,
-			  Matrix<float> soilTemperatureCelsius,
-			  std::vector<float> environmenttemperatureCelsius,
-			  std::vector<float> wateruseMl, float pH, float pressureBar,
-			  float soilDensityKgM3, std::vector<Additive> soilAdditives,
-			  std::vector<Additive> atmosphereAdditives, uint32_t repeated)
+		   Matrix<float> soilTemperatureCelsius,
+		   std::vector<float> environmenttemperatureCelsius,
+		   std::vector<float> wateruseMl, float pH, float pressureBar,
+		   float soilDensityKgM3, AdditiveList soilAdditives,
+		   AdditiveList atmosphereAdditives, uint32_t repeated)
 		: lightExposure(lightExposure), soilTempCelsius(soilTemperatureCelsius),
 		  environmentTempCelsius(environmenttemperatureCelsius),
 		  waterUseMl(wateruseMl), pH(pH), pressureBar(pressureBar),
@@ -257,11 +274,11 @@ class Series {
 	float getPh(void) { return this->pH; }
 	float getPressurebar(void) { return this->pressureBar; }
 	float getSoildensitykgm3(void) { return this->soilDensityKgM3; }
-	std::vector<Additive> getSoiladditives(void)
+	AdditiveList getSoiladditives(void)
 	{
 		return this->soilAdditives;
 	}
-	std::vector<Additive> getAtmosphereadditives(void)
+	AdditiveList getAtmosphereadditives(void)
 	{
 		return this->atmosphereAdditives;
 	}

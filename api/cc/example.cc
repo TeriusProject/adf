@@ -17,23 +17,26 @@ adf::Series getRandomSeries()
 	adf::Matrix<float> soilTemperature(N_DEPTH);
 	std::vector<float> temperatureCelsius;
 	std::vector<float> waterUseMl;
-	std::vector<adf::Additive> soilAdditives({adf::Additive(1, 16.504)});
-	std::vector<adf::Additive> atmosphereAdditives({adf::Additive(2, 3.5)});
-
+	adf::Additive soilAdd(1, 16.504);
+	adf::Additive atmAdd(2, 3.5);
+	std::vector<adf::Additive> soilAdditives(1, soilAdd);
+	std::vector<adf::Additive> atmAdditives(1, atmAdd);
+	adf::AdditiveList soilAdditivesList(soilAdditives);
+	adf::AdditiveList atmosphereAdditivesList(atmAdditives);
 	for (int i = 0; i < N_CHUNKS; i++) {
 		std::vector<float> lightExposureRow;
 		std::vector<float> soilTemperatureRow;
 
 		for (int j = 0; j < N_WAVELENGTH; j++) {
-			lightExposureRow.push_back(dis(e));
+			lightExposureRow.push_back(1.0);
 		}
 		lightExposure.addRow(lightExposureRow);
 		for (int j = 0; j < N_DEPTH; j++) {
-			soilTemperatureRow.push_back(dis(e));
+			soilTemperatureRow.push_back(1.0);
 		}
 		soilTemperature.addRow(soilTemperatureRow);
-		temperatureCelsius.push_back(dis(e));
-		waterUseMl.push_back(dis(e));
+		temperatureCelsius.push_back(1.0);
+		waterUseMl.push_back(1.0);
 	}
 	
 	adf::Series series(lightExposure,
@@ -43,8 +46,8 @@ adf::Series getRandomSeries()
 					   2.5,
 					   3324.67,
 					   11.0,
-					   soilAdditives,
-					   atmosphereAdditives,
+					   soilAdditivesList,
+					   atmosphereAdditivesList,
 					   1);
 	return series;
 }
@@ -68,8 +71,9 @@ void createAdfAndSaveToFile(void)
 	adf::Adf adf = adf::Adf(header, ADF_DAY);
 	updateData(adf);
 	std::vector<std::byte> bytes = adf.marshal();
-	std::ofstream fs(FILE_NAME, std::ios::out | std::ios::binary);
-	fs.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+	
+	std::ofstream fs(FILE_NAME, std::ios::binary);
+	fs.write(reinterpret_cast<char*>(bytes.data()), adf.size());
 	fs.close();
 	std::cout << "Current ADF version: " << adf.versionString() << std::endl;
 	std::cout << "Wrote ADF file (" << adf.size() << " bytes)\nfilename: " << FILE_NAME << std::endl;
@@ -77,7 +81,7 @@ void createAdfAndSaveToFile(void)
 
 std::vector<std::byte> readFile(void) 
 {
-	std::ifstream in(FILE_NAME, std::ios_base::binary);
+	std::ifstream in(FILE_NAME, std::ios::binary);
     in.seekg(0, std::ios_base::end);
     auto length = in.tellg();
     in.seekg(0, std::ios_base::beg);

@@ -32,7 +32,14 @@
 #define SHIFT1(byte_counter) (byte_counter++)
 #define SHIFT2(byte_counter) (byte_counter += 2)
 #define SHIFT4(byte_counter) (byte_counter += 4)
+
+#ifdef __ADF_DEBUG__
 #define DEBUG_STR "*** DEBUG *** "
+#define DEBUG_LOG(...) (printf(DEBUG_STR __VA_ARGS__));
+#else
+#define DEBUG_STR
+#define DEBUG_LOG(...)
+#endif
 
 typedef void (*number_bytes_copy)(uint8_t *, const uint8_t *);
 
@@ -167,7 +174,11 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 	cpy_2_bytes_fn = is_big_endian()
 					 ? &from_to_big_endian_2_bytes 
 					 : &from_to_little_endian_2_bytes;
+
+	DEBUG_LOG("------- marshal -------\n")
+
 	if (!bytes) { return ADF_RUNTIME_ERROR; }
+
 	header = &data->header;
 	cpy_4_bytes_fn((bytes + byte_c), header->signature.bytes);
 	SHIFT4(byte_c);
@@ -205,9 +216,7 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 	cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
 	SHIFT2(byte_c);
 
-	#ifdef __ADF_DEBUG__
-	printf(DEBUG_STR "Marshal header done\n");
-	#endif /* __ADF_DEBUG__ */
+	DEBUG_LOG("Marshal header done\n")
 
 	metadata = &data->metadata;
 	cpy_4_bytes_fn((bytes + byte_c), metadata->size_series.bytes);
@@ -230,9 +239,7 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 	cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
 	SHIFT2(byte_c);
 
-	#ifdef __ADF_DEBUG__
-	printf(DEBUG_STR "Marshal metadata done\n");
-	#endif /* __ADF_DEBUG__ */
+	DEBUG_LOG("Marshal metadata done\n")
 
 	uint32_t n_iter = metadata->size_series.val;
 	uint32_t n_chunks = header->n_chunks.val;
@@ -293,9 +300,7 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 		cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
 		SHIFT2(byte_c);
 
-		#ifdef __ADF_DEBUG__
-		printf(DEBUG_STR "Marshal series #%u done\n", i);
-		#endif /* __ADF_DEBUG__ */
+		DEBUG_LOG("Marshal series #%u done\n", i)
 	}
 	return ADF_OK;
 }
@@ -312,6 +317,8 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	cpy_2_bytes_fn = is_big_endian()
 					 ? &from_to_big_endian_2_bytes 
 					 : &from_to_little_endian_2_bytes;
+
+	DEBUG_LOG("------- unmarshal -------\n")
 
 	if (!bytes || !adf) { return ADF_RUNTIME_ERROR; }
 
@@ -353,9 +360,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 
 	if (header_crc != expected_crc.val) { return ADF_HEADER_CORRUPTED; }
 
-	#ifdef __ADF_DEBUG__
-	printf(DEBUG_STR "Unmarshal header done\n");
-	#endif /* __ADF_DEBUG__ */
+	DEBUG_LOG("Unmarshal header done\n")
 
 	cpy_4_bytes_fn(adf->metadata.size_series.bytes, (bytes + byte_c));
 	SHIFT4(byte_c);
@@ -383,9 +388,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	SHIFT2(byte_c);
 	if (meta_crc != expected_crc.val) { return ADF_METADATA_CORRUPTED; }
 
-	#ifdef __ADF_DEBUG__
-	printf(DEBUG_STR "Unmarshal metadata done\n");
-	#endif /* __ADF_DEBUG__ */
+	DEBUG_LOG("Unmarshal metadata done\n")
 
 	adf->series = malloc(adf->metadata.size_series.val * sizeof(series_t));
 	if (!adf->series) { return ADF_RUNTIME_ERROR; }
@@ -481,9 +484,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 		n_series += current.repeated.val - 1;
 		adf->series[i] = current;
 
-		#ifdef __ADF_DEBUG__
-		printf(DEBUG_STR "Unmarshal series #%u done\n", i);
-		#endif /* __ADF_DEBUG__ */
+		DEBUG_LOG("Unmarshal series #%u done\n", i)
 	}
 	adf->metadata.n_series = n_series;
 	return ADF_OK;
@@ -509,15 +510,21 @@ bool are_series_equal(const series_t *first, const series_t *second,
 	uint16_t n_depth = adf->header.soil_info.n_depth.val;
 	bool int_fields_eq, real_fields_eq;
 
+	DEBUG_LOG("------- are_series_equal -------\n")
+
 	int_fields_eq = first->pH == second->pH
 					&& first->n_atm_adds.val == second->n_atm_adds.val
 					&& first->n_soil_adds.val == second->n_soil_adds.val;
 	
+	DEBUG_LOG("are int fields equal? %d\n", int_fields_eq)
+
 	if (!int_fields_eq) return false;
 
 	real_fields_eq = are_reals_equal(first->p_bar, second->p_bar)
 					 && are_reals_equal(first->soil_density_kg_m3,
 										second->soil_density_kg_m3);
+
+	DEBUG_LOG("are real fields equal? %d\n", real_fields_eq)
 
 	if (!real_fields_eq) return false;
 
@@ -525,33 +532,78 @@ bool are_series_equal(const series_t *first, const series_t *second,
 	for (uint32_t i = 0; i < n_chunks; i++) {
 		if (!(are_reals_equal(first->env_temp_c[i], second->env_temp_c[i])
 			  && are_reals_equal(first->water_use_ml[i],
-								 second->water_use_ml[i])))
+								 second->water_use_ml[i]))) {
+			DEBUG_LOG("chunk: %d, first->env_temp_c = %f, "
+					  "second->env_temp_c = %f | "
+					  "first->water_use_ml = %f, "
+					  "second->water_use_ml = %f\n",
+					  i, first->env_temp_c[i].val, second->env_temp_c[i].val,
+					  first->water_use_ml[i].val, second->water_use_ml[i].val)
 			return false;
+		}
 	}
+
+	DEBUG_LOG("env_temp_c & water_use_ml are equal\n")
 
 	for (uint32_t i = 0; i < n_chunks * n_waves; i++) {
 		if (!are_reals_equal(first->light_exposure[i],
-			second->light_exposure[i]))
+							 second->light_exposure[i])) {
+			DEBUG_LOG("index: %d, first->light_exposure = %f, "
+					  "second->light_exposure = %f\n",
+					  i, first->light_exposure[i].val, 
+					  second->light_exposure[i].val)
 			return false;
+		}
 	}
+
+	DEBUG_LOG("light_exposure are equal\n")
 
 	for (uint32_t i = 0; i < n_chunks * n_depth; i++) {
 		if (!are_reals_equal(first->soil_temp_c[i],
-			second->soil_temp_c[i]))
+							 second->soil_temp_c[i])) {
+			DEBUG_LOG("index: %d, first->light_exposure = %f, "
+					  "second->light_exposure = %f\n",
+					  i, first->soil_temp_c[i].val, 
+					  second->soil_temp_c[i].val)
 			return false;
+		}
 	}
+
+	DEBUG_LOG("soil_temp_c are equal\n")
 
 	for (uint16_t i = 0, l = first->n_soil_adds.val; i < l; i++) {
 		if (!are_additive_t_equal(first->soil_additives[i],
-								  second->soil_additives[i]))
+								  second->soil_additives[i])) {
+			DEBUG_LOG("#soil_add: %d, first->soil_additives.code = %d, "
+					  "second->soil_additives.code = %d | "
+					  "first->soil_additives.conc = %f, "
+					  "second->soil_additives.conc = %f\n",
+					  i, first->soil_additives[i].code.val, 
+					  second->soil_additives[i].code.val,
+					  first->soil_additives[i].concentration.val,
+					  second->soil_additives[i].concentration.val)
 			return false;
+		}
 	}
+
+	DEBUG_LOG("soil_additives are equal\n");
 
 	for (uint16_t i = 0, l = first->n_atm_adds.val; i < l; i++) {
 		if (!are_additive_t_equal(first->atm_additives[i],
-								  second->atm_additives[i]))
+								  second->atm_additives[i])) {
+			DEBUG_LOG("#atm_add: %d, first->atm_additives.code = %d, "
+					  "second->atm_additives.code = %d | "
+					  "first->atm_additives.conc = %f, "
+					  "second->atm_additives.conc = %f\n",
+					  i, first->atm_additives[i].code.val, 
+					  second->atm_additives[i].code.val,
+					  first->atm_additives[i].concentration.val,
+					  second->atm_additives[i].concentration.val)
 			return false;
+		}
 	}
+
+	DEBUG_LOG("The two series are equal\n")
 
 	return true;
 }
@@ -577,15 +629,17 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 					 ? &from_to_big_endian_2_bytes 
 					 : &from_to_little_endian_2_bytes;
 
+	DEBUG_LOG("------- add_series -------\n")
+
 	if (series_to_add->repeated.val == 0) { return ADF_ZERO_REPEATED_SERIES; }
 
-	#ifdef __ADF_DEBUG__
-	printf(DEBUG_STR "Series is repeated: %u\n", series_to_add->repeated.val);
-	#endif /* __ADF_DEBUG__ */
+	DEBUG_LOG("Series is repeated: %u\n", series_to_add->repeated.val);
 
 	/* Happy path, the series is repeated, just increment the counter */
 	if (adf->metadata.size_series.val > 0) {
 		last = adf->series + (adf->metadata.size_series.val - 1);
+		DEBUG_LOG("--- comparing last series (position %d) ...\n", 
+				  adf->metadata.size_series.val - 1)
 		if (are_series_equal(last, series_to_add, adf)) {
 			last->repeated.val += series_to_add->repeated.val;
 			adf->metadata.n_series += series_to_add->repeated.val;
@@ -593,9 +647,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 		}
 	}
 
-	#ifdef __ADF_DEBUG__
-	printf(DEBUG_STR "Series to add is not repeated\n");
-	#endif /* __ADF_DEBUG__ */
+	DEBUG_LOG("Series to add is not repeated\n")
 
 	/* If it's not equal to the last one, and if it's not zero-repeated, 
 	   then we have to add it to the series array */
@@ -607,9 +659,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	res = cpy_adf_series(last, series_to_add, adf);
 	if (res != ADF_OK) { return res; }
 
-	#ifdef __ADF_DEBUG__
-	printf(DEBUG_STR "New series has been copied into series array\n");
-	#endif /* __ADF_DEBUG__ */
+	DEBUG_LOG("New series has been copied into series array\n")
 
 	/* At this point, we don't know how many additives should be added to the 
 	   additive_codes array in the metadata, so we allocate  */
@@ -689,7 +739,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 
 	if (n_soil_add > 0) { free(soil_add); }
 	if (n_atm_add > 0) { free(atm_add); }
-	
+
 	return ADF_OK;
 }
 
@@ -760,6 +810,7 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 		if (time > u_bound_nth_series) { continue; }
 
 		/* if the two series are eual, nothing to do */
+		DEBUG_LOG("--- comparing series in position %d ...\n", i)
 		if (are_series_equal(current, series, adf)) {
 			adf->metadata.n_series += (series->repeated.val 
 									  - current->repeated.val);
@@ -767,14 +818,10 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 			return ADF_OK;
 		}
 
-		#ifdef __ADF_DEBUG__
-		printf(DEBUG_STR "Series to update is not equal to the previous one\n");
-		#endif /* __ADF_DEBUG__ */
+		DEBUG_LOG("Series to update is not equal to the previous one\n")
 
 		if (current->repeated.val == 1) {
-			#ifdef __ADF_DEBUG__
-			printf(DEBUG_STR "Repeated just one time, nothing to split\n");
-			#endif /* __ADF_DEBUG__ */
+			DEBUG_LOG("Repeated just one time, nothing to split\n")
 
 			adf->metadata.n_series += (series->repeated.val 
 									  - current->repeated.val);
@@ -1047,21 +1094,16 @@ void series_free(series_t *series)
 
 void adf_free(adf_t *adf)
 {
+	DEBUG_LOG("------- adf_free -------\n")
 	adf_meta_t *metadata = (adf_meta_t *) &(adf->metadata);
 	metadata_free(metadata);
-	#ifdef __ADF_DEBUG__
-	printf(DEBUG_STR "metadata has been freed\n");
-	#endif /* __ADF_DEBUG__ */
+	DEBUG_LOG("metadata has been freed\n")
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
 		series_free(adf->series + i);
-		#ifdef __ADF_DEBUG__
-		printf(DEBUG_STR "series #%u has been freed\n", i);
-		#endif /* __ADF_DEBUG__ */
+		DEBUG_LOG("series #%u has been freed\n", i)
 	}
 	free(adf->series);
-	#ifdef __ADF_DEBUG__
-	printf(DEBUG_STR "Series array has been freed\n");
-	#endif /* __ADF_DEBUG__ */
+	DEBUG_LOG("Series array has been freed\n")
 	adf->series = NULL;
 }
 
