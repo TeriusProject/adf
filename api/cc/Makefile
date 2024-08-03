@@ -27,5 +27,5 @@ example: example.cc
 	DYLD_INSERT_LIBRARIES=$(LIB_DIR) $(CC) $(CXXFLAGS) -ladfpp -o $@ $<
 
 .PHONY: clean
-clean: $(OBJS) $(LIB) adf.hpp exceptions.hpp
+clean:
 	rm -f $(LIB) $(OBJS)

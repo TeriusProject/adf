@@ -84,7 +84,14 @@ static void from_to_little_endian_2_bytes(uint8_t *dest, const uint8_t *source)
 	*(dest + 1) = *source;
 }
 
-uint16_t get_version(void) { return __ADF_VERSION__; }
+version_t get_adf_version(void)
+{
+	return (version_t) {
+		.major = (__ADF_VERSION__ & MAJOR_VERSION_MASK) >> 8,
+		.minor = (__ADF_VERSION__ & MINOR_VERSION_MASK) >> 4,
+		.patch = __ADF_VERSION__ & PATCH_VERSION_MASK,
+	};
+}
 
 size_t size_series_t(adf_t *adf, series_t *series)
 {

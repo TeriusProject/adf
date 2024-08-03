@@ -34,10 +34,13 @@
 
 namespace adf {
 
-struct Version {
-	uint8_t major;
-	uint8_t minor;
-	uint8_t patch;
+class Version : public version_t {
+	private:
+	Version(version_t v) : Version(v.major, v.minor, v.patch) { }
+	public:
+	Version(uint8_t major, uint8_t minor, uint8_t patch);
+
+	friend class Adf;
 };
 
 enum class ReductionCode {

@@ -45,9 +45,9 @@ extern "C" {
  * -------
  * If the constant __ADF_VERSION__ hase the value 0x01A1u, it has to be 
  * parsed as follows
- *    Major version -> 0x01
- *    Minor version -> 0xA
- *    Patch version -> 0x1
+ *     Major version -> 0x01
+ *     Minor version -> 0xA
+ *     Patch version -> 0x1
  * So, this ADF version is 1.10.1
  */
 #define __ADF_VERSION__ 0x0090u
@@ -62,37 +62,48 @@ extern "C" {
 #define EPSILON 1e-3
 
 /*
- * The size of the datatypes used in the ADF format
+ * The size of the datatypes used in the ADF format.
  */
-#define UINT_T_SIZE			4
-#define UINT_SMALL_T_SIZE	2
-#define UINT_TINY_T_SIZE	1
-#define REAL_T_SIZE			4
-#define ADD_T_SIZE			6
+#define UINT_T_SIZE        4
+#define UINT_SMALL_T_SIZE  2
+#define UINT_TINY_T_SIZE   1
+#define REAL_T_SIZE        4
+#define ADD_T_SIZE         6
 
 /*
  * Some constants to represent standard length of the series. 
  * All numbers are expressed in seconds.
  */
-#define ADF_DAY         86400
-#define ADF_WEEK        604800
-#define ADF_MONTH_28    2419200
-#define ADF_MONTH_29    2505600
-#define ADF_MONTH_30    2592000
-#define ADF_MONTH_31    2678400
+#define ADF_DAY         86'400
+#define ADF_WEEK        604'800
+#define ADF_MONTH_28    2'419'200
+#define ADF_MONTH_29    2'505'600
+#define ADF_MONTH_30    2'592'000
+#define ADF_MONTH_31    2'678'400
 
-/* */
+/*
+ *
+ */
 typedef enum {
-	ADF_FT_REGULAR            = 0x00u,  
-	ADF_FT_INDOOR             = 0x01u, 
-	ADF_FT_INDOOR_PROTECTED   = 0x02u, 
+	ADF_FT_REGULAR            = 0x00u,
+	ADF_FT_INDOOR             = 0x01u,
+	ADF_FT_INDOOR_PROTECTED   = 0x02u,
 	ADF_FT_OUTDOOR            = 0x03u,
 	ADF_FT_ARTIFICIAL_SOIL    = 0x10u,
-	ADF_FT_HYDROPONICS        = 0x20u, 
+	ADF_FT_HYDROPONICS        = 0x20u,
 	ADF_FT_ANTHROPONICS       = 0x21u,
-	ADF_FT_AEROPONICS         = 0x30u, 
+	ADF_FT_AEROPONICS         = 0x30u,
 	ADF_FT_FOGPONICS          = 0x31u
 } farming_technique_t;
+
+/*
+ * 
+ */
+typedef struct {
+	uint8_t major;
+	uint8_t minor;
+	uint8_t patch;
+} version_t;
 
 /* 8-bit usnsigned integer  */
 typedef enum {
@@ -110,6 +121,7 @@ typedef enum {
  * It contains the exit code of the functions that handle the adf_t structure.
  */
 typedef enum {
+
 	/*
 	 * Everything's OK.
 	 */
@@ -152,7 +164,9 @@ typedef enum {
 	ADF_TIME_OUT_OF_BOUND = 0x06u,
 
 	/*
-	 * 
+	 * You are trying to add a series with additives that are not already 
+	 * present in metadata's additive_codes array. You reached the limit
+	 * of that array though (0xFFFF).
 	 */
 	ADF_ADDITIVE_OVERFLOW = 0x07u,
 
@@ -276,13 +290,11 @@ typedef struct {
 	uint_small_t n_atm_adds;
 
 	/*
-	 *
+	 * Each series can have its own additives. These two arrays does not
+	 * contain directly the code of each additive, but its index on the 
+	 * additive_codes array in the metadata section.
 	 */
 	additive_t *soil_additives;
-	
-	/*
-	 *
-	 */
 	additive_t *atm_additives;
 
 	/*
@@ -294,6 +306,7 @@ typedef struct {
 } __attribute__((packed)) series_t;
 
 typedef struct {
+
 	/*
 	 * The number of series registered. The number 0 is used to
 	 * indicate that there are no series. In that case, the `series`
@@ -304,11 +317,13 @@ typedef struct {
 	/*
 	 * The main difference between size_series and n_series is that
 	 * size_series contains the size of the array `series`, while n_series
-	 * contains the overall number of series (counting duplicates as well).
+	 * contains the overall number of series (including repeated ones).
 	 * This field won't be marshalled; it's computed on the fly during the
 	 * unmarshalling procedure.
+	 * It should be a 64-bits integer, since it has to contain the number
+	 *     (0xFFFFFFFF*0xFFFFFFFF)
 	 */
-	uint32_t n_series;
+	uint64_t n_series;
 
 	/*
 	 * It represents the time (measured in seconds) that each series last. The
@@ -341,6 +356,7 @@ typedef struct {
 } __attribute__((packed)) adf_meta_t;
 
 typedef struct {
+
 	/*
 	 * The lower bound of the light spectrum.
 	 */
@@ -361,6 +377,7 @@ typedef struct {
 } __attribute__((packed)) wavelength_info_t;
 
 typedef struct {
+
 	/*
 	 * 
 	 */
@@ -380,7 +397,7 @@ typedef struct {
 /*
  * Each of the following fields contain information about the statistical
  * procedure used to reduce the data in the series.
- *     Default value: 0
+ *     Default value: None (0x00u)
  *     Meaning: No statistical procedure has been applied.
  */
 typedef struct {
@@ -393,6 +410,7 @@ typedef struct {
 } __attribute__((packed)) reduction_info_t;
 
 typedef struct {
+
 	/*
 	 * Signature contains the following four bytes
 	 * 		0x40  0x41  0x44  0x46
@@ -428,7 +446,16 @@ typedef struct {
  * The structure that contains all the ADF data.
  */
 typedef struct {
+
+	/*
+	 * It contains the immutable data of an ADF structure, i.e. none of the
+	 * operations you execute on an ADF structure should change these fields.
+	 */
 	adf_header_t header;
+
+	/*
+	 * 
+	 */
 	adf_meta_t metadata;
 
 	/*
@@ -441,7 +468,7 @@ typedef struct {
 /*
  * Returns the current version of ADF.
  */
-uint16_t get_version(void);
+version_t get_adf_version(void);
 
 /*
  * The size (bytes) of the adf header, including its crc field.
@@ -502,7 +529,7 @@ void adf_bytes_free(uint8_t *);
 uint16_t add_series(adf_t *, const series_t *);
 
 /*
- *
+ * 
  */
 uint16_t remove_series(adf_t *);
 
@@ -513,7 +540,7 @@ uint16_t remove_series(adf_t *);
  */
 uint16_t marshal(uint8_t *, adf_t *);
 
-/* Assumes the `adf_t *` structure to be allocated. */
+/* Assumes the `adf_t *` structure not to be NULL. */
 uint16_t unmarshal(adf_t *, const uint8_t *);
 
 /*
@@ -528,7 +555,7 @@ uint16_t update_series(adf_t *, const series_t *, uint64_t);
 uint16_t set_series(adf_t *, const series_t *, uint32_t);
 
 /*
- *
+ * 
  */
 uint16_t reindex_additives(adf_t *);
 
@@ -536,12 +563,12 @@ uint16_t reindex_additives(adf_t *);
 uint16_t cpy_series_starting_at(series_t *, const adf_t *, uint32_t);
 
 /*
- * !!! This function doesn't compare the field `code_idx` !!!
+ * !!! This function doesn't compare the fields `code_idx` !!!
  */
 bool are_additive_t_equal(additive_t, additive_t);
 
 /*
- * !!! This method doesn't check for the field `repeated`. !!!
+ * !!! This function doesn't compare the fields `repeated` !!!
  */
 bool are_series_equal(const series_t *, const series_t *, const adf_t*);
 
@@ -568,10 +595,16 @@ uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
 						   uint16_t n_wavelenght, uint16_t n_depth,
 						   uint16_t n_soil_additives, uint16_t n_atm_additives);
 
+/*
+ *
+ */
 void metadata_free(adf_meta_t *);
 void series_free(series_t *);
 void adf_free(adf_t *);
 
+/*
+ *
+ */
 uint16_t cpy_additive(additive_t *, const additive_t *);
 uint16_t cpy_adf(adf_t *, const adf_t *);
 uint16_t cpy_adf_header(adf_header_t *, const adf_header_t *);

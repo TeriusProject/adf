@@ -30,6 +30,9 @@
 #include <time.h>
 
 #define OUT_FILE_PATH "output.adf"
+#define N_CHUNKS 10
+#define N_WAVELENGTH 10
+#define N_DEPTH 3
 
 void write_file(adf_t adf)
 {
@@ -109,7 +112,7 @@ void register_data(adf_t *adf)
 	uint16_t res,
 			 n_wave = adf->header.wave_info.n_wavelength.val,
 			 n_depth = adf->header.soil_info.n_depth.val;
-	for (uint16_t i = 1, n = rand() % 10000; i <= n; i++) {
+	for (uint16_t i = 1, n = rand() % 10'000; i <= n; i++) {
 		printf("Adding series %d/%d\n", i, n);
 		series_to_add = get_series(adf->header.n_chunks.val, 
 								   n_wave,
@@ -129,25 +132,27 @@ int main(void)
 	wavelength_info_t w_info;
 	soil_depth_info_t s_info;
 	reduction_info_t r_info = { 0 }; // Init to 0
+	version_t version = get_adf_version();
 
 	w_info = (wavelength_info_t) {
 		.min_w_len_nm = { 0 },
 		.max_w_len_nm = { 10000 },
-		.n_wavelength = { 10 },
+		.n_wavelength = { N_WAVELENGTH },
 	};
 
 	s_info = (soil_depth_info_t) {
-		.n_depth = { 3 },
 		.min_soil_depth_mm = { 0 },
-		.max_soil_depth_mm = { 300 }
+		.max_soil_depth_mm = { 300 },
+		.n_depth = { N_DEPTH },
 	};
 
-	header = create_header(ADF_FT_REGULAR, w_info, s_info, r_info,  10);
+	header = create_header(ADF_FT_REGULAR, w_info, s_info, r_info, N_CHUNKS);
 	adf_init(&adf, header, ADF_DAY); // each series takes 1 day
 
 	srand(time(NULL));
 	setlocale(LC_ALL, "");
-
+	
+	printf("ADF version %d.%d.%d\n", version.major, version.minor, version.patch);
 	register_data(&adf);
 	printf("Writing on file `%s`...\n", OUT_FILE_PATH);
 	write_file(adf);

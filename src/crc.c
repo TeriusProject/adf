@@ -18,6 +18,28 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * crc16 (with its table of pre-calculated values) is a re-adaptation of 
+ * the one written for Apple XNU.
+ * https://opensource.apple.com/source/xnu/xnu-4570.31.3/bsd/libkern/crc16.c
+ * Here's the original license:
+ *
+ *     // Copyright (C) 2016 Apple Inc. All rights reserved.
+ *     //
+ *     // This document is the property of Apple Inc.
+ *     // It is considered confidential and proprietary.
+ *     //
+ *     // This document may not be reproduced or transmitted in any form,
+ *     // in whole or in part, without the express written permission of
+ *     // Apple Inc.
+ *     //
+ *     // CRC-16-ANSI (aka CRC-16-IBM) Polynomial: x^16 + x^15 + x^2 + 1
+ *     // Derived from Craig Marciniak's "Craig's Portable CRC16 Library."
+ *
+ *
+ * crc32 (with its table of pre-calculated values) is a re-adaptation of 
+ * the one written for libpng.
+ * http://www.libpng.org/pub/png/spec/1.1/PNG-CRCAppendix.html
  */
 
 #include "crc.h"

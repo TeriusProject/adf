@@ -34,6 +34,13 @@
 
 namespace adf {
 
+Version::Version(uint8_t major, uint8_t minor, uint8_t patch)
+{
+	this->major = major;
+	this->minor = minor;
+	this->patch = patch;
+}
+
 Adf::Adf(Header header, uint32_t periodSec)
 {
 	adf_init(&this->adf, header.toCHeader(), periodSec);
@@ -55,11 +62,7 @@ Adf::~Adf()
 
 Version Adf::version(void)
 {
-	return {
-		.major = (__ADF_VERSION__ & MAJOR_VERSION_MASK) >> 8,
-		.minor = (__ADF_VERSION__ & MINOR_VERSION_MASK) >> 4,
-		.patch = __ADF_VERSION__ & PATCH_VERSION_MASK,
-	};
+	return Version(get_adf_version());
 }
 
 std::string Adf::versionString(void)

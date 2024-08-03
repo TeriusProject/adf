@@ -78,6 +78,9 @@ Here's a short operative example of how it could be created an ADF structure, an
 #include <stdlib.h>
 
 #define OUT_FILE_PATH "output.adf"
+#define N_CHUNKS 10
+#define N_WAVELENGTH 10
+#define N_DEPTH 3
 
 int main(void)
 {
@@ -90,16 +93,16 @@ int main(void)
 	w_info = (wavelength_info_t) {
 		.min_w_len_nm = { 0 },
 		.max_w_len_nm = { 10000 },
-		.n_wavelength = { 10 },
+		.n_wavelength = { N_WAVELENGTH },
 	};
 
 	s_info = (soil_depth_info_t) {
-		.n_depth = { 3 },
 		.min_soil_depth_mm = { 0 },
-		.max_soil_depth_mm = { 300 }
+		.max_soil_depth_mm = { 300 },
+		.n_depth = { N_DEPTH },
 	};
 
-	header = create_header(ADF_FT_REGULAR, w_info, s_info, r_info, 10);
+	header = create_header(ADF_FT_REGULAR, w_info, s_info, r_info, N_CHUNKS);
 	adf_init(&adf, header, ADF_DAY); // each series takes 1 day
 	
 	/* register_data is just a procedure that adds some random series to adf. 
