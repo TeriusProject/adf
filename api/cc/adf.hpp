@@ -34,6 +34,30 @@
 
 namespace adf {
 
+struct Version {
+	uint8_t major;
+	uint8_t minor;
+	uint8_t patch;
+};
+
+enum class ReductionCode {
+	None          = ADF_RM_NONE,
+	Average       = ADF_RM_AVG,
+	MovingAverage = ADF_RM_MAVG,
+};
+
+enum class FarmingTechnique {
+	Regular          = ADF_FT_REGULAR,  
+	Indoor           = ADF_FT_INDOOR, 
+	IndoorProtected  = ADF_FT_INDOOR_PROTECTED, 
+	Outdoor          = ADF_FT_OUTDOOR,
+	ArtificialSoil   = ADF_FT_ARTIFICIAL_SOIL ,
+	Hydroponics      = ADF_FT_HYDROPONICS, 
+	Anthroponics     = ADF_FT_ANTHROPONICS,
+	Aeroponics       = ADF_FT_AEROPONICS, 
+	Fogponics        = ADF_FT_FOGPONICS,
+};
+
 template<typename T, typename U>
 static std::vector<U> map(const std::vector<T> &vec, std::function<U(T)> f)
 {
@@ -82,7 +106,7 @@ class Matrix {
 		this->nRows = 0;
 		this->nColumns = columns;
 	}
-	Matrix(std::vector<T> init, uint32_t rows, uint32_t columns)
+	Matrix(const std::vector<T>& init, uint32_t rows, uint32_t columns)
 	{
 		if (init.size() != rows * columns)
 			throw InvalidMatrixShapeException(init.size(), rows, columns);
@@ -91,15 +115,15 @@ class Matrix {
 		this->nColumns = columns;
 	}
 
-	std::vector<T> getVector() { return this->mat; }
-	void addRow(std::vector<T> &row)
+	std::vector<T> getVector(void) { return this->mat; }
+	void addRow(const std::vector<T>& row)
 	{
 		if (row.size() != this->nColumns)
 			throw InvalidMatrixShapeException(row.size(), this->nRows, this->nColumns);
 		this->mat.insert(this->mat.end(), row.begin(), row.end());
 		this->nRows++;
 	}
-	T *startPointer() { return this->mat.data(); }
+	T *startPointer(void) { return this->mat.data(); }
 	T &operator()(uint32_t row, uint32_t column) 
 	{
 		return this->mat.at(column + row * nColumns);
@@ -114,12 +138,11 @@ class WaveInfo {
 	wavelength_info_t toCWaveInfo(void);
 
 	public:
-	WaveInfo(uint16_t nWavelength, uint16_t minWlenNm, uint16_t maxWlenNm)
-		: nWavelength(nWavelength), minWlenNm(minWlenNm), maxWlenNm(maxWlenNm)
-	{ }
-	uint16_t getNWavelength(void) { return this->nWavelength; }
-	uint16_t getMinWlenNm(void) { return this->minWlenNm; }
-	uint16_t getMaxWlenNm(void) { return this->maxWlenNm; }
+	WaveInfo(uint16_t nWavelength, uint16_t minWlenNm, uint16_t maxWlenNm);
+	uint16_t getNWavelength(void);
+	uint16_t getMinWlenNm(void);
+	uint16_t getMaxWlenNm(void);
+
 	friend class Header;
 };
 
@@ -132,47 +155,41 @@ class SoilDepthInfo {
 
 	public:
 	SoilDepthInfo(uint16_t nDepthMeasurements, uint16_t minDepthMm,
-				  uint16_t maxDepthMm)
-		: nDepthMeasurements(nDepthMeasurements), minDepthMm(minDepthMm),
-		  maxDepthMm(maxDepthMm)
-	{ }
-	uint16_t getNDepthMeasurements(void) { return this->nDepthMeasurements; }
-	uint16_t getMinDepthMm(void) { return this->minDepthMm; }
-	uint16_t getMaxDepthMm(void) { return this->maxDepthMm; }
+				  uint16_t maxDepthMm);
+	uint16_t getNDepthMeasurements(void);
+	uint16_t getMinDepthMm(void);
+	uint16_t getMaxDepthMm(void);
+
 	friend class Header;
 };
 
 class ReductionInfo {
 	private:
-	uint8_t soilDensity;
-	uint8_t pressure;
-	uint8_t lightExposure;
-	uint8_t waterUse;
-	uint8_t soilTemp;
-	uint8_t envTemp;
+	ReductionCode soilDensity;
+	ReductionCode pressure;
+	ReductionCode lightExposure;
+	ReductionCode waterUse;
+	ReductionCode soilTemp;
+	ReductionCode envTemp;
 	reduction_info_t toCReductionInfo(void);
 
 	public:
-	/* Init every field to 0. */
-	ReductionInfo() { }
-	ReductionInfo(uint8_t soilDensity, uint8_t pressure, uint8_t lightExposure,
-				  uint8_t waterUse, uint8_t soilTemp, uint8_t envTemp)
-		: soilDensity(soilDensity), pressure(pressure),
-		  lightExposure(lightExposure), waterUse(waterUse),
-		  soilTemp(soilTemp), envTemp(envTemp) 
-	{ }
-	uint8_t getSoilDensity(void) { return this->soilDensity; }
-	uint8_t getPressure(void) { return this->pressure; }
-	uint8_t getLightExposure(void) { return this->lightExposure; }
-	uint8_t getWaterUse(void) { return this->waterUse; }
-	uint8_t getSoilTemp(void) { return this->soilTemp; }
-	uint8_t getEnvTemp(void) { return this->envTemp; }
+	ReductionInfo();
+	ReductionInfo(ReductionCode soilDensity, ReductionCode pressure, ReductionCode lightExposure,
+				  ReductionCode waterUse, ReductionCode soilTemp, ReductionCode envTemp);
+	ReductionCode getSoilDensity(void);
+	ReductionCode getPressure(void);
+	ReductionCode getLightExposure(void);
+	ReductionCode getWaterUse(void);
+	ReductionCode getSoilTemp(void);
+	ReductionCode getEnvTemp(void);
+
 	friend class Header;
 };
 
 class Header {
   private:
-	uint8_t farmingTec;
+	FarmingTechnique farmingTec;
 	WaveInfo waveInfo;
 	SoilDepthInfo soilDepthInfo;
 	ReductionInfo reductionInfo;
@@ -180,16 +197,13 @@ class Header {
 	adf_header_t toCHeader(void);
 
   public:
-	Header(uint8_t farmingTec, WaveInfo waveInfo, SoilDepthInfo depthInfo,
-		   ReductionInfo reductionInfo, uint32_t nChunks)
-		: farmingTec(farmingTec), waveInfo(waveInfo), soilDepthInfo(depthInfo),
-		  reductionInfo(reductionInfo), nChunks(nChunks)
-	{ }
+	Header(FarmingTechnique farmingTec, WaveInfo waveInfo, SoilDepthInfo depthInfo,
+		   ReductionInfo reductionInfo, uint32_t nChunks);
 
-	uint8_t getFarmingTec(void) { return this->farmingTec; }
-	uint32_t getNChunks(void) { return this->nChunks; }
-	WaveInfo getWaveInfo(void) { return this->waveInfo; }
-	SoilDepthInfo getDepthInfo(void) { return this->soilDepthInfo; }
+	FarmingTechnique getFarmingTec(void);
+	uint32_t getNChunks(void);
+	WaveInfo getWaveInfo(void);
+	SoilDepthInfo getDepthInfo(void);
 
 	friend class Adf;
 };
@@ -202,16 +216,11 @@ class Additive {
 	additive_t toCAdditive(void);
 
   public:
-	Additive(uint32_t code, float concentration)
-		: code(code), concentration(concentration)
-	{ }
-	Additive(uint16_t codeIdx, uint32_t code, float concentration)
-		: codeIdx(codeIdx), code(code), concentration(concentration)
-	{ }
-
-	uint16_t getCodeIdx(void) { return this->codeIdx; }
-	uint32_t getCode(void) { return this->code; }
-	float getConcentration(void) { return this->concentration; }
+	Additive(uint32_t code, float concentration);
+	Additive(uint16_t codeIdx, uint32_t code, float concentration);
+	uint16_t getCodeIdx(void);
+	uint32_t getCode(void);
+	float getConcentration(void);
 
 	friend class AdditiveList;
 };
@@ -223,12 +232,9 @@ class AdditiveList {
 	std::vector<additive_t> toCAdditives(void);
 
 	public:
-	AdditiveList() { }
-	AdditiveList(std::vector<Additive> additives) {
-		this->additives = additives;
-		this->toCAdditives();
-	}
-	size_t size(void) { return this->additives.size(); }
+	AdditiveList();
+	AdditiveList(std::vector<Additive> additives);
+	size_t size(void);
 
 	friend class Series;
 };
@@ -253,44 +259,19 @@ class Series {
 		   std::vector<float> environmenttemperatureCelsius,
 		   std::vector<float> wateruseMl, float pH, float pressureBar,
 		   float soilDensityKgM3, AdditiveList soilAdditives,
-		   AdditiveList atmosphereAdditives, uint32_t repeated)
-		: lightExposure(lightExposure), soilTempCelsius(soilTemperatureCelsius),
-		  environmentTempCelsius(environmenttemperatureCelsius),
-		  waterUseMl(wateruseMl), pH(pH), pressureBar(pressureBar),
-		  soilDensityKgM3(soilDensityKgM3), soilAdditives(soilAdditives),
-		  atmosphereAdditives(atmosphereAdditives), repeated(repeated)
-	{ }
-
-	Matrix<float> getLightexposure(void) { return this->lightExposure; }
-	Matrix<float> getSoilTemperatureCelsius(void)
-	{
-		return this->soilTempCelsius; 
-	}
-	std::vector<float> getEnvironmenttemperatureCelsius(void)
-	{
-		return this->environmentTempCelsius;
-	}
-	std::vector<float> getWaterUseMl(void) { return this->waterUseMl; }
-	float getPh(void) { return this->pH; }
-	float getPressurebar(void) { return this->pressureBar; }
-	float getSoildensitykgm3(void) { return this->soilDensityKgM3; }
-	AdditiveList getSoiladditives(void)
-	{
-		return this->soilAdditives;
-	}
-	AdditiveList getAtmosphereadditives(void)
-	{
-		return this->atmosphereAdditives;
-	}
-	uint32_t getRepeated(void) { return this->repeated; }
+		   AdditiveList atmosphereAdditives, uint32_t repeated);
+	Matrix<float> getLightexposure(void);
+	Matrix<float> getSoilTemperatureCelsius(void);
+	std::vector<float> getEnvironmenttemperatureCelsius(void);
+	std::vector<float> getWaterUseMl(void);
+	float getPh(void);
+	float getPressurebar(void);
+	float getSoildensitykgm3(void);
+	AdditiveList getSoiladditives(void);
+	AdditiveList getAtmosphereadditives(void);
+	uint32_t getRepeated(void);
 
 	friend class Adf;
-};
-
-struct Version {
-	uint8_t major;
-	uint8_t minor;
-	uint8_t patch;
 };
 
 class Adf {
@@ -298,19 +279,15 @@ class Adf {
 	adf_t adf;
 
 	public:
-	Adf(Header header, uint32_t periodSec)
-	{
-		adf_init(&this->adf, header.toCHeader(), periodSec);
-	}
-	/* Unmarshal and init */
+	Adf(Header header, uint32_t periodSec);
 	Adf(std::vector<std::byte> bytes);
-	~Adf() { adf_free(&this->adf); }
+	~Adf();
 	std::string versionString(void);
 	Version version(void);
 	size_t size(void);
-	void addSeries(Series &series);
+	void addSeries(Series& series);
 	void removeSeries(void);
 	void updateSeries(Series &series, uint64_t time);
-	std::vector<std::byte> marshal();
+	std::vector<std::byte> marshal(void);
 };
 } /* namespace adf */

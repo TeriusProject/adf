@@ -48,8 +48,9 @@ make cpp # Compiles libadfpp.dylib into api/cc folder
 sudo make cpp_install
 ```
 
-This will install the **dynamic** library on your system. Unfortunately (see Further developments section later on), these scripts j 
-> **_NOTE:_** For newer version of macOS, you have to set the environment variable `export DYLD_INSERT_LIBRARIES=/usr/local/lib`
+This will install a **dynamic** library on your system, as well as its header file. As of now, these scripts unfortunately just works on macOS, and probably some versions of GNU/Linux or other UNIX-like systems. We are planning to extend the compatibility to windows too (see Further developments section later on).
+
+> **_NOTE:_** For newer version of macOS, you have to set the environment variable `export DYLD_INSERT_LIBRARIES=/usr/local/lib`. See the example rule in the Makefile (`api/cc/Makefile`).
 
 An example of how to link and use this library is given in `api/cc/ecample.cc`. to compile it, run
 ```bash

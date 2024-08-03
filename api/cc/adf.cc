@@ -34,93 +34,23 @@
 
 namespace adf {
 
-wavelength_info_t WaveInfo::toCWaveInfo(void)
+Adf::Adf(Header header, uint32_t periodSec)
 {
-	wavelength_info_t w_info = {
-		.max_w_len_nm = { this->getMaxWlenNm() },
-		.min_w_len_nm = { this->getMinWlenNm() },
-		.n_wavelength = { this->getNWavelength() },
-	};
-	return w_info;
+	adf_init(&this->adf, header.toCHeader(), periodSec);
 }
 
-soil_depth_info_t SoilDepthInfo::toCSoilInfo(void)
+Adf::Adf(std::vector<std::byte> bytes)
 {
-	soil_depth_info_t s_info = {
-		.n_depth = { this->getNDepthMeasurements() },
-		.min_soil_depth_mm = { this->getMinDepthMm() },
-		.max_soil_depth_mm = { this->getMaxDepthMm() }
-	};
-	return s_info;
+	std::vector<uint8_t> cBytes;
+	std::function<uint8_t(std::byte)> toCBytes = [] (std::byte x) {return std::to_integer<uint8_t>(x);};
+	cBytes = map(bytes, toCBytes);
+	uint16_t res = ::unmarshal(&this->adf, cBytes.data());
+	if (res != ADF_OK) throwAdfError(res);
 }
 
-reduction_info_t ReductionInfo::toCReductionInfo(void)
+Adf::~Adf()
 {
-	reduction_info_t r_info = {
-		.soil_density_red_mode = (reduction_code_t) this->soilDensity,
-		.pressure_red_mode = (reduction_code_t) this->pressure,
-		.light_exposure_red_mode = (reduction_code_t) this->lightExposure,
-		.water_use_red_mode = (reduction_code_t) this->waterUse,
-		.soil_temp_red_mode = (reduction_code_t) this->soilTemp,
-		.env_temp_red_mode = (reduction_code_t) this->envTemp
-	};
-	return r_info;
-}
-
-adf_header_t Header::toCHeader(void)
-{
-	return create_header(
-		this->getFarmingTec(),
-		this->waveInfo.toCWaveInfo(),
-		this->soilDepthInfo.toCSoilInfo(),
-		this->reductionInfo.toCReductionInfo(),
-		this->getNChunks()
-	);
-}
-
-additive_t Additive::toCAdditive(void)
-{
-	additive_t add =  {
-		/* code_idx should be set by the add_series function */
-		.code_idx = { 0 },
-		.code = { this->code },
-		.concentration = { this->concentration }
-	};
-	return add;
-}
-
-std::vector<additive_t> AdditiveList::toCAdditives(void)
-{
-	for (Additive &add : this->additives) {
-		additive_t cAdd = add.toCAdditive();
-		this->cAdditives.push_back(cAdd);
-	}
-	return this->cAdditives;
-}
-
-series_t Series::toCSeries(void)
-{
-	real_t *lightExposureFirstElem = reinterpret_cast<real_t*>(this->lightExposure.startPointer());
-	real_t *soilTempFirstElem = reinterpret_cast<real_t*>(this->soilTempCelsius.startPointer());
-	real_t *envTempFirstElem =  reinterpret_cast<real_t*>(this->environmentTempCelsius.data());
-	real_t *waterUseFirstElem = reinterpret_cast<real_t*>(this->waterUseMl.data());
-	additive_t *soilAdditivesFirstElem =  reinterpret_cast<additive_t*>(this->soilAdditives.cAdditives.data());
-	additive_t *atmosphereAdditivesFirstElem =  reinterpret_cast<additive_t*>(this->atmosphereAdditives.cAdditives.data());
-	series_t cSeries = {
-		.light_exposure = lightExposureFirstElem,
-		.soil_temp_c = soilTempFirstElem,
-		.env_temp_c = envTempFirstElem,
-		.water_use_ml = waterUseFirstElem,
-		.pH = (uint8_t)(this->pH * 10),
-		.p_bar = { this->pressureBar },
-		.soil_density_kg_m3 = { this->soilDensityKgM3 },
-		.n_soil_adds= { (uint16_t)this->soilAdditives.size() },
-		.n_atm_adds = {(uint16_t) this->atmosphereAdditives.size() },
-		.soil_additives = soilAdditivesFirstElem,
-		.atm_additives = atmosphereAdditivesFirstElem,
-		.repeated = {this->repeated }
-	};
-	return cSeries;
+	adf_free(&this->adf);
 }
 
 Version Adf::version(void)
@@ -142,14 +72,14 @@ std::string Adf::versionString(void)
 	#endif
 }
 
-void Adf::addSeries(Series &series)
+void Adf::addSeries(Series& series)
 {
 	series_t cSeries = series.toCSeries();
 	uint16_t res = add_series(&this->adf, &cSeries);
 	if (res != ADF_OK) throwAdfError(res);
 }
 
-void Adf::updateSeries(Series &series, uint64_t time)
+void Adf::updateSeries(Series& series, uint64_t time)
 {
 	series_t cSeries = series.toCSeries();
 	uint16_t res = update_series(&this->adf, &cSeries, time);
@@ -162,7 +92,7 @@ void Adf::removeSeries(void)
 	if (res != ADF_OK) throwAdfError(res);
 }
 
-std::vector<std::byte> Adf::marshal()
+std::vector<std::byte> Adf::marshal(void)
 {
 	std::vector<std::byte> result;
 	size_t adf_size = size_adf_t(&this->adf);
@@ -180,14 +110,5 @@ std::vector<std::byte> Adf::marshal()
 }
 
 size_t Adf::size(void) { return size_adf_t(&this->adf); }
-
-Adf::Adf(std::vector<std::byte> bytes)
-{
-	std::vector<uint8_t> cBytes;
-	std::function<uint8_t(std::byte)> toCBytes = [] (std::byte x) {return std::to_integer<uint8_t>(x);};
-	cBytes = map(bytes, toCBytes);
-	uint16_t res = ::unmarshal(&this->adf, cBytes.data());
-	if (res != ADF_OK) throwAdfError(res);
-}
 
 } /* namespace adf */

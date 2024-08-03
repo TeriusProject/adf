@@ -3,9 +3,19 @@ CXXFLAGS = -pedantic -Wall -Wextra -fPIC -std=c++20 -O3
 INCLUDE = /usr/local/include
 LIB_DIR = /usr/local/lib
 LIB = libadfpp.dylib
+OBJS = adf.o header.o series.o
 
-$(LIB): adf.cc adf.hpp exceptions.hpp
-	$(CC) $(CXXFLAGS) -dynamiclib -ladf -o $@ $< -I $(INCLUDE) -L $(LIB_DIR)
+$(LIB): $(OBJS)
+	$(CC) $(CXXFLAGS) -dynamiclib -ladf -o $@ $^ -I $(INCLUDE) -L $(LIB_DIR)
+
+adf.o: adf.cc adf.hpp exceptions.hpp
+	$(CC) $(CXXFLAGS) -c -o $@ $<
+
+header.o: header.cc adf.hpp exceptions.hpp
+	$(CC) $(CXXFLAGS) -c -o $@ $<
+
+series.o: series.cc adf.hpp exceptions.hpp
+	$(CC) $(CXXFLAGS) -c -o $@ $<
 
 .PHONY: install
 install: adf.hpp $(LIB)
@@ -17,5 +27,5 @@ example: example.cc
 	DYLD_INSERT_LIBRARIES=$(LIB_DIR) $(CC) $(CXXFLAGS) -ladfpp -o $@ $<
 
 .PHONY: clean
-clean: 
-	rm -f $(LIB)
+clean: $(OBJS) $(LIB) adf.hpp exceptions.hpp
+	rm -f $(LIB) $(OBJS)

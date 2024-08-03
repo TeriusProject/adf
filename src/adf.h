@@ -71,7 +71,8 @@ extern "C" {
 #define ADD_T_SIZE			6
 
 /*
- * Some useful constants. All numbers are expressed in seconds
+ * Some constants to represent standard length of the series. 
+ * All numbers are expressed in seconds.
  */
 #define ADF_DAY         86400
 #define ADF_WEEK        604800
@@ -80,17 +81,30 @@ extern "C" {
 #define ADF_MONTH_30    2592000
 #define ADF_MONTH_31    2678400
 
+/* */
 typedef enum {
-	ADF_FT_REGULAR            = 0x00,  
-	ADF_FT_INDOOR             = 0x01, 
-	ADF_FT_INDOOR_PROTECTED   = 0x02, 
-	ADF_FT_OUTDOOR            = 0x03,
-	ADF_FT_ARTIFICIAL_SOIL    = 0x10,
-	ADF_FT_HYDROPONICS        = 0x20, 
-	ADF_FT_ANTHROPONICS       = 0x21,
-	ADF_FT_AEROPONICS         = 0x30, 
-	ADF_FT_FOGPONICS          = 0x31
+	ADF_FT_REGULAR            = 0x00u,  
+	ADF_FT_INDOOR             = 0x01u, 
+	ADF_FT_INDOOR_PROTECTED   = 0x02u, 
+	ADF_FT_OUTDOOR            = 0x03u,
+	ADF_FT_ARTIFICIAL_SOIL    = 0x10u,
+	ADF_FT_HYDROPONICS        = 0x20u, 
+	ADF_FT_ANTHROPONICS       = 0x21u,
+	ADF_FT_AEROPONICS         = 0x30u, 
+	ADF_FT_FOGPONICS          = 0x31u
 } farming_technique_t;
+
+/* 8-bit usnsigned integer  */
+typedef enum {
+	/* No statistical procedure has been applied */
+	ADF_RM_NONE = 0x00u,
+
+	/* Average */
+	ADF_RM_AVG  = 0x01u,
+
+	/* Moving average */
+	ADF_RM_MAVG = 0x02u
+} reduction_code_t;
 
 /*
  * It contains the exit code of the functions that handle the adf_t structure.
@@ -172,9 +186,7 @@ typedef enum {
 	/* Error raised when NULL is passed as target in cpy_series. */
 	ADF_NULL_ADDITIVE_TARGET = 0x11u,
 
-	/*
-	 * The most generic error code.
-	 */
+	/* The most generic error code. */
 	ADF_RUNTIME_ERROR = 0xFFFFu
 } code_t;
 
@@ -364,17 +376,6 @@ typedef struct {
 	 */
 	uint_small_t n_depth;
 } __attribute__((packed)) soil_depth_info_t;
-
-typedef enum {
-	/* No statistical procedure has been applied */
-	ADF_RM_NONE = 0x00,
-
-	/* Average */
-	ADF_RM_AVG  = 0x01,
-
-	/* Moving average */
-	ADF_RM_MAVG = 0x02
-} reduction_code_t;
 
 /*
  * Each of the following fields contain information about the statistical
