@@ -117,7 +117,7 @@ You can find a working example of how to use `libadf` under the `example` direct
 
 ## Further developments
 
-- [ ] Improve Makefiles and build pipeline. Wouldn't it be nice to add a `configure` script to make build and install procedures platform-dependent?
+- [ ] Improve Makefiles and build pipeline. Wouldn't it be nice to add a `configure` script to make build and install procedures cross-platform, as well as Github actions?
 - [ ] Extend the support to `valgrind` and `GNU gprof`. Currently the script `./memtest` only works for `leaks` (macOS).
 - [ ] Improve efficiency (speed and memory usage).
 - [ ] Bindings for the most common languages: Java, Python (via Cython) and Javascript/Typescript (vis WebAssembly).
