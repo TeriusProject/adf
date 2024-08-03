@@ -23,7 +23,7 @@ make init  # generates the file sample.adf
 make adf   # just compiles the library libadf.a
 make tests # just compiles and execute the tests
 ```
-> **_NOTE:_** The command `make tests` does **_not_** require the library `libadf.a` to be neither compiled nor installed, so it can be executed without having executed  `make adf`. In order to make tests work, `sample.adf` _must_ be generated, so you have to execute `make init`.
+> **_NOTE:_** The command `make tests` does **_not_** require the library `libadf.a` to be neither compiled nor installed, so it can be executed without having executed  `make adf`. In order to make tests work, `sample.adf` _must_ be generated, so you have to execute `make init` first.
 
 In order to use a compiler different from GCC, you should modify the CC var in the Makefile (and consequently adjust the options in CVARS).
 
@@ -37,7 +37,7 @@ sudo make install
 
 C implementation of the ADF format is *not* intended to be used directly. Some APIs for modern programming languages are available (and others will be available soon).
 
-> **_BEWARE:_** All the APIs described below need `libadf.a` to be installed in the standard directory. See build instructions above.
+> **_BEWARE:_** All the APIs described below need `libadf.a` to be installed in the standard directory. See build it and install it with the instructions above.
 
 ### C++
 > **_NOTE:_** In order to build the C++ API is required a compiler that fully support C++20, including `std::format`. If it's unavailable on your machine, change the command line options in the Makefile, from `-std=c++20` to `-std=c++17`.
@@ -48,7 +48,7 @@ make cpp # Compiles libadfpp.dylib into api/cc folder
 sudo make cpp_install
 ```
 
-This will install a **dynamic** library on your system, as well as its header file. As of now, these scripts unfortunately just works on macOS, and probably some versions of GNU/Linux or other UNIX-like systems. We are planning to extend the compatibility to windows too (see Further developments section later on).
+This will install a **dynamic** library on your system, as well as its header file. As of now, these scripts unfortunately just works on macOS, and probably some versions of GNU/Linux or other UNIX-like systems. We are planning to extend the compatibility to MS Windows too (see Further developments section later on).
 
 > **_NOTE:_** For newer version of macOS, you have to set the environment variable `export DYLD_INSERT_LIBRARIES=/usr/local/lib`. See the example rule in the Makefile (`api/cc/Makefile`).
 
