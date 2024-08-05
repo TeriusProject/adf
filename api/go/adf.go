@@ -138,12 +138,9 @@ func NewHeader(farmingTec uint8, nChunks uint32,
 func (h Header) toCHeader() C.adf_header_t {
 	return C.create_header(
 		C.uint8_t(h.farmingTec),
-		C.uint16_t(h.wInfo.minWavelenNm),
-		C.uint16_t(h.wInfo.maxWavelenNm),
-		C.uint16_t(h.wInfo.nWavelengths),
-		C.uint16_t(h.sInfo.minSoilDepthMm),
-		C.uint16_t(h.sInfo.maxSoilDepthMm),
-		C.uint16_t(h.sInfo.nDepth),
+		h.wInfo,
+		h.sInfo,
+		h.redInfo,
 		C.uint32_t(h.nChunks),
 	)
 }
@@ -207,10 +204,8 @@ func (adf *Adf) RemoveSeries() error {
 }
 
 func (adf *Adf) GetVersion() string {
-	versionBytes := uint16(C.get_version())
-	major := (versionBytes & uint16(C.MAJOR_VERSION_MASK)) >> 8
-	minor := versionBytes & uint16(C.MINOR_VERSION_MASK)
-	return fmt.Sprintf("%d.%d", major, minor)
+	version := C.get_adf_version()
+	return fmt.Sprintf("%d.%d.%d", version.major, version.minor, version.patch)
 }
 
 func (adf *Adf) Dispose() {
