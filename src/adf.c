@@ -988,6 +988,46 @@ uint16_t reindex_additives(adf_t *adf)
 
 	return ADF_OK;
 }
+
+wavelength_info_t create_wavelength_info(uint16_t min_w_len_nm,
+										 uint16_t max_w_len_nm,
+										 uint16_t n_wavelength)
+{
+	return (wavelength_info_t) {
+		.min_w_len_nm = { min_w_len_nm },
+		.max_w_len_nm = { max_w_len_nm },
+		.n_wavelength = { n_wavelength },
+	};
+}
+
+soil_depth_info_t create_soil_depth_info(uint16_t min_soil_depth_mm,
+										 uint16_t max_soil_depth_mm,
+										 uint16_t n_depth )
+{
+	return (soil_depth_info_t) {
+		.min_soil_depth_mm = { min_soil_depth_mm },
+		.max_soil_depth_mm = { max_soil_depth_mm },
+		.n_depth = { n_depth },
+	};
+}
+
+reduction_info_t create_reduction_info(uint8_t soil_density_red_mode,
+									   uint8_t pressure_red_mode,
+									   uint8_t light_exposure_red_mode,
+									   uint8_t water_use_red_mode,
+									   uint8_t soil_temp_red_mode,
+									   uint8_t env_temp_red_mode)
+{
+	return (reduction_info_t) {
+		.soil_density_red_mode = (reduction_code_t) soil_density_red_mode,
+		.pressure_red_mode = (reduction_code_t) pressure_red_mode,
+		.light_exposure_red_mode = (reduction_code_t) light_exposure_red_mode,
+		.water_use_red_mode = (reduction_code_t) water_use_red_mode,
+		.soil_temp_red_mode = (reduction_code_t) soil_temp_red_mode,
+		.env_temp_red_mode = (reduction_code_t) env_temp_red_mode,
+	};
+}
+
 adf_header_t create_header(uint8_t farming_tec, wavelength_info_t wave_info,
 						   soil_depth_info_t soil_info, 
 						   reduction_info_t reduction_info, uint32_t n_chunks)

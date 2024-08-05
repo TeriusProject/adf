@@ -48,19 +48,32 @@ make cpp # Compiles libadfpp.dylib into api/cc folder
 sudo make cpp_install
 ```
 
-This will install a **dynamic** library on your system, as well as its header file. As of now, these scripts unfortunately just works on macOS, and probably some versions of GNU/Linux or other UNIX-like systems. We are planning to extend the compatibility to MS Windows too (see Further developments section later on).
+This will install a **dynamic** library on your system, as well as its header file. By default the library will be installed under `/usr/local/lib`, and its header under `/usr/local/include`.
 
-> **_NOTE:_** For newer version of macOS, you have to set the environment variable `export DYLD_INSERT_LIBRARIES=/usr/local/lib`. See the example rule in the Makefile (`api/cc/Makefile`).
+As of now, these scripts unfortunately just works on macOS, and probably some versions of GNU/Linux or other UNIX-like systems. We are planning to extend the compatibility to MS Windows too (see Further developments section later on).In the meantime, you can chang the deafult directories by changing the two variables `INCLUDE` and `LIB_DIR` in `api/cc/Makefile`.
 
-An example of how to link and use this library is given in `api/cc/ecample.cc`. to compile it, run
+An example of how to link and use this library is given in `api/cc/ecample.cc`. To compile it and runt it, execute
 ```bash
 cd api/cc
 make example
+./example
 ```
+> **_NOTE:_** For newer version of macOS, you have to set the environment variable `export DYLD_LIBRARY_PATH=/usr/local/lib` before running the example binary.
 
 ### Go
 
-Go APIs are currently under development on the branch `go-api`
+Golang APIs are quite similar to to those for C++ in their structure.
+
+You can install the library in your Golang project by simply typing
+```bash
+go get github.com/TeriusProject/adf/api/go/adflib@latest
+```
+
+You can find an example under `api/go`. To execute it, just run
+```bash
+go run example.go
+```
+> **_NOTE:_** This example works **without** installing the library with `go get`. It just link it to the local folder `api/go/adflib`.
 
 ## Test suites
 
@@ -123,7 +136,7 @@ You can find a working example of how to use `libadf` under the `example` direct
 - [ ] Improve Makefiles and build pipeline. Wouldn't it be nice to add a `configure` script to make build and install procedures cross-platform, as well as Github actions?
 - [ ] Extend the support to `valgrind` and `GNU gprof`. Currently the script `./memtest` only works for `leaks` (macOS).
 - [ ] Improve efficiency (speed and memory usage).
-- [ ] Bindings for the most common languages: Java, Python (via Cython) and Javascript/Typescript (vis WebAssembly).
+- [ ] Bindings for the most common languages: Java, Python (via Cython) and Javascript/Typescript (via WebAssembly).
 - [ ] Add SIMD support for Intel Intrinsics and ARM Neon. The development is already ongoing in a separate private repository. Once the first release will be ready, it will be linked into this one.
 - [ ] Improve factory functions. Probably we have to wait a bit in order to see how we could make them easier to use.
 

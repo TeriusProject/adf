@@ -19,7 +19,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-all: c
+CC = gcc
+CFLAGS = -pedantic -Wall -Wextra -std=c2x -O3
 
-c: example.c
-	gcc -pedantic -Wall -Wextra -std=c2x -O3 -o example example.c -ladf
+all: example
+
+.PHONY: example
+example: example.c
+	$(CC) $(CFLAGS) -o $@ $< -ladf

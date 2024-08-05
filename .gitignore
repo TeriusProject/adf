@@ -46,7 +46,6 @@
 *.pdb
 
 # Kernel Module Compile Results
-*.mod*
 *.cmd
 .tmp_versions/
 modules.order
@@ -85,8 +84,8 @@ example/example
 example/output.adf
 example/example
 api/cc/example
+api/go/example
 
 .DS_Store
-api/go/
 api/js/
 

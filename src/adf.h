@@ -146,7 +146,8 @@ typedef enum {
 	ADF_SERIES_CORRUPTED = 0x03u,
 
 	/*
-	 * Returned when the field `repeated` in type series_t is set to 0.
+	 * Returned when you are trying to add or aupdate a series with the field 
+	 * `repeated` set to 0.
 	 */
 	ADF_ZERO_REPEATED_SERIES = 0x04u,
 
@@ -203,6 +204,34 @@ typedef enum {
 	/* The most generic error code. */
 	ADF_RUNTIME_ERROR = 0xFFFFu
 } code_t;
+
+/*
+ * 
+ */
+#define ADF_ERROR_PREFIX "-- ADF ERROR -- "
+#define ADF_HEADER_CORRUPTED_STR "Header is corrupted. Cannot unmarshal"
+#define ADF_METADATA_CORRUPTED_STR "Metadata is corrupted. Cannot unmarshal"
+#define ADF_SERIES_CORRUPTED_STR "A series is corrupted. Cannot unmarshal"
+#define ADF_ZERO_REPEATED_SERIES_STR "Cannot add/update a series repeated 0 " \
+									 "times"
+#define ADF_EMPTY_SERIES_STR "Cannot remove a series. The series collection " \
+							 "is empty"
+#define ADF_TIME_OUT_OF_BOUND_STR "Cannot update the series. the time you "   \
+								  "specified is out of bound"
+#define ADF_ADDITIVE_OVERFLOW_STR "Cannot add/update the series. Yhe number " \
+								  "of additives present in this ADF file is " \
+								  "greter than 65'535"
+#define ADF_NULL_HEADER_SOURCE_STR "Cannot copy: source header is NULL"
+#define ADF_NULL_HEADER_TARGET_STR "Cannot copy: target header is NULL"
+#define ADF_NULL_META_SOURCE_STR "Cannot copy: source metadata is NULL"
+#define ADF_NULL_META_TARGET_STR "Cannot copy: target metadata is NULL"
+#define ADF_NULL_SERIES_SOURCE_STR "Cannot copy: source series is NULL"
+#define ADF_NULL_SERIES_TARGET_STR "Cannot copy: target series is NULL"
+#define ADF_NULL_SOURCE_STR "Cannot copy: source is NULL"
+#define ADF_NULL_TARGET_STR "Cannot copy: target is NULL"
+#define ADF_NULL_ADDITIVE_SOURCE_STR "Cannot copy: source additive is NULL"
+#define ADF_NULL_ADDITIVE_TARGET_STR "Cannot copy: target additive is NULL"
+#define ADF_RUNTIME_ERROR_STR "An error occurred"
 
 typedef union {
 	float val;
@@ -576,6 +605,19 @@ bool are_series_equal(const series_t *, const series_t *, const adf_t*);
  *
  */
 additive_t create_additive(uint32_t code, float concentration);
+wavelength_info_t create_wavelength_info(uint16_t min_w_len_nm,
+										 uint16_t max_w_len_nm,
+										 uint16_t n_wavelength);
+soil_depth_info_t create_soil_depth_info(uint16_t min_soil_depth_mm,
+										 uint16_t max_soil_depth_mm,
+										 uint16_t n_depth);
+reduction_info_t create_reduction_info(uint8_t soil_density_red_mode,
+									   uint8_t pressure_red_mode,
+									   uint8_t light_exposure_red_mode,
+									   uint8_t water_use_red_mode,
+									   uint8_t soil_temp_red_mode,
+									   uint8_t env_temp_red_mode);
+
 adf_header_t create_header(uint8_t farming_tec, wavelength_info_t wave_info,
 						   soil_depth_info_t soil_info, 
 						   reduction_info_t reduction_info, uint32_t n_chunks);

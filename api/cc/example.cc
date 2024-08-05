@@ -52,14 +52,6 @@ adf::Series getRandomSeries()
 	return series;
 }
 
-void updateData(adf::Adf& adf)
-{
-	for (int i = 0; i < nSeries; i++) {
-		adf::Series s = getRandomSeries();
-		adf.addSeries(s);
-	}
-}
-
 void createAdfAndSaveToFile(void)
 {
 	adf::Header header = adf::Header(
@@ -69,8 +61,18 @@ void createAdfAndSaveToFile(void)
 		adf::ReductionInfo(),
 		nChunks);
 	adf::Adf adf = adf::Adf(header, ADF_DAY);
-	updateData(adf);
-	std::vector<std::byte> bytes = adf.marshal();
+	std::vector<std::byte> bytes;
+
+	try {
+		for (int i = 0; i < nSeries; i++) {
+			adf::Series s = getRandomSeries();
+			adf.addSeries(s);
+		}
+		bytes = adf.marshal();
+	} catch(const std::exception& ex) {
+		std::cout << ex.what() << std::endl;
+		exit(1);
+	}
 	
 	std::ofstream fs(fileName, std::ios::binary);
 	fs.write(reinterpret_cast<char*>(bytes.data()), adf.size());
@@ -95,8 +97,13 @@ std::vector<std::byte> readFile(void)
 void readFileAndGenerateAdf(void)
 {
 	std::vector<std::byte> bytes = readFile();
+	try {
 	adf::Adf adf(bytes);
 	std::cout << "ADF size: " << adf.size() << " bytes" << std::endl;
+	} catch (const std::exception& ex) {
+		std::cout << ex.what() << std::endl;
+		exit(1);
+	}
 }
 
 int main(void) 

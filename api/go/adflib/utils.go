@@ -1,5 +1,5 @@
 /*
- * adf.go - Golang interface for ADF library
+ * utils.go - Utility functions and data structures
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -21,15 +21,38 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package main
+package adflib
 
-import "fmt"
-
-type RuntimeError struct {
-	Code int
-	Err  error
+type Matrix[T any] struct {
+	mat     []T
+	rows    uint32
+	columns uint32
 }
 
-func (r *RuntimeError) Error() string {
-	return fmt.Sprintf("ERROR %d: %v", r.Code, r.Err)
+func NewEmptyMatrix[T any](rows uint32, columns uint32) (Matrix[T], error) {
+	return Matrix[T]{
+		mat:     make([]T, rows*columns),
+		rows:    rows,
+		columns: columns,
+	}, nil
+}
+
+func NewMatrix[T any](columns uint32) (Matrix[T], error) {
+	return Matrix[T]{
+		rows:    0,
+		columns: columns,
+	}, nil
+}
+
+func (m *Matrix[T]) AddRow(row []T) {
+	m.mat = append(m.mat, row...)
+	m.rows += 1
+}
+
+func (m *Matrix[T]) Shape(row uint32, column uint32) (uint32, uint32) {
+	return m.rows, m.columns
+}
+
+func (m *Matrix[T]) At(row uint32, column uint32) T {
+	return m.mat[column+row*m.columns]
 }

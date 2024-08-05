@@ -24,7 +24,7 @@ install: adf.hpp $(LIB)
 
 .PHONY: example
 example: example.cc
-	DYLD_INSERT_LIBRARIES=$(LIB_DIR) $(CC) $(CXXFLAGS) -ladfpp -o $@ $<
+	$(CC) $(CXXFLAGS) -ladfpp -o $@ $<
 
 .PHONY: clean
 clean:

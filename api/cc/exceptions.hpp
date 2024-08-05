@@ -29,178 +29,45 @@
 
 namespace adf {
 
-class RuntimeException : public std::exception {
-	private:
-  	using std::exception::what;
-	std::string message = "An error occurred ";
-
-	public:
-	RuntimeException() { }
-	const char *what() { return (const char *)message.c_str(); }
-};
-
-class EmptySeriesException : public std::exception {
-	private:
-  	using std::exception::what;
-	std::string message = "";
-
-	public:
-	EmptySeriesException() { }
-	const char *what() { return (const char *)message.c_str(); }
-};
-
-class AdfHeaderCorruptedException : public std::exception {
-	private:
-  	using std::exception::what;
-	std::string message;
-
-	public:
-	AdfHeaderCorruptedException()
-	{
-		this->message = "Header section is corrupted. Cannot unmarshal\n";
-	}
-	const char *what() { return (const char *)message.c_str(); }
-};
-
-class AdfMetadataCorruptedException : public std::exception {
-	private:
-  	using std::exception::what;
-	std::string message;
-
-	public:
-	AdfMetadataCorruptedException()
-	{
-		this->message = "Metadata section is corrupted. Cannot unmarshal\n";
-	}
-	const char *what() { return (const char *)message.c_str(); }
-};
-
-class AdfSeriesCorruptedException : public std::exception {
-	private:
-  	using std::exception::what;
-	std::string message;
-
-	public:
-	AdfSeriesCorruptedException()
-	{
-		this->message = "Series is corrupted. Cannot unmarshal\n";
-	}
-	const char *what() { return (const char *)message.c_str(); }
-};
-
-class ZeroRepeatedSeriesException : public std::exception {
-	private:
-  	using std::exception::what;
-	std::string message;
-
-	public:
-	ZeroRepeatedSeriesException()
-	{
-		this->message = "Series is corrupted. Cannot unmarshal\n";
-	}
-	const char *what() { return (const char *)message.c_str(); }
-};
-
-class AdfTimeOutOfBounException : public std::exception {
-	private:
-  	using std::exception::what;
-	std::string message;
-
-	public:
-	AdfTimeOutOfBounException()
-	{
-		this->message = "\n";
-	}
-	const char *what() { return (const char *)message.c_str(); }
-};
-
-class AdfAdditiveOverflowException : public std::exception {
-	private:
-  	using std::exception::what;
-	std::string message;
-
-	public:
-	AdfAdditiveOverflowException()
-	{
-		this->message = "\n";
-	}
-	const char *what() { return (const char *)message.c_str(); }
-};
-
-class NullTargetException : public std::exception {
-	private:
-  	using std::exception::what;
-	std::string message;
-
-	public:
-	NullTargetException()
-	{
-		this->message = "\n";
-	}
-	const char *what() { return (const char *)message.c_str(); }
-};
-
-class NullSourceException : public std::exception {
-	private:
-  	using std::exception::what;
-	std::string message;
-
-	public:
-	NullSourceException()
-	{
-		this->message = "\n";
-	}
-	const char *what() { return (const char *)message.c_str(); }
-};
-
-using NullHeaderTargetException = NullTargetException;
-using NullHeaderSourceException = NullSourceException;
-using NullMetadataTargetException = NullTargetException;
-using NullMetadataSourceException = NullSourceException;
-using NullSeriesTargetException = NullTargetException;
-using NullSeriesSourceException = NullSourceException;
-using NullAddditiveTargetException = NullTargetException;
-using NullAddditiveSourceException = NullSourceException;
-
 void throwAdfError(uint32_t errorCode)
 {
 	switch (errorCode) {
 		case ADF_HEADER_CORRUPTED:
-			throw AdfHeaderCorruptedException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_HEADER_CORRUPTED_STR);
 		case ADF_METADATA_CORRUPTED:
-			throw AdfMetadataCorruptedException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_METADATA_CORRUPTED_STR);
 		case ADF_SERIES_CORRUPTED:
-			throw AdfSeriesCorruptedException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_SERIES_CORRUPTED_STR);
 		case ADF_ZERO_REPEATED_SERIES:
-			throw ZeroRepeatedSeriesException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_ZERO_REPEATED_SERIES_STR);
 		case ADF_EMPTY_SERIES:
-			throw EmptySeriesException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_EMPTY_SERIES_STR);
 		case ADF_TIME_OUT_OF_BOUND:
-			throw AdfTimeOutOfBounException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_TIME_OUT_OF_BOUND_STR);
 		case ADF_ADDITIVE_OVERFLOW:
-			throw AdfAdditiveOverflowException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_ADDITIVE_OVERFLOW_STR);
 		case ADF_NULL_HEADER_SOURCE:
-			throw NullHeaderSourceException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_HEADER_SOURCE_STR);
 		case ADF_NULL_HEADER_TARGET:
-			throw NullHeaderTargetException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_HEADER_TARGET_STR);
 		case ADF_NULL_META_SOURCE:
-			throw NullMetadataSourceException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_META_SOURCE_STR);
 		case ADF_NULL_META_TARGET:
-			throw NullMetadataTargetException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_META_TARGET_STR);
 		case ADF_NULL_SERIES_SOURCE:
-			throw NullSeriesSourceException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_SERIES_SOURCE_STR);
 		case ADF_NULL_SERIES_TARGET:
-			throw NullSeriesTargetException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_SERIES_TARGET_STR);
 		case ADF_NULL_SOURCE:
-			throw NullSourceException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_SOURCE_STR);
 		case ADF_NULL_TARGET:
-			throw NullTargetException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_TARGET_STR);
 		case ADF_NULL_ADDITIVE_SOURCE:
-			throw NullAddditiveSourceException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_ADDITIVE_SOURCE_STR);
 		case ADF_NULL_ADDITIVE_TARGET:
-			throw NullAddditiveTargetException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_ADDITIVE_TARGET_STR);
 		case ADF_RUNTIME_ERROR:
-			throw RuntimeException();
+			throw std::runtime_error(ADF_ERROR_PREFIX ADF_RUNTIME_ERROR_STR);
 		default:
 			break;
 	}
