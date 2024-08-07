@@ -426,10 +426,10 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 		for (uint32_t t = 0; t < n_chunks * n_depth; t++, byte_c += 4) {
 			cpy_4_bytes_fn(current.soil_temp_c[t].bytes, bytes + byte_c);
 		}
-		for (u_int32_t temp_i = 0; temp_i < n_chunks; temp_i++, byte_c += 4) {
+		for (uint32_t temp_i = 0; temp_i < n_chunks; temp_i++, byte_c += 4) {
 			cpy_4_bytes_fn(current.env_temp_c[temp_i].bytes, (bytes + byte_c));
 		}
-		for (u_int32_t w_i = 0; w_i < n_chunks; w_i++, byte_c += 4) {
+		for (uint32_t w_i = 0; w_i < n_chunks; w_i++, byte_c += 4) {
 			cpy_4_bytes_fn(current.water_use_ml[w_i].bytes, (bytes + byte_c));
 		}
 
