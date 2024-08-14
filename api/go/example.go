@@ -1,5 +1,5 @@
 /*
- * errors.go - GO API example
+ * example.go - GO API example
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -25,6 +25,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -114,6 +115,15 @@ func createAdfAndMarshal() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
+
+		jsonData, e := json.Marshal(series)
+		if e != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println(string(jsonData))
+
 		series.DisposeSeries()
 	}
 	bytes, err := adf.Marshal()
@@ -152,6 +162,7 @@ func unmarshalAndCreate() {
 		log.Fatal(err.Error())
 	}
 	fmt.Printf("ADF size: %d bytes\n", adf.SizeBytes())
+	adf.Dispose()
 }
 
 func main() {

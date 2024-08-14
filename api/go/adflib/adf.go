@@ -93,54 +93,54 @@ const (
 )
 
 type Additive struct {
-	code          uint32
-	concentration float32
+	Code          uint32
+	Concentration float32
 }
 
 func NewAdditive(code uint32, concentration float32) Additive {
 	return Additive{
-		code:          code,
-		concentration: concentration,
+		Code:          code,
+		Concentration: concentration,
 	}
 }
 
 func (add *Additive) toCAdditive() C.additive_t {
-	return C.create_additive(C.uint32_t(add.code), C.float(add.concentration))
+	return C.create_additive(C.uint32_t(add.Code), C.float(add.Concentration))
 }
 
 type AdditiveList struct {
-	adds []Additive
+	Adds []Additive
 }
 
 func NewAdditiveList(adds []Additive) AdditiveList {
 	return AdditiveList{
-		adds: adds,
+		Adds: adds,
 	}
 }
 
 func (al *AdditiveList) Size() int {
-	return len(al.adds)
+	return len(al.Adds)
 }
 
 func (al *AdditiveList) toCList() []C.additive_t {
-	additives := make([]C.additive_t, len(al.adds))
-	for i, e := range al.adds {
+	additives := make([]C.additive_t, len(al.Adds))
+	for i, e := range al.Adds {
 		additives[i] = e.toCAdditive()
 	}
 	return additives
 }
 
 type Series struct {
-	lightExposure   Matrix[float32]
-	soilTempC       Matrix[float32]
-	envTempC        []float32
-	waterUseMl      []float32
-	pH              uint8
-	pBar            float32
-	soilDensityKgM3 float32
-	soilAdditives   AdditiveList
-	atmAdditives    AdditiveList
-	repeated        uint32
+	LightExposure   Matrix[float32] `json:"lightExposure"`
+	SoilTempC       Matrix[float32] `json:"soilTempC"`
+	EnvTempC        []float32       `json:"envTempC"`
+	WaterUseMl      []float32       `json:"waterUseMl"`
+	PH              uint8           `json:"pH"`
+	PBar            float32         `json:"pBar"`
+	SoilDensityKgM3 float32         `json:"soilDensityKgM3"`
+	SoilAdditives   AdditiveList    `json:"soilAdditives"`
+	AtmAdditives    AdditiveList    `json:"atmAdditives"`
+	Repeated        uint32          `json:"repeated"`
 }
 
 func NewSeries(lightExposure Matrix[float32], soilTempC Matrix[float32],
@@ -148,23 +148,23 @@ func NewSeries(lightExposure Matrix[float32], soilTempC Matrix[float32],
 	soilDensityKgM3 float32, soilAdditives AdditiveList, atmAdditives AdditiveList,
 	repeated uint32) Series {
 	s := Series{
-		lightExposure:   lightExposure,
-		soilTempC:       soilTempC,
-		envTempC:        envTempC,
-		waterUseMl:      waterUseMl,
-		pH:              pH,
-		pBar:            pBar,
-		soilDensityKgM3: soilDensityKgM3,
-		soilAdditives:   soilAdditives,
-		atmAdditives:    atmAdditives,
-		repeated:        repeated,
+		LightExposure:   lightExposure,
+		SoilTempC:       soilTempC,
+		EnvTempC:        envTempC,
+		WaterUseMl:      waterUseMl,
+		PH:              pH,
+		PBar:            pBar,
+		SoilDensityKgM3: soilDensityKgM3,
+		SoilAdditives:   soilAdditives,
+		AtmAdditives:    atmAdditives,
+		Repeated:        repeated,
 	}
-	seriesPinner.Pin(&s.lightExposure.mat[0])
-	seriesPinner.Pin(&s.soilTempC.mat[0])
-	seriesPinner.Pin(&s.envTempC[0])
-	seriesPinner.Pin(&s.waterUseMl[0])
-	seriesPinner.Pin(&s.soilAdditives.toCList()[0])
-	seriesPinner.Pin(&s.atmAdditives.toCList()[0])
+	seriesPinner.Pin(&s.LightExposure.mat[0])
+	seriesPinner.Pin(&s.SoilTempC.mat[0])
+	seriesPinner.Pin(&s.EnvTempC[0])
+	seriesPinner.Pin(&s.WaterUseMl[0])
+	seriesPinner.Pin(&s.SoilAdditives.toCList()[0])
+	seriesPinner.Pin(&s.AtmAdditives.toCList()[0])
 	return s
 }
 
@@ -174,125 +174,125 @@ func (s *Series) DisposeSeries() {
 
 func (s *Series) toCSeries() C.series_t {
 	return C.create_series(
-		(*C.float)(&s.lightExposure.mat[0]),
-		(*C.float)(&s.soilTempC.mat[0]),
-		(*C.float)(&s.envTempC[0]),
-		(*C.float)(&s.waterUseMl[0]),
-		C.uint8_t(s.pH),
-		C.float(s.pBar),
-		C.float(s.soilDensityKgM3),
-		C.uint16_t(s.soilAdditives.Size()),
-		C.uint16_t(s.atmAdditives.Size()),
-		(*C.additive_t)(&s.soilAdditives.toCList()[0]),
-		(*C.additive_t)(&s.atmAdditives.toCList()[0]),
-		C.uint32_t(s.repeated))
+		(*C.float)(&s.LightExposure.mat[0]),
+		(*C.float)(&s.SoilTempC.mat[0]),
+		(*C.float)(&s.EnvTempC[0]),
+		(*C.float)(&s.WaterUseMl[0]),
+		C.uint8_t(s.PH),
+		C.float(s.PBar),
+		C.float(s.SoilDensityKgM3),
+		C.uint16_t(s.SoilAdditives.Size()),
+		C.uint16_t(s.AtmAdditives.Size()),
+		(*C.additive_t)(&s.SoilAdditives.toCList()[0]),
+		(*C.additive_t)(&s.AtmAdditives.toCList()[0]),
+		C.uint32_t(s.Repeated))
 }
 
 type WaveInfo struct {
-	minWavelenNm uint16
-	maxWavelenNm uint16
-	nWavelengths uint16
+	MinWavelenNm uint16
+	MaxWavelenNm uint16
+	NWavelengths uint16
 }
 
 func NewWaveInfo(minWavelenNm uint16, maxWavelenNm uint16, nWavelengths uint16) WaveInfo {
 	return WaveInfo{
-		minWavelenNm: minWavelenNm,
-		maxWavelenNm: maxWavelenNm,
-		nWavelengths: nWavelengths,
+		MinWavelenNm: minWavelenNm,
+		MaxWavelenNm: maxWavelenNm,
+		NWavelengths: nWavelengths,
 	}
 }
 
 func (w *WaveInfo) toCWaveInfo() C.wavelength_info_t {
 	return C.create_wavelength_info(
-		C.uint16_t(w.minWavelenNm),
-		C.uint16_t(w.maxWavelenNm),
-		C.uint16_t(w.nWavelengths),
+		C.uint16_t(w.MinWavelenNm),
+		C.uint16_t(w.MaxWavelenNm),
+		C.uint16_t(w.NWavelengths),
 	)
 }
 
 type SoilDepthInfo struct {
-	minSoilDepthMm uint16
-	maxSoilDepthMm uint16
-	nDepth         uint16
+	MinSoilDepthMm uint16
+	MaxSoilDepthMm uint16
+	NDepth         uint16
 }
 
 func NewSoilDepthInfo(minSoilDepthMm uint16, maxSoilDepthMm uint16, nDepth uint16) SoilDepthInfo {
 	return SoilDepthInfo{
-		minSoilDepthMm: minSoilDepthMm,
-		maxSoilDepthMm: maxSoilDepthMm,
-		nDepth:         nDepth,
+		MinSoilDepthMm: minSoilDepthMm,
+		MaxSoilDepthMm: maxSoilDepthMm,
+		NDepth:         nDepth,
 	}
 }
 
 func (s *SoilDepthInfo) toSoilDepthInfo() C.soil_depth_info_t {
 	return C.create_soil_depth_info(
-		C.uint16_t(s.minSoilDepthMm),
-		C.uint16_t(s.maxSoilDepthMm),
-		C.uint16_t(s.nDepth),
+		C.uint16_t(s.MinSoilDepthMm),
+		C.uint16_t(s.MaxSoilDepthMm),
+		C.uint16_t(s.NDepth),
 	)
 }
 
 type ReductionInfo struct {
-	soilDensity   ReductionCode
-	pressure      ReductionCode
-	lightExposure ReductionCode
-	waterUse      ReductionCode
-	soilTemp      ReductionCode
-	envTemp       ReductionCode
+	SoilDensity   ReductionCode
+	Pressure      ReductionCode
+	LightExposure ReductionCode
+	WaterUse      ReductionCode
+	SoilTemp      ReductionCode
+	EnvTemp       ReductionCode
 }
 
 func NewReductionInfo(soilDensity ReductionCode, pressure ReductionCode,
 	lightExposure ReductionCode, waterUse ReductionCode, soilTemp ReductionCode,
 	envTemp ReductionCode) ReductionInfo {
 	return ReductionInfo{
-		soilDensity:   soilDensity,
-		pressure:      pressure,
-		lightExposure: lightExposure,
-		waterUse:      waterUse,
-		soilTemp:      soilTemp,
-		envTemp:       envTemp,
+		SoilDensity:   soilDensity,
+		Pressure:      pressure,
+		LightExposure: lightExposure,
+		WaterUse:      waterUse,
+		SoilTemp:      soilTemp,
+		EnvTemp:       envTemp,
 	}
 }
 
 func (r *ReductionInfo) toCReductionInfo() C.reduction_info_t {
 	return C.create_reduction_info(
-		C.uint8_t(r.soilDensity),
-		C.uint8_t(r.pressure),
-		C.uint8_t(r.lightExposure),
-		C.uint8_t(r.waterUse),
-		C.uint8_t(r.soilTemp),
-		C.uint8_t(r.envTemp),
+		C.uint8_t(r.SoilDensity),
+		C.uint8_t(r.Pressure),
+		C.uint8_t(r.LightExposure),
+		C.uint8_t(r.WaterUse),
+		C.uint8_t(r.SoilTemp),
+		C.uint8_t(r.EnvTemp),
 	)
 }
 
 type Header struct {
-	version    uint16
-	farmingTec FarmingTechnique
-	wInfo      WaveInfo
-	sInfo      SoilDepthInfo
-	redInfo    ReductionInfo
-	nChunks    uint32
+	Version    uint16
+	FarmingTec FarmingTechnique
+	WInfo      WaveInfo
+	SInfo      SoilDepthInfo
+	RedInfo    ReductionInfo
+	NChunks    uint32
 }
 
 func NewHeader(farmingTec FarmingTechnique, wInfo WaveInfo, sInfo SoilDepthInfo,
 	redInfo ReductionInfo, nChunks uint32) Header {
 	return Header{
-		version:    uint16(C.__ADF_VERSION__),
-		farmingTec: farmingTec,
-		wInfo:      wInfo,
-		sInfo:      sInfo,
-		redInfo:    redInfo,
-		nChunks:    nChunks,
+		Version:    uint16(C.__ADF_VERSION__),
+		FarmingTec: farmingTec,
+		WInfo:      wInfo,
+		SInfo:      sInfo,
+		RedInfo:    redInfo,
+		NChunks:    nChunks,
 	}
 }
 
 func (h Header) toCHeader() C.adf_header_t {
 	return C.create_header(
-		C.uint8_t(h.farmingTec),
-		h.wInfo.toCWaveInfo(),
-		h.sInfo.toSoilDepthInfo(),
-		h.redInfo.toCReductionInfo(),
-		C.uint32_t(h.nChunks),
+		C.uint8_t(h.FarmingTec),
+		h.WInfo.toCWaveInfo(),
+		h.SInfo.toSoilDepthInfo(),
+		h.RedInfo.toCReductionInfo(),
+		C.uint32_t(h.NChunks),
 	)
 }
 
