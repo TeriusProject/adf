@@ -563,6 +563,11 @@ uint16_t add_series(adf_t *, const series_t *);
 uint16_t remove_series(adf_t *);
 
 /*
+ *
+ */
+uint16_t get_series_at(adf_t *, series_t *, uint64_t);
+
+/*
  * Assumes the byte array `uint8_t *` to be allocated. You can get the exact
  * byte size to be allocated by the function `size_adf_t`. Alternatively, you
  * can allocate it directly with `bytes_alloc`. 

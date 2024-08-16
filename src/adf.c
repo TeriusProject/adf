@@ -788,6 +788,26 @@ uint16_t remove_series(adf_t *adf)
 	return ADF_OK;
 }
 
+uint16_t get_series_at(adf_t *adf, series_t *series, uint64_t time)
+{
+	series_t *current;
+	uint16_t series_period = adf->metadata.period_sec.val;
+	uint64_t l_bound_nth_series = 0, u_bound_nth_series = 0;
+
+	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
+		current = adf->series + i;
+		l_bound_nth_series = u_bound_nth_series;
+		u_bound_nth_series = l_bound_nth_series 
+							 + (current->repeated.val * series_period);
+
+		if (time > u_bound_nth_series) { continue; }
+		*series = *current;
+		return ADF_OK;
+	}
+
+	return ADF_TIME_OUT_OF_BOUND;
+}
+
 uint16_t cpy_series_starting_at(series_t *series, const adf_t *adf,
 								uint32_t start_at)
 {
