@@ -141,7 +141,7 @@ int main(void)
 	};
 
 	s_info = (soil_depth_info_t) {
-		.min_soil_depth_mm = { 0 },
+		.t_y = { 0 },
 		.max_soil_depth_mm = { 300 },
 		.n_depth = { N_DEPTH },
 	};

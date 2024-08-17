@@ -58,7 +58,7 @@ soil_depth_info_t SoilDepthInfo::toCSoilInfo(void)
 {
 	soil_depth_info_t s_info = {
 		.n_depth = { this->nDepthMeasurements },
-		.min_soil_depth_mm = { this->minDepthMm },
+		.t_y = { this->minDepthMm },
 		.max_soil_depth_mm = { this->maxDepthMm }
 	};
 	return s_info;

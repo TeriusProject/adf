@@ -136,7 +136,7 @@ size_t size_header(void)
 		   + UINT_SMALL_T_SIZE  /* min_w_len_nm */
 		   + UINT_SMALL_T_SIZE  /* max_w_len_nm */
 		   + UINT_SMALL_T_SIZE  /* n_depth */
-		   + UINT_SMALL_T_SIZE  /* min_soil_depth_mm */
+		   + UINT_SMALL_T_SIZE  /* t_y */
 		   + UINT_SMALL_T_SIZE  /* max_soil_depth_mm */
 		   + UINT_TINY_T_SIZE   /* soil_density_red_mode */
 		   + UINT_TINY_T_SIZE   /* pressure_red_mode */
@@ -201,7 +201,7 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 	SHIFT2(byte_c);
 	cpy_2_bytes_fn((bytes + byte_c), header->soil_info.n_depth.bytes);
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), header->soil_info.min_soil_depth_mm.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), header->soil_info.t_y.bytes);
 	SHIFT2(byte_c);
 	cpy_2_bytes_fn((bytes + byte_c), header->soil_info.max_soil_depth_mm.bytes);
 	SHIFT2(byte_c);
@@ -343,7 +343,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	SHIFT2(byte_c);
 	cpy_2_bytes_fn(adf->header.soil_info.n_depth.bytes, (bytes + byte_c));
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn(adf->header.soil_info.min_soil_depth_mm.bytes, (bytes + byte_c));
+	cpy_2_bytes_fn(adf->header.soil_info.t_y.bytes, (bytes + byte_c));
 	SHIFT2(byte_c);
 	cpy_2_bytes_fn(adf->header.soil_info.max_soil_depth_mm.bytes, (bytes + byte_c));
 	SHIFT2(byte_c);
@@ -1021,12 +1021,12 @@ wavelength_info_t create_wavelength_info(uint16_t min_w_len_nm,
 	};
 }
 
-soil_depth_info_t create_soil_depth_info(uint16_t min_soil_depth_mm,
+soil_depth_info_t create_soil_depth_info(uint16_t t_y,
 										 uint16_t max_soil_depth_mm,
 										 uint16_t n_depth )
 {
 	return (soil_depth_info_t) {
-		.min_soil_depth_mm = { min_soil_depth_mm },
+		.t_y = { t_y },
 		.max_soil_depth_mm = { max_soil_depth_mm },
 		.n_depth = { n_depth },
 	};

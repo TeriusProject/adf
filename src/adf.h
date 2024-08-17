@@ -409,19 +409,21 @@ typedef struct {
 /*
  * The number of sensors inserted in the soil
  *
- *     +-----+   <- min_soil_depth_mm = 0 mm (ground)
+ *     +-----+   <- t_y = 0 mm (ground)
  *     |     |
  *     |..o..|   <- a temperature sensor at x mm depth.
  *     |     |
  *     |..o..|   <- a temperature sensor at 2x mm depth.
- *     |     |
+ *     |     |      max_soil_depth_mm = 2x mm
  *     :  :  :
  *     :  :  :
- * We divide the range (0, 2x] in two chunks
+ * We divide the range (0, 2x] into two chunks of size:
+ * (max_soil_depth_mm - t_y) / n_depth
  * 
  *     +-----+   
+ *     |     |   <- t_y = 1 unit
  *     |     |
- *     |..o..|   <- min_soil_depth_mm = x mm
+ *     |..o..|
  *     |     |
  *     |..o..|   <- a temperature sensor at 2x mm depth.
  *     |     |
@@ -431,9 +433,9 @@ typedef struct {
 typedef struct {
 
 	/*
-	 * The minimum depth at which a temperature sensor was put into the soil.
+	 * The value of this field indicates the quantity
 	 */
-	uint_small_t min_soil_depth_mm;
+	uint_small_t t_y;
 
 	/*
 	 * The maximum depth at which a temperature sensor was put into the soil.
@@ -648,7 +650,7 @@ additive_t create_additive(uint32_t code, float concentration);
 wavelength_info_t create_wavelength_info(uint16_t min_w_len_nm,
 										 uint16_t max_w_len_nm,
 										 uint16_t n_wavelength);
-soil_depth_info_t create_soil_depth_info(uint16_t min_soil_depth_mm,
+soil_depth_info_t create_soil_depth_info(uint16_t t_y,
 										 uint16_t max_soil_depth_mm,
 										 uint16_t n_depth);
 reduction_info_t default_reduction_info(void);

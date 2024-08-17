@@ -71,7 +71,7 @@ adf_header_t get_default_header(void)
 	};
 	soil_depth_info_t soil_info = (soil_depth_info_t) {
 		.n_depth = { 2 },
-		.min_soil_depth_mm = { 0 },
+		.t_y = { 0 },
 		.max_soil_depth_mm = { 20 },
 	};
 	reduction_info_t reduction_info = (reduction_info_t) {

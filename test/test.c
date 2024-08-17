@@ -189,8 +189,8 @@ bool are_soil_depth_info_equal(soil_depth_info_t target,
 							   soil_depth_info_t expected)
 {
 	return are_small_ints_equal(target.n_depth, expected.n_depth)
-		   && are_small_ints_equal(target.min_soil_depth_mm,
-		   						   expected.min_soil_depth_mm)
+		   && are_small_ints_equal(target.t_y,
+		   						   expected.t_y)
 		   && are_small_ints_equal(target.max_soil_depth_mm,
 		   						   expected.max_soil_depth_mm);
 }
@@ -222,8 +222,8 @@ void assert_soil_depth_info_equal_verbose(soil_depth_info_t target,
 {
 	assert_small_int_equal(target.n_depth, expected.n_depth,
 						   "are n_depth equal");
-	assert_small_int_equal(target.min_soil_depth_mm, expected.min_soil_depth_mm,
-						   "are min_soil_depth_mm equal");
+	assert_small_int_equal(target.t_y, expected.t_y,
+						   "are t_y equal");
 	assert_small_int_equal(target.max_soil_depth_mm, expected.max_soil_depth_mm,
 						   "are max_soil_depth_mm equal");
 }
