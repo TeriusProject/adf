@@ -64,7 +64,7 @@ real_t **get_real_matrix(int n_rows, int n_columns)
 
 adf_header_t get_default_header(void)
 {
-	wavelength_info_t wave_info = (wavelength_info_t) {			
+	wavelength_info_t wave_info = (wavelength_info_t) {
 		.n_wavelength = { 20},
 		.min_w_len_nm = { 0 },
 		.max_w_len_nm = { 10000 },
@@ -82,7 +82,8 @@ adf_header_t get_default_header(void)
 		.soil_temp_red_mode = 1,
 		.env_temp_red_mode = 1
 	};
-	return create_header(0x01u, wave_info, soil_info, reduction_info, 10);
+	return create_header(0x01u, wave_info, soil_info, reduction_info,
+						 default_precision_info(), 10);
 }
 
 series_t get_series(void)

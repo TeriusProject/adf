@@ -35,7 +35,50 @@ void test_init_adf(void)
 				"additive_codes should be initialized to NULL");
 }
 
+void test_create_default_precision_info(void)
+{
+	precision_info_t p;
+	real_t zero = { 0.0 };
+
+	p = default_precision_info();
+
+	assert_real_equal(p.soil_density_prec, zero,
+					  "`soil_density_prec` ==  0 in def. precision_info_t");
+	assert_real_equal(p.pressure_prec, zero,
+					  "`pressure_prec` ==  0 in def. precision_info_t");
+	assert_real_equal(p.light_exposure_prec, zero,
+					  "`light_exposure_prec` ==  0 in def. precision_info_t");
+	assert_real_equal(p.water_use_prec, zero,
+					  "`water_use_prec` ==  0 in def. precision_info_t");
+	assert_real_equal(p.soil_temp_prec, zero,
+					  "`soil_temp_prec` ==  0 in def. precision_info_t");
+	assert_real_equal(p.env_temp_prec, zero,
+					  "`env_temp_prec` ==  0 in def. precision_info_t");
+}
+
+void test_create_default_reduction_info(void)
+{
+	reduction_info_t r;
+
+	r = default_reduction_info();
+
+	assert_true(r.soil_density_red_mode == ADF_RM_NONE,
+				"`soil_density_red_mode` == NONE in def. reduction_info_t");
+	assert_true(r.pressure_red_mode == ADF_RM_NONE,
+				"`pressure_red_mode` == NONE in def. reduction_info_t");
+	assert_true(r.light_exposure_red_mode == ADF_RM_NONE,
+				"`light_exposure_red_mode` == NONE in def. reduction_info_t");
+	assert_true(r.water_use_red_mode == ADF_RM_NONE,
+				"`.water_use_red_mode` == NONE in def. reduction_info_t");
+	assert_true(r.soil_temp_red_mode == ADF_RM_NONE,
+				"`soil_temp_red_mode` == NONE in def. reduction_info_t");
+	assert_true(r.env_temp_red_mode == ADF_RM_NONE,
+				"`env_temp_red_mode` == NONE in def. reduction_info_t");
+}
+
 int main(void)
 {
 	test_init_adf();
+	test_create_default_precision_info();
+	test_create_default_reduction_info();
 }

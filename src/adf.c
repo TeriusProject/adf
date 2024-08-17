@@ -1021,9 +1021,18 @@ wavelength_info_t create_wavelength_info(uint16_t min_w_len_nm,
 	};
 }
 
-soil_depth_info_t create_soil_depth_info(uint16_t t_y,
-										 uint16_t max_soil_depth_mm,
-										 uint16_t n_depth )
+soil_depth_info_t create_soil_depth_info(uint16_t max_soil_depth_mm,
+										 uint16_t n_depth)
+{
+	return (soil_depth_info_t) {
+		.max_soil_depth_mm = { max_soil_depth_mm },
+		.n_depth = { n_depth },
+	};
+}
+
+soil_depth_info_t create_trans_soil_depth_info(uint16_t max_soil_depth_mm,
+											   uint16_t n_depth,
+											   uint16_t t_y)
 {
 	return (soil_depth_info_t) {
 		.t_y = { t_y },
@@ -1061,9 +1070,32 @@ reduction_info_t create_reduction_info(uint8_t soil_density_red_mode,
 	};
 }
 
+precision_info_t default_precision_info(void)
+{
+	return (precision_info_t) { 0 };
+}
+
+precision_info_t create_precision_info(float soil_density_prec,
+									   float pressure_prec,
+									   float light_exposure_prec,
+									   float water_use_prec,
+									   float soil_temp_prec,
+									   float env_temp_prec)
+{
+	return (precision_info_t) {
+		.soil_density_prec = { soil_density_prec },
+		.pressure_prec = { pressure_prec },
+		.light_exposure_prec = { light_exposure_prec },
+		.water_use_prec = { water_use_prec },
+		.soil_temp_prec = { soil_temp_prec },
+		.env_temp_prec = { env_temp_prec },
+	};
+}
+
 adf_header_t create_header(uint8_t farming_tec, wavelength_info_t wave_info,
-						   soil_depth_info_t soil_info, 
-						   reduction_info_t reduction_info, uint32_t n_chunks)
+						   soil_depth_info_t soil_info,
+						   reduction_info_t reduction_info,
+						   precision_info_t precision_info, uint32_t n_chunks)
 {
 	return (adf_header_t) {
 	    .signature = { __ADF_SIGNATURE__ },
@@ -1072,6 +1104,7 @@ adf_header_t create_header(uint8_t farming_tec, wavelength_info_t wave_info,
 	    .wave_info = wave_info,
 		.soil_info = soil_info,
 		.reduction_info = reduction_info,
+		.precision_info = precision_info,
 	    .n_chunks = { n_chunks }
 	};
 }

@@ -147,7 +147,7 @@ typedef enum {
 	ADF_SERIES_CORRUPTED = 0x03u,
 
 	/*
-	 * Returned when you are trying to add or aupdate a series with the field 
+	 * Returned when you are trying to add or aupdate a series with the field
 	 * `repeated` set to 0.
 	 */
 	ADF_ZERO_REPEATED_SERIES = 0x04u,
@@ -166,7 +166,7 @@ typedef enum {
 	ADF_TIME_OUT_OF_BOUND = 0x06u,
 
 	/*
-	 * You are trying to add a series with additives that are not already 
+	 * You are trying to add a series with additives that are not already
 	 * present in metadata's additive_codes array. You reached the limit
 	 * of that array though (0xFFFF).
 	 */
@@ -261,7 +261,7 @@ typedef struct {
 	 * This field won't be serialized.
 	 */
 	uint_t code;
-	
+
 	/* the concentration in mg/kg */
 	real_t concentration;
 } additive_t;
@@ -419,11 +419,11 @@ typedef struct {
  *     :  :  :
  * We divide the range (0, 2x] into two chunks of size:
  * (max_soil_depth_mm - t_y) / n_depth
- * 
- *     +-----+   
+ *
+ *     +-----+
  *     |     |   <- t_y = 1 unit
  *     |     |
- *     |..o..|
+ *     |..o..|   <- 
  *     |     |
  *     |..o..|   <- a temperature sensor at 2x mm depth.
  *     |     |
@@ -501,7 +501,7 @@ typedef struct {
 	reduction_info_t reduction_info;
 
 	precision_info_t precision_info;
-	
+
 	/*
 	 * The number of chunks in which each data series is (equally) divided.
 	 */
@@ -650,9 +650,10 @@ additive_t create_additive(uint32_t code, float concentration);
 wavelength_info_t create_wavelength_info(uint16_t min_w_len_nm,
 										 uint16_t max_w_len_nm,
 										 uint16_t n_wavelength);
-soil_depth_info_t create_soil_depth_info(uint16_t t_y,
-										 uint16_t max_soil_depth_mm,
+soil_depth_info_t create_soil_depth_info(uint16_t max_soil_depth_mm,
 										 uint16_t n_depth);
+soil_depth_info_t create_trans_soil_depth_info(uint16_t max_soil_depth_mm,
+											   uint16_t n_depth, uint16_t t_y);
 reduction_info_t default_reduction_info(void);
 reduction_info_t create_reduction_info(uint8_t soil_density_red_mode,
 									   uint8_t pressure_red_mode,
@@ -660,15 +661,22 @@ reduction_info_t create_reduction_info(uint8_t soil_density_red_mode,
 									   uint8_t water_use_red_mode,
 									   uint8_t soil_temp_red_mode,
 									   uint8_t env_temp_red_mode);
-
+precision_info_t default_precision_info(void);
+precision_info_t create_precision_info(float soil_density_prec,
+									   float pressure_prec,
+									   float light_exposure_prec,
+									   float water_use_prec,
+									   float soil_temp_prec,
+									   float env_temp_prec);
 adf_header_t create_header(uint8_t farming_tec, wavelength_info_t wave_info,
-						   soil_depth_info_t soil_info, 
-						   reduction_info_t reduction_info, uint32_t n_chunks);
+						   soil_depth_info_t soil_info,
+						   reduction_info_t reduction_info,
+						   precision_info_t precision_info, uint32_t n_chunks);
 series_t create_series(float *light_exposure, float *soil_temp_c,
-					   float *env_temp_c, float *water_use_ml, uint8_t pH, 
+					   float *env_temp_c, float *water_use_ml, uint8_t pH,
 					   float p_bar, float soil_density_kg_m3,
-					   uint16_t n_soil_adds, uint16_t n_atm_adds, 
-					   additive_t *soil_additives, additive_t *atm_additives, 
+					   uint16_t n_soil_adds, uint16_t n_atm_adds,
+					   additive_t *soil_additives, additive_t *atm_additives,
 					   uint32_t repeated);
 
 /*
