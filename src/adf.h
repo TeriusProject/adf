@@ -107,6 +107,7 @@ typedef struct {
 
 /* 8-bit usnsigned integer  */
 typedef enum {
+
 	/* No statistical procedure has been applied */
 	ADF_RM_NONE = 0x00u,
 
@@ -206,7 +207,7 @@ typedef enum {
 } code_t;
 
 /*
- * 
+ * Those strings are used by the APIs to get standard error messages.
  */
 #define ADF_ERROR_PREFIX "-- ADF ERROR -- "
 #define ADF_HEADER_CORRUPTED_STR "Header is corrupted. Cannot unmarshal"
@@ -332,7 +333,7 @@ typedef struct {
 	 * be returned.
 	 */
 	uint_t repeated;
-} __attribute__((packed)) series_t;
+} __attribute__(( packed )) series_t;
 
 typedef struct {
 
@@ -382,7 +383,7 @@ typedef struct {
 	 * additive should appear just once.
 	 */
 	uint_t *additive_codes;
-} __attribute__((packed)) adf_meta_t;
+} __attribute__(( packed )) adf_meta_t;
 
 typedef struct {
 
@@ -403,25 +404,45 @@ typedef struct {
 	 *         [min_w_len_nm, max_w_len_nm]
 	 */
 	uint_small_t n_wavelength;
-} __attribute__((packed)) wavelength_info_t;
+} __attribute__(( packed )) wavelength_info_t;
 
+/*
+ * The number of sensors inserted in the soil
+ *
+ *     +-----+   <- min_soil_depth_mm = 0 mm (ground)
+ *     |     |
+ *     |..o..|   <- a temperature sensor at x mm depth.
+ *     |     |
+ *     |..o..|   <- a temperature sensor at 2x mm depth.
+ *     |     |
+ *     :  :  :
+ *     :  :  :
+ * We divide the range (0, 2x] in two chunks
+ * 
+ *     +-----+   
+ *     |     |
+ *     |..o..|   <- min_soil_depth_mm = x mm
+ *     |     |
+ *     |..o..|   <- a temperature sensor at 2x mm depth.
+ *     |     |
+ *     :  :  :
+ *     :  :  :
+ */
 typedef struct {
 
 	/*
-	 * 
+	 * The minimum depth at which a temperature sensor was put into the soil.
 	 */
 	uint_small_t min_soil_depth_mm;
 
 	/*
-	 * 
+	 * The maximum depth at which a temperature sensor was put into the soil.
 	 */
 	uint_small_t max_soil_depth_mm;
 
-	/*
-	 * 
-	 */
+	/* The number of sensors */
 	uint_small_t n_depth;
-} __attribute__((packed)) soil_depth_info_t;
+} __attribute__(( packed )) soil_depth_info_t;
 
 /*
  * Each of the following fields contain information about the statistical
@@ -436,7 +457,19 @@ typedef struct {
 	reduction_code_t water_use_red_mode;
 	reduction_code_t soil_temp_red_mode;
 	reduction_code_t env_temp_red_mode;
-} __attribute__((packed)) reduction_info_t;
+} __attribute__(( packed )) reduction_info_t;
+
+/*
+ * Each field of this struct specifies the precision 
+ */
+typedef struct {
+	real_t soil_density_prec;
+	real_t pressure_prec;
+	real_t light_exposure_prec;
+	real_t water_use_prec;
+	real_t soil_temp_prec;
+	real_t env_temp_prec;
+} __attribute__(( packed )) precision_info_t;
 
 typedef struct {
 
@@ -464,12 +497,14 @@ typedef struct {
 	soil_depth_info_t soil_info;
 
 	reduction_info_t reduction_info;
+
+	precision_info_t precision_info;
 	
 	/*
 	 * The number of chunks in which each data series is (equally) divided.
 	 */
 	uint_t n_chunks;
-} __attribute__((packed)) adf_header_t;
+} __attribute__(( packed )) adf_header_t;
 
 /*
  * The structure that contains all the ADF data.
@@ -492,7 +527,7 @@ typedef struct {
 	 * If size_series == 0, then iterations is NULL.
 	 */
 	series_t *series;
-} __attribute__((packed)) adf_t;
+} __attribute__(( packed )) adf_t;
 
 /*
  * Returns the current version of ADF.
@@ -616,6 +651,7 @@ wavelength_info_t create_wavelength_info(uint16_t min_w_len_nm,
 soil_depth_info_t create_soil_depth_info(uint16_t min_soil_depth_mm,
 										 uint16_t max_soil_depth_mm,
 										 uint16_t n_depth);
+reduction_info_t default_reduction_info(void);
 reduction_info_t create_reduction_info(uint8_t soil_density_red_mode,
 									   uint8_t pressure_red_mode,
 									   uint8_t light_exposure_red_mode,

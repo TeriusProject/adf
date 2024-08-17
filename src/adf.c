@@ -482,7 +482,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 		SHIFT4(byte_c);
 
 		if (current.repeated.val == 0) { return ADF_ZERO_REPEATED_SERIES; }
-		
+
 		series_crc = crc16((bytes + starting_byte), byte_c - starting_byte);
 		cpy_2_bytes_fn(expected_crc.bytes, (bytes + byte_c));
 		SHIFT2(byte_c);
@@ -509,7 +509,7 @@ bool are_additive_t_equal(additive_t x, additive_t y)
 		   && are_reals_equal(x.concentration, y.concentration);
 }
 
-bool are_series_equal(const series_t *first, const series_t *second, 
+bool are_series_equal(const series_t *first, const series_t *second,
 					  const adf_t *adf)
 {
 	uint32_t n_chunks = adf->header.n_chunks.val;
@@ -522,7 +522,7 @@ bool are_series_equal(const series_t *first, const series_t *second,
 	int_fields_eq = first->pH == second->pH
 					&& first->n_atm_adds.val == second->n_atm_adds.val
 					&& first->n_soil_adds.val == second->n_soil_adds.val;
-	
+
 	DEBUG_LOG("are int fields equal? %d\n", int_fields_eq)
 
 	if (!int_fields_eq) return false;
@@ -956,15 +956,15 @@ uint16_t reindex_additives(adf_t *adf)
 		n_soil = adf->series[i].n_soil_adds.val;
 		n_atm = adf->series[i].n_atm_adds.val;
 		for (uint16_t j = 0; j < n_soil; j++) {
-			table_code = table_put(&lookup_table, 
+			table_code = table_put(&lookup_table,
 								   adf->series[i].soil_additives[j].code.val,
 								   j);
 			if (table_code == LM_MAP_SIZE_OVERFLOW)
 				return ADF_ADDITIVE_OVERFLOW;
 			if (table_code != LM_OK)
-				return ADF_RUNTIME_ERROR; 
+				return ADF_RUNTIME_ERROR;
 		}
-	
+
 		for (uint16_t j = 0; j < n_atm; j++) {
 			table_code = table_put(&lookup_table,
 								   adf->series[i].atm_additives[j].code.val,
@@ -972,32 +972,33 @@ uint16_t reindex_additives(adf_t *adf)
 			if (table_code == LM_MAP_SIZE_OVERFLOW)
 				return ADF_ADDITIVE_OVERFLOW;
 			if (table_code != LM_OK)
-				return ADF_RUNTIME_ERROR; 
+				return ADF_RUNTIME_ERROR;
 		}
 	}
 
 	additives_keys = malloc(lookup_table.size * sizeof(pair_t));
 	if (table_get_pairs(&lookup_table, additives_keys) != LM_OK) {
-		return ADF_RUNTIME_ERROR; 
+		return ADF_RUNTIME_ERROR;
 	}
 
-	adf->metadata.additive_codes = get_additive_codes(additives_keys, 
+	adf->metadata.additive_codes = get_additive_codes(additives_keys,
 													  lookup_table.size);
 	adf->metadata.n_additives.val = (uint16_t)lookup_table.size;
-	
+
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
 		n_soil = adf->series[i].n_soil_adds.val;
 		n_atm = adf->series[i].n_atm_adds.val;
 		additive_t *current;
 		for (uint16_t j = 0; j < n_soil; j++) {
 			current = (adf->series[i].soil_additives + j);
-			add_idx = (uint16_t) table_get(&lookup_table, 
+			add_idx = (uint16_t) table_get(&lookup_table,
+
 										   current->code.val);
 			current->code_idx.val = add_idx;
 		}
 		for (uint16_t j = 0; j < n_atm; j++) {
 			current = (adf->series[i].atm_additives + j);
-			add_idx = (uint16_t) table_get(&lookup_table, 
+			add_idx = (uint16_t) table_get(&lookup_table,
 										   current->code.val);
 			current->code_idx.val = add_idx;
 		}
@@ -1028,6 +1029,18 @@ soil_depth_info_t create_soil_depth_info(uint16_t min_soil_depth_mm,
 		.min_soil_depth_mm = { min_soil_depth_mm },
 		.max_soil_depth_mm = { max_soil_depth_mm },
 		.n_depth = { n_depth },
+	};
+}
+
+reduction_info_t default_reduction_info(void)
+{
+	return (reduction_info_t) {
+		.soil_density_red_mode = ADF_RM_NONE,
+		.pressure_red_mode = ADF_RM_NONE,
+		.light_exposure_red_mode = ADF_RM_NONE,
+		.water_use_red_mode = ADF_RM_NONE,
+		.soil_temp_red_mode = ADF_RM_NONE,
+		.env_temp_red_mode = ADF_RM_NONE,
 	};
 }
 
@@ -1096,13 +1109,13 @@ uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
 	series->light_exposure = calloc(n_chunks * n_waves, sizeof(real_t));
 	series->soil_temp_c = calloc(n_chunks * n_depth, sizeof(real_t));
 
-	if (!series->env_temp_c  
-		|| !series->water_use_ml  
+	if (!series->env_temp_c
+		|| !series->water_use_ml
 		|| !series->light_exposure
 		|| !series->soil_additives
 		|| !series->atm_additives)
 		return ADF_RUNTIME_ERROR;
-	
+
 	return ADF_OK;
 }
 
@@ -1115,10 +1128,10 @@ additive_t create_additive(uint32_t code, float concentration)
 }
 
 series_t create_series(float *light_exposure, float *soil_temp_c,
-					   float *env_temp_c, float *water_use_ml, uint8_t pH, 
+					   float *env_temp_c, float *water_use_ml, uint8_t pH,
 					   float p_bar, float soil_density_kg_m3,
-					   uint16_t n_soil_adds, uint16_t n_atm_adds, 
-					   additive_t *soil_additives, additive_t *atm_additives, 
+					   uint16_t n_soil_adds, uint16_t n_atm_adds,
+					   additive_t *soil_additives, additive_t *atm_additives,
 					   uint32_t repeated)
 {
 	return (series_t) {
@@ -1126,13 +1139,13 @@ series_t create_series(float *light_exposure, float *soil_temp_c,
 		.soil_temp_c = (real_t *) soil_temp_c,
 		.env_temp_c = (real_t *) env_temp_c,
 		.water_use_ml = (real_t *) water_use_ml,
-		.pH = pH, 
+		.pH = pH,
 		.p_bar = { p_bar },
 		.soil_density_kg_m3 = { soil_density_kg_m3 },
 		.n_soil_adds = { n_soil_adds },
-		.n_atm_adds = { n_atm_adds }, 
+		.n_atm_adds = { n_atm_adds },
 		.soil_additives = soil_additives,
-		.atm_additives = atm_additives, 
+		.atm_additives = atm_additives,
 		.repeated = { repeated }
 	};
 }
@@ -1144,7 +1157,7 @@ void metadata_free(adf_meta_t *metadata)
 }
 
 void series_free(series_t *series)
-{ 
+{
 	free(series->light_exposure);
 	free(series->soil_temp_c);
 	free(series->env_temp_c);
@@ -1226,7 +1239,7 @@ uint16_t cpy_adf_series(series_t *target, const series_t *source,
 		target->soil_additives = malloc(target->n_soil_adds.val
 										* sizeof(additive_t));
 		for (uint16_t i = 0, l = target->n_soil_adds.val; i < l; i++) {
-			res = cpy_additive(target->soil_additives + i, 
+			res = cpy_additive(target->soil_additives + i,
 							   source->soil_additives + i);
 			if (res != ADF_OK) { return res; }
 		}
@@ -1236,7 +1249,7 @@ uint16_t cpy_adf_series(series_t *target, const series_t *source,
 		target->atm_additives = malloc(target->n_atm_adds.val
 									   * sizeof(additive_t));
 		for (uint16_t i = 0, l = target->n_atm_adds.val; i < l; i++) {
-			res = cpy_additive(target->atm_additives + i, 
+			res = cpy_additive(target->atm_additives + i,
 							   source->atm_additives + i);
 			if (res != ADF_OK) { return res; }
 		}
@@ -1253,7 +1266,7 @@ uint16_t cpy_adf_metadata(adf_meta_t *target, const adf_meta_t *source)
 	*target = *source;
 	target->additive_codes = malloc(target->n_additives.val * sizeof(uint_t));
 
-	for (uint16_t i = 0, l = target->n_additives.val; i < l; i++) 
+	for (uint16_t i = 0, l = target->n_additives.val; i < l; i++)
 		target->additive_codes[i] = source->additive_codes[i];
 
 	return ADF_OK;
@@ -1272,7 +1285,7 @@ uint16_t cpy_adf(adf_t *target, const adf_t *source)
 {
 	uint16_t res;
 	uint32_t size_series;
-	
+
 	if (!source) { return ADF_NULL_SOURCE; }
 	if (!target) { return ADF_NULL_TARGET; }
 
@@ -1294,6 +1307,6 @@ uint16_t cpy_adf(adf_t *target, const adf_t *source)
 	else {
 		target->series = NULL;
 	}
-	
+
 	return ADF_OK;
 }
