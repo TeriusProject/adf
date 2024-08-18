@@ -1,5 +1,4 @@
-/*
- * lookup_table.h
+/* lookup_table.h
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli

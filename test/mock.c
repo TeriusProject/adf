@@ -86,6 +86,39 @@ adf_header_t get_default_header(void)
 						 default_precision_info(), 10);
 }
 
+adf_header_t get_header_with_precision(void)
+{
+	wavelength_info_t wave_info = (wavelength_info_t) {
+		.n_wavelength = { 20},
+		.min_w_len_nm = { 0 },
+		.max_w_len_nm = { 10000 },
+	};
+	soil_depth_info_t soil_info = (soil_depth_info_t) {
+		.n_depth = { 2 },
+		.t_y = { 0 },
+		.max_soil_depth_mm = { 20 },
+	};
+	reduction_info_t reduction_info = (reduction_info_t) {
+		.soil_density_red_mode = 1,
+		.pressure_red_mode = 1,
+		.light_exposure_red_mode = 1,
+		.water_use_red_mode = 1,
+		.soil_temp_red_mode = 1,
+		.env_temp_red_mode = 1
+	};
+	precision_info_t precision_info = (precision_info_t) {
+		.soil_density_prec = { 1.0 },
+		.pressure_prec = { 0.1 },
+		.light_exposure_prec = { 1.0 },
+		.water_use_prec = { 1.0 },
+		.soil_temp_prec = { 5.0 },
+		.env_temp_prec = { 0.5 },
+		.additive_prec = { 1.0 },
+	};
+	return create_header(0x01u, wave_info, soil_info, reduction_info,
+						 precision_info, 10);
+}
+
 series_t get_series(void)
 {
 	additive_t *soil_add_code = malloc(sizeof(additive_t));
@@ -184,14 +217,14 @@ series_t *get_default_series(void)
 		.code = { 2345 },
 		.concentration = { 1.234 }
 	};
-	
+
 	add_code_series_2 = malloc(sizeof(additive_t));
 	*add_code_series_2 = (additive_t) {
 		.code = { 2345 },
 		.concentration = { 3.33 }
 	};
 
-	iter1 = (series_t) { 
+	iter1 = (series_t) {
 		.light_exposure = get_real_inline_matrix(10, 20),
 		.soil_temp_c = get_real_inline_matrix(10, 2),
 		.env_temp_c = get_real_array(10),
@@ -219,7 +252,7 @@ series_t *get_default_series(void)
 		.atm_additives = NULL,
 		.repeated = { 3 }
 	};
-	
+
 	series = malloc(2 * sizeof(series_t));
 	*series = iter1;
 	*(series + 1) = iter2;
@@ -233,6 +266,25 @@ adf_t get_default_object(void)
 	*codes = (uint_t){ 2345 };
 	return (adf_t) {
 		.header = get_default_header(),
+		.metadata = (adf_meta_t) { 
+			.period_sec = { 1345 },
+			.n_additives = { 1 },
+			.size_series = { 2 },
+			.seeded = { 0 },
+			.harvested = { 1345 },
+			.n_series = 4,
+			.additive_codes = codes
+		},
+		.series = get_default_series()
+	};
+}
+
+adf_t get_object_with_precision_set(void)
+{
+	uint_t *codes = malloc(sizeof(uint_t));
+	*codes = (uint_t){ 2345 };
+	return (adf_t) {
+		.header = get_header_with_precision(),
 		.metadata = (adf_meta_t) { 
 			.period_sec = { 1345 },
 			.n_additives = { 1 },

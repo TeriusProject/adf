@@ -1,5 +1,4 @@
-/*
- * lookup_table.c - Implements a lookup table with linear probing as 
+/* lookup_table.c - Implements a lookup table with linear probing as 
  * collision resolution strategy
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format

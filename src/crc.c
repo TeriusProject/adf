@@ -19,7 +19,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * crc16 (with its table of pre-calculated values) is a re-adaptation of 
+ * crc16 (with its table of pre-calculated values) is a re-adaptation of
  * the one written for Apple XNU.
  * https://opensource.apple.com/source/xnu/xnu-4570.31.3/bsd/libkern/crc16.c
  * Here's the original license:
@@ -37,7 +37,7 @@
  *     // Derived from Craig Marciniak's "Craig's Portable CRC16 Library."
  *
  *
- * crc32 (with its table of pre-calculated values) is a re-adaptation of 
+ * crc32 (with its table of pre-calculated values) is a re-adaptation of
  * the one written for libpng.
  * http://www.libpng.org/pub/png/spec/1.1/PNG-CRCAppendix.html
  */
@@ -74,7 +74,7 @@ static uint16_t table16[] = {
 	0x48c0, 0x4980, 0x8941, 0x4b00, 0x8bc1, 0x8a81, 0x4a40, 0x4e00, 0x8ec1,
 	0x8f81, 0x4f40, 0x8d01, 0x4dc0, 0x4c80, 0x8c41, 0x4400, 0x84c1, 0x8581,
 	0x4540, 0x8701, 0x47c0, 0x4680, 0x8641, 0x8201, 0x42c0, 0x4380, 0x8341,
-	0x4100, 0x81c1, 0x8081, 0x4040 
+	0x4100, 0x81c1, 0x8081, 0x4040
 };
 
 /* pre-calculated table for 32-bit CRC */

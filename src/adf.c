@@ -1,5 +1,4 @@
-/*
- * adf.c
+/* adf.c
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -35,7 +34,7 @@
 
 #ifdef __ADF_DEBUG__
 #define DEBUG_STR "*** DEBUG *** "
-#define DEBUG_LOG(...) (printf(DEBUG_STR __VA_ARGS__));
+#define DEBUG_LOG(...) (printf(DEBUG_STR __VA_ARGS__))
 #else
 #define DEBUG_STR
 #define DEBUG_LOG(...)
@@ -129,28 +128,35 @@ size_t size_medatata_t(adf_meta_t *metadata)
 
 size_t size_header(void)
 {
-	return UINT_T_SIZE          /* signature */
-		   + UINT_SMALL_T_SIZE  /* version */
-		   + UINT_TINY_T_SIZE   /* farming_tec */
-		   + UINT_SMALL_T_SIZE  /* n_wavelength */
-		   + UINT_SMALL_T_SIZE  /* min_w_len_nm */
-		   + UINT_SMALL_T_SIZE  /* max_w_len_nm */
-		   + UINT_SMALL_T_SIZE  /* n_depth */
-		   + UINT_SMALL_T_SIZE  /* t_y */
-		   + UINT_SMALL_T_SIZE  /* max_soil_depth_mm */
-		   + UINT_TINY_T_SIZE   /* soil_density_red_mode */
-		   + UINT_TINY_T_SIZE   /* pressure_red_mode */
-		   + UINT_TINY_T_SIZE   /* light_exposure_red_mode */
-		   + UINT_TINY_T_SIZE   /* water_use_red_mode */
-		   + UINT_TINY_T_SIZE   /* soil_temp_red_mode */
-		   + UINT_TINY_T_SIZE   /* env_temp_red_mode */
-		   + UINT_T_SIZE        /* n_chunks */
-		   + UINT_SMALL_T_SIZE; /* crc */
+	return UINT_T_SIZE             /* signature */
+		   + UINT_SMALL_T_SIZE     /* version */
+		   + UINT_TINY_T_SIZE      /* farming_tec */
+		   + UINT_SMALL_T_SIZE     /* n_wavelength */
+		   + UINT_SMALL_T_SIZE     /* min_w_len_nm */
+		   + UINT_SMALL_T_SIZE     /* max_w_len_nm */
+		   + UINT_SMALL_T_SIZE     /* n_depth */
+		   + UINT_SMALL_T_SIZE     /* t_y */
+		   + UINT_SMALL_T_SIZE     /* max_soil_depth_mm */
+		   + UINT_TINY_T_SIZE      /* soil_density_red_mode */
+		   + UINT_TINY_T_SIZE      /* pressure_red_mode */
+		   + UINT_TINY_T_SIZE      /* light_exposure_red_mode */
+		   + UINT_TINY_T_SIZE      /* water_use_red_mode */
+		   + UINT_TINY_T_SIZE      /* soil_temp_red_mode */
+		   + UINT_TINY_T_SIZE      /* env_temp_red_mode */
+		   + REAL_T_SIZE           /* soil_density_prec  */
+		   + REAL_T_SIZE           /* pressure_prec  */
+		   + REAL_T_SIZE           /* light_exposure_prec */
+		   + REAL_T_SIZE           /* water_use_prec */
+		   + REAL_T_SIZE           /* soil_temp_prec */
+		   + REAL_T_SIZE           /* env_temp_prec  */
+		   + REAL_T_SIZE           /* additive_prec  */
+		   + UINT_T_SIZE           /* n_chunks */
+		   + UINT_SMALL_T_SIZE;    /* crc */
 }
 
 size_t size_adf_t(adf_t *data)
 {
-	const size_t head_metadata_size = size_header() 
+	const size_t head_metadata_size = size_header()
 									  + size_medatata_t(&data->metadata);
 	size_t series_size = 0;
 	for (uint32_t i = 0, l = data->metadata.size_series.val; i < l; i++) {
@@ -173,57 +179,79 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 	size_t byte_c = 0;
 	uint_small_t crc_16bits;
 	adf_header_t *header;
+	wavelength_info_t *wave_info;
+	soil_depth_info_t *soil_info;
+	reduction_info_t *red_info;
+	precision_info_t *prec_info;
 	adf_meta_t *metadata;
 	series_t *current;
 	cpy_4_bytes_fn = is_big_endian()
-					 ? &from_to_big_endian_4_bytes 
+					 ? &from_to_big_endian_4_bytes
 					 : &from_to_little_endian_4_bytes;
 	cpy_2_bytes_fn = is_big_endian()
-					 ? &from_to_big_endian_2_bytes 
+					 ? &from_to_big_endian_2_bytes
 					 : &from_to_little_endian_2_bytes;
 
-	DEBUG_LOG("------- marshal -------\n")
+	DEBUG_LOG("------- marshal -------\n");
 
 	if (!bytes) { return ADF_RUNTIME_ERROR; }
 
 	header = &data->header;
+	wave_info = &header->wave_info;
+	soil_info = &header->soil_info;
+	red_info = &header->reduction_info;
+	prec_info = &header->precision_info;
 	cpy_4_bytes_fn((bytes + byte_c), header->signature.bytes);
 	SHIFT4(byte_c);
 	cpy_2_bytes_fn(bytes + byte_c, header->version.bytes);
 	SHIFT2(byte_c);
 	*(bytes + byte_c) = header->farming_tec;
 	SHIFT1(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), header->wave_info.n_wavelength.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), wave_info->n_wavelength.bytes);
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), header->wave_info.min_w_len_nm.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), wave_info->min_w_len_nm.bytes);
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), header->wave_info.max_w_len_nm.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), wave_info->max_w_len_nm.bytes);
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), header->soil_info.n_depth.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), soil_info->n_depth.bytes);
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), header->soil_info.t_y.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), soil_info->t_y.bytes);
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn((bytes + byte_c), header->soil_info.max_soil_depth_mm.bytes);
+	cpy_2_bytes_fn((bytes + byte_c), soil_info->max_soil_depth_mm.bytes);
 	SHIFT2(byte_c);
-	*(bytes + byte_c) = header->reduction_info.soil_density_red_mode;
+	*(bytes + byte_c) = red_info->soil_density_red_mode;
 	SHIFT1(byte_c);
-	*(bytes + byte_c) = header->reduction_info.pressure_red_mode;
+	*(bytes + byte_c) = red_info->pressure_red_mode;
 	SHIFT1(byte_c);
-	*(bytes + byte_c) = header->reduction_info.light_exposure_red_mode;
+	*(bytes + byte_c) = red_info->light_exposure_red_mode;
 	SHIFT1(byte_c);
-	*(bytes + byte_c) = header->reduction_info.water_use_red_mode;
+	*(bytes + byte_c) = red_info->water_use_red_mode;
 	SHIFT1(byte_c);
-	*(bytes + byte_c) = header->reduction_info.soil_temp_red_mode;
+	*(bytes + byte_c) = red_info->soil_temp_red_mode;
 	SHIFT1(byte_c);
-	*(bytes + byte_c) = header->reduction_info.env_temp_red_mode;
+	*(bytes + byte_c) = red_info->env_temp_red_mode;
 	SHIFT1(byte_c);
+	cpy_4_bytes_fn((bytes + byte_c), prec_info->soil_density_prec.bytes);
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn((bytes + byte_c), prec_info->pressure_prec.bytes);
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn((bytes + byte_c), prec_info->light_exposure_prec.bytes);
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn((bytes + byte_c), prec_info->water_use_prec.bytes);
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn((bytes + byte_c), prec_info->soil_temp_prec.bytes);
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn((bytes + byte_c), prec_info->env_temp_prec.bytes);
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn((bytes + byte_c), prec_info->additive_prec.bytes);
+	SHIFT4(byte_c);
 	cpy_4_bytes_fn((bytes + byte_c), header->n_chunks.bytes);
 	SHIFT4(byte_c);
 	crc_16bits.val = crc16(bytes, byte_c);
 	cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
 	SHIFT2(byte_c);
 
-	DEBUG_LOG("Marshal header done\n")
+	DEBUG_LOG("Marshal header done\n");
 
 	metadata = &data->metadata;
 	cpy_4_bytes_fn((bytes + byte_c), metadata->size_series.bytes);
@@ -246,7 +274,7 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 	cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
 	SHIFT2(byte_c);
 
-	DEBUG_LOG("Marshal metadata done\n")
+	DEBUG_LOG("Marshal metadata done\n");
 
 	uint32_t n_iter = metadata->size_series.val;
 	uint32_t n_chunks = header->n_chunks.val;
@@ -307,59 +335,83 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 		cpy_2_bytes_fn((bytes + byte_c), crc_16bits.bytes);
 		SHIFT2(byte_c);
 
-		DEBUG_LOG("Marshal series #%u done\n", i)
+		DEBUG_LOG("Marshal series #%u done\n", i);
 	}
 	return ADF_OK;
 }
 
 uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 {
+	adf_header_t *header;
+	wavelength_info_t *wave_info;
+	soil_depth_info_t *soil_info;
+	reduction_info_t *red_info;
+	precision_info_t *prec_info;
 	size_t byte_c = 0;
 	uint_small_t expected_crc;
 	uint16_t header_crc, meta_crc, series_crc;
 	uint32_t n_series = 0, n_iter, n_chunks, n_waves, n_depth;
 	cpy_4_bytes_fn = is_big_endian()
-					 ? &from_to_big_endian_4_bytes 
+					 ? &from_to_big_endian_4_bytes
 					 : &from_to_little_endian_4_bytes;
 	cpy_2_bytes_fn = is_big_endian()
-					 ? &from_to_big_endian_2_bytes 
+					 ? &from_to_big_endian_2_bytes
 					 : &from_to_little_endian_2_bytes;
 
-	DEBUG_LOG("------- unmarshal -------\n")
+	DEBUG_LOG("------- unmarshal -------\n");
 
 	if (!bytes || !adf) { return ADF_RUNTIME_ERROR; }
 
-	cpy_4_bytes_fn(adf->header.signature.bytes, (bytes + byte_c));
+	header = &adf->header;
+	wave_info = &header->wave_info;
+	soil_info = &header->soil_info;
+	red_info = &header->reduction_info;
+	prec_info = &header->precision_info;
+	cpy_4_bytes_fn(header->signature.bytes, (bytes + byte_c));
 	SHIFT4(byte_c);
-	cpy_2_bytes_fn(adf->header.version.bytes, bytes + byte_c);
+	cpy_2_bytes_fn(header->version.bytes, bytes + byte_c);
 	SHIFT2(byte_c);
-	adf->header.farming_tec = *(bytes + byte_c);
+	header->farming_tec = *(bytes + byte_c);
 	SHIFT1(byte_c);
-	cpy_2_bytes_fn(adf->header.wave_info.n_wavelength.bytes, (bytes + byte_c));
+	cpy_2_bytes_fn(wave_info->n_wavelength.bytes, (bytes + byte_c));
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn(adf->header.wave_info.min_w_len_nm.bytes, (bytes + byte_c));
+	cpy_2_bytes_fn(wave_info->min_w_len_nm.bytes, (bytes + byte_c));
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn(adf->header.wave_info.max_w_len_nm.bytes, (bytes + byte_c));
+	cpy_2_bytes_fn(wave_info->max_w_len_nm.bytes, (bytes + byte_c));
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn(adf->header.soil_info.n_depth.bytes, (bytes + byte_c));
+	cpy_2_bytes_fn(soil_info->n_depth.bytes, (bytes + byte_c));
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn(adf->header.soil_info.t_y.bytes, (bytes + byte_c));
+	cpy_2_bytes_fn(soil_info->t_y.bytes, (bytes + byte_c));
 	SHIFT2(byte_c);
-	cpy_2_bytes_fn(adf->header.soil_info.max_soil_depth_mm.bytes, (bytes + byte_c));
+	cpy_2_bytes_fn(soil_info->max_soil_depth_mm.bytes, (bytes + byte_c));
 	SHIFT2(byte_c);
-	adf->header.reduction_info.soil_density_red_mode = *(bytes + byte_c);
+	red_info->soil_density_red_mode = *(bytes + byte_c);
 	SHIFT1(byte_c);
-	adf->header.reduction_info.pressure_red_mode = *(bytes + byte_c);
+	red_info->pressure_red_mode = *(bytes + byte_c);
 	SHIFT1(byte_c);
-	adf->header.reduction_info.light_exposure_red_mode = *(bytes + byte_c);
+	red_info->light_exposure_red_mode = *(bytes + byte_c);
 	SHIFT1(byte_c);
-	adf->header.reduction_info.water_use_red_mode = *(bytes + byte_c);
+	red_info->water_use_red_mode = *(bytes + byte_c);
 	SHIFT1(byte_c);
-	adf->header.reduction_info.soil_temp_red_mode = *(bytes + byte_c);
+	red_info->soil_temp_red_mode = *(bytes + byte_c);
 	SHIFT1(byte_c);
-	adf->header.reduction_info.env_temp_red_mode = *(bytes + byte_c);
+    red_info->env_temp_red_mode = *(bytes + byte_c);
 	SHIFT1(byte_c);
-	cpy_4_bytes_fn(adf->header.n_chunks.bytes, (bytes + byte_c));
+	cpy_4_bytes_fn(prec_info->soil_density_prec.bytes, (bytes + byte_c));
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn(prec_info->pressure_prec.bytes, (bytes + byte_c));
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn(prec_info->light_exposure_prec.bytes, (bytes + byte_c));
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn(prec_info->water_use_prec.bytes, (bytes + byte_c));
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn(prec_info->soil_temp_prec.bytes, (bytes + byte_c));
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn(prec_info->env_temp_prec.bytes, (bytes + byte_c));
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn(prec_info->additive_prec.bytes, (bytes + byte_c));
+	SHIFT4(byte_c);
+	cpy_4_bytes_fn(header->n_chunks.bytes, (bytes + byte_c));
 	SHIFT4(byte_c);
 	header_crc = crc16(bytes, byte_c);
 	cpy_2_bytes_fn(expected_crc.bytes, (bytes + byte_c));
@@ -367,7 +419,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 
 	if (header_crc != expected_crc.val) { return ADF_HEADER_CORRUPTED; }
 
-	DEBUG_LOG("Unmarshal header done\n")
+	DEBUG_LOG("Unmarshal header done\n");
 
 	cpy_4_bytes_fn(adf->metadata.size_series.bytes, (bytes + byte_c));
 	SHIFT4(byte_c);
@@ -395,7 +447,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	SHIFT2(byte_c);
 	if (meta_crc != expected_crc.val) { return ADF_METADATA_CORRUPTED; }
 
-	DEBUG_LOG("Unmarshal metadata done\n")
+	DEBUG_LOG("Unmarshal metadata done\n");
 
 	adf->series = malloc(adf->metadata.size_series.val * sizeof(series_t));
 	if (!adf->series) { return ADF_RUNTIME_ERROR; }
@@ -454,7 +506,7 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 		if (current.n_atm_adds.val > 0)
 			current.atm_additives = malloc(current.n_atm_adds.val
 										   * sizeof(additive_t));
-		
+
 		uint16_t code_idx;
 		for (uint16_t j = 0, l = current.n_soil_adds.val; j < l; j++) {
 			cpy_2_bytes_fn(current.soil_additives[j].code_idx.bytes,
@@ -491,22 +543,24 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 		n_series += current.repeated.val - 1;
 		adf->series[i] = current;
 
-		DEBUG_LOG("Unmarshal series #%u done\n", i)
+		DEBUG_LOG("Unmarshal series #%u done\n", i);
 	}
 	adf->metadata.n_series = n_series;
 	return ADF_OK;
 }
 
-static inline bool are_reals_equal(real_t x, real_t y)
+static inline bool compare_reals(real_t x, real_t y, float tolerance)
 {
-	return x.val < y.val ? (y.val - x.val) < EPSILON
-						 : (x.val - y.val) < EPSILON;
+	const float tol = tolerance > 0 ? tolerance : EPSILON;
+	return x.val < y.val
+		? (y.val - x.val) < tol
+		: (x.val - y.val) < tol;
 }
 
-bool are_additive_t_equal(additive_t x, additive_t y)
+bool are_additive_t_equal(additive_t x, additive_t y, float tolerance)
 {
 	return x.code.val == y.code.val
-		   && are_reals_equal(x.concentration, y.concentration);
+		&& compare_reals(x.concentration, y.concentration, tolerance);
 }
 
 bool are_series_equal(const series_t *first, const series_t *second,
@@ -515,80 +569,96 @@ bool are_series_equal(const series_t *first, const series_t *second,
 	uint32_t n_chunks = adf->header.n_chunks.val;
 	uint16_t n_waves = adf->header.wave_info.n_wavelength.val;
 	uint16_t n_depth = adf->header.soil_info.n_depth.val;
+	precision_info_t tol;
 	bool int_fields_eq, real_fields_eq;
 
-	DEBUG_LOG("------- are_series_equal -------\n")
+	DEBUG_LOG("------- are_series_equal -------\n");
 
 	int_fields_eq = first->pH == second->pH
 					&& first->n_atm_adds.val == second->n_atm_adds.val
 					&& first->n_soil_adds.val == second->n_soil_adds.val;
 
-	DEBUG_LOG("are int fields equal? %d\n", int_fields_eq)
+	DEBUG_LOG("are int fields equal? %d\n", int_fields_eq);
 
 	if (!int_fields_eq) return false;
 
-	real_fields_eq = are_reals_equal(first->p_bar, second->p_bar)
-					 && are_reals_equal(first->soil_density_kg_m3,
-										second->soil_density_kg_m3);
+	tol = adf->header.precision_info;
 
-	DEBUG_LOG("are real fields equal? %d\n", real_fields_eq)
+	real_fields_eq = compare_reals(first->p_bar,
+								   second->p_bar,
+								   tol.pressure_prec.val)
+		&& compare_reals(first->soil_density_kg_m3,
+						 second->soil_density_kg_m3,
+						 tol.soil_density_prec.val);
+
+	DEBUG_LOG("are real fields equal? %d\n", real_fields_eq);
 
 	if (!real_fields_eq) return false;
 
 	/* lastly, we need to check the arrays :( */
 	for (uint32_t i = 0; i < n_chunks; i++) {
-		if (!(are_reals_equal(first->env_temp_c[i], second->env_temp_c[i])
-			  && are_reals_equal(first->water_use_ml[i],
-								 second->water_use_ml[i]))) {
+		bool env_temp_equals = compare_reals(first->env_temp_c[i],
+											 second->env_temp_c[i],
+											 tol.env_temp_prec.val);
+		bool water_use_equals = compare_reals(first->water_use_ml[i],
+											  second->water_use_ml[i],
+											  tol.water_use_prec.val);
+		if (!(env_temp_equals && water_use_equals)) {
 			DEBUG_LOG("chunk: %d, first->env_temp_c = %f, "
 					  "second->env_temp_c = %f | "
 					  "first->water_use_ml = %f, "
 					  "second->water_use_ml = %f\n",
 					  i, first->env_temp_c[i].val, second->env_temp_c[i].val,
-					  first->water_use_ml[i].val, second->water_use_ml[i].val)
+					  first->water_use_ml[i].val, second->water_use_ml[i].val);
 			return false;
 		}
 	}
 
-	DEBUG_LOG("env_temp_c & water_use_ml are equal\n")
+	DEBUG_LOG("env_temp_c & water_use_ml are equal\n");
 
 	for (uint32_t i = 0; i < n_chunks * n_waves; i++) {
-		if (!are_reals_equal(first->light_exposure[i],
-							 second->light_exposure[i])) {
+		bool light_exposure_equals = compare_reals(first->light_exposure[i],
+												   second->light_exposure[i],
+												   tol.light_exposure_prec.val);
+		if (!light_exposure_equals) {
 			DEBUG_LOG("index: %d, first->light_exposure = %f, "
 					  "second->light_exposure = %f\n",
-					  i, first->light_exposure[i].val, 
-					  second->light_exposure[i].val)
+					  i, first->light_exposure[i].val,
+					  second->light_exposure[i].val);
 			return false;
 		}
 	}
 
-	DEBUG_LOG("light_exposure are equal\n")
+	DEBUG_LOG("light_exposure are equal\n");
 
 	for (uint32_t i = 0; i < n_chunks * n_depth; i++) {
-		if (!are_reals_equal(first->soil_temp_c[i],
-							 second->soil_temp_c[i])) {
+		bool soil_temp_equal = compare_reals(first->soil_temp_c[i],
+											 second->soil_temp_c[i],
+											 tol.soil_temp_prec.val);
+		if (!soil_temp_equal) {
 			DEBUG_LOG("index: %d, first->light_exposure = %f, "
 					  "second->light_exposure = %f\n",
 					  i, first->soil_temp_c[i].val, 
-					  second->soil_temp_c[i].val)
+					  second->soil_temp_c[i].val);
 			return false;
 		}
 	}
 
-	DEBUG_LOG("soil_temp_c are equal\n")
+	DEBUG_LOG("soil_temp_c are equal\n");
 
 	for (uint16_t i = 0, l = first->n_soil_adds.val; i < l; i++) {
-		if (!are_additive_t_equal(first->soil_additives[i],
-								  second->soil_additives[i])) {
+		bool soil_additive_equals = are_additive_t_equal(first->soil_additives[i],
+												  second->soil_additives[i],
+												  tol.additive_prec.val);
+		if (!soil_additive_equals) {
 			DEBUG_LOG("#soil_add: %d, first->soil_additives.code = %d, "
 					  "second->soil_additives.code = %d | "
 					  "first->soil_additives.conc = %f, "
 					  "second->soil_additives.conc = %f\n",
-					  i, first->soil_additives[i].code.val, 
+					  i, first->soil_additives[i].code.val,
 					  second->soil_additives[i].code.val,
 					  first->soil_additives[i].concentration.val,
-					  second->soil_additives[i].concentration.val)
+					  second->soil_additives[i].concentration.val);
 			return false;
 		}
 	}
@@ -596,21 +666,23 @@ bool are_series_equal(const series_t *first, const series_t *second,
 	DEBUG_LOG("soil_additives are equal\n");
 
 	for (uint16_t i = 0, l = first->n_atm_adds.val; i < l; i++) {
-		if (!are_additive_t_equal(first->atm_additives[i],
-								  second->atm_additives[i])) {
+		bool atm_additive_equals = are_additive_t_equal(first->atm_additives[i],
+														 second->atm_additives[i],
+														 tol.additive_prec.val);
+		if (!atm_additive_equals) {
 			DEBUG_LOG("#atm_add: %d, first->atm_additives.code = %d, "
 					  "second->atm_additives.code = %d | "
 					  "first->atm_additives.conc = %f, "
 					  "second->atm_additives.conc = %f\n",
-					  i, first->atm_additives[i].code.val, 
+					  i, first->atm_additives[i].code.val,
 					  second->atm_additives[i].code.val,
 					  first->atm_additives[i].concentration.val,
-					  second->atm_additives[i].concentration.val)
+					  second->atm_additives[i].concentration.val);
 			return false;
 		}
 	}
 
-	DEBUG_LOG("The two series are equal\n")
+	DEBUG_LOG("The two series are equal\n");
 
 	return true;
 }
@@ -632,11 +704,11 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	uint16_t n_soil_add, n_atm_add, soil_addtocopy_idx, atm_addtocopy_idx,
 			 res;
 	uint32_t total_additives;
-	cpy_2_bytes_fn = is_big_endian() 
-					 ? &from_to_big_endian_2_bytes 
+	cpy_2_bytes_fn = is_big_endian()
+					 ? &from_to_big_endian_2_bytes
 					 : &from_to_little_endian_2_bytes;
 
-	DEBUG_LOG("------- add_series -------\n")
+	DEBUG_LOG("------- add_series -------\n");
 
 	if (series_to_add->repeated.val == 0) { return ADF_ZERO_REPEATED_SERIES; }
 
@@ -645,8 +717,8 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	/* Happy path, the series is repeated, just increment the counter */
 	if (adf->metadata.size_series.val > 0) {
 		last = adf->series + (adf->metadata.size_series.val - 1);
-		DEBUG_LOG("--- comparing last series (position %d) ...\n", 
-				  adf->metadata.size_series.val - 1)
+		DEBUG_LOG("--- comparing last series (position %d) ...\n",
+				  adf->metadata.size_series.val - 1);
 		if (are_series_equal(last, series_to_add, adf)) {
 			last->repeated.val += series_to_add->repeated.val;
 			adf->metadata.n_series += series_to_add->repeated.val;
@@ -654,7 +726,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 		}
 	}
 
-	DEBUG_LOG("Series to add is not repeated\n")
+	DEBUG_LOG("Series to add is not repeated\n");
 
 	/* If it's not equal to the last one, and if it's not zero-repeated, 
 	   then we have to add it to the series array */
@@ -666,7 +738,7 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 	res = cpy_adf_series(last, series_to_add, adf);
 	if (res != ADF_OK) { return res; }
 
-	DEBUG_LOG("New series has been copied into series array\n")
+	DEBUG_LOG("New series has been copied into series array\n");
 
 	/* At this point, we don't know how many additives should be added to the 
 	   additive_codes array in the metadata, so we allocate  */
@@ -707,18 +779,18 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 		series_free(last);
 		if (n_soil_add > 0) { free(soil_add); }
 		if (n_atm_add > 0) { free(atm_add); }
-		return ADF_ADDITIVE_OVERFLOW; 
+		return ADF_ADDITIVE_OVERFLOW;
 	}
-	size_t new_size_additives = (adf->metadata.n_additives.val + items_to_add) 
+	size_t new_size_additives = (adf->metadata.n_additives.val + items_to_add)
 								* sizeof(uint_t);
-	adf->metadata.additive_codes = realloc(adf->metadata.additive_codes, 
+	adf->metadata.additive_codes = realloc(adf->metadata.additive_codes,
 										   new_size_additives);
 
 	if (!adf->metadata.additive_codes) {
 		series_free(last);
 		if (n_soil_add > 0) { free(soil_add); }
 		if (n_atm_add > 0) { free(atm_add); }
-		return ADF_RUNTIME_ERROR; 
+		return ADF_RUNTIME_ERROR;
 	}
 
 	for (uint16_t i = adf->metadata.n_additives.val, j = 0;
@@ -732,10 +804,10 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 		atm_add[j].code_idx.val = i;
 	}
 	adf->metadata.n_additives.val += items_to_add;
-	
-	/* Update soil_add and atm_add of the new series to keep track of the 
+
+	/* Update soil_add and atm_add of the new series to keep track of the
 	   index of the just inserted additive_code */
-	for (uint16_t i = 0, l = last->n_soil_adds.val; i < l; i++) 
+	for (uint16_t i = 0, l = last->n_soil_adds.val; i < l; i++)
 		last->soil_additives[i] = soil_add[i];
 
 	for (uint16_t i = 0, l = last->n_atm_adds.val; i < l; i++)
@@ -797,7 +869,7 @@ uint16_t get_series_at(adf_t *adf, series_t *series, uint64_t time)
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
 		current = adf->series + i;
 		l_bound_nth_series = u_bound_nth_series;
-		u_bound_nth_series = l_bound_nth_series 
+		u_bound_nth_series = l_bound_nth_series
 							 + (current->repeated.val * series_period);
 
 		if (time > u_bound_nth_series) { continue; }
@@ -831,13 +903,13 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
 		current = adf->series + i;
 		l_bound_nth_series = u_bound_nth_series;
-		u_bound_nth_series = l_bound_nth_series 
+		u_bound_nth_series = l_bound_nth_series
 							 + (current->repeated.val * series_period);
 
 		if (time > u_bound_nth_series) { continue; }
 
 		/* if the two series are eual, nothing to do */
-		DEBUG_LOG("--- comparing series in position %d ...\n", i)
+		DEBUG_LOG("--- comparing series in position %d ...\n", i);
 		if (are_series_equal(current, series, adf)) {
 			adf->metadata.n_series += (series->repeated.val 
 									  - current->repeated.val);
@@ -845,12 +917,12 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 			return ADF_OK;
 		}
 
-		DEBUG_LOG("Series to update is not equal to the previous one\n")
+		DEBUG_LOG("Series to update is not equal to the previous one\n");
 
 		if (current->repeated.val == 1) {
-			DEBUG_LOG("Repeated just one time, nothing to split\n")
+			DEBUG_LOG("Repeated just one time, nothing to split\n");
 
-			adf->metadata.n_series += (series->repeated.val 
+			adf->metadata.n_series += (series->repeated.val
 									  - current->repeated.val);
 			series_free(current);
 			cpy_adf_series(current, series, adf);
@@ -894,7 +966,7 @@ uint16_t update_series(adf_t *adf, const series_t *series, uint64_t time)
 			return ADF_OK;
 		}
 	}
-	
+
 	return ADF_TIME_OUT_OF_BOUND;
 }
 
@@ -906,7 +978,7 @@ uint16_t set_series(adf_t *adf, const series_t *series, uint32_t size)
 	}
 	if (adf->metadata.size_series.val > 0)
 		free(adf->series);
-	
+
 	adf->metadata.size_series.val = size;
 	adf->series = malloc(size * sizeof(series_t));
 	if (!adf->series) { return ADF_RUNTIME_ERROR; }
@@ -1080,7 +1152,8 @@ precision_info_t create_precision_info(float soil_density_prec,
 									   float light_exposure_prec,
 									   float water_use_prec,
 									   float soil_temp_prec,
-									   float env_temp_prec)
+									   float env_temp_prec,
+									   float additive_prec)
 {
 	return (precision_info_t) {
 		.soil_density_prec = { soil_density_prec },
@@ -1089,6 +1162,7 @@ precision_info_t create_precision_info(float soil_density_prec,
 		.water_use_prec = { water_use_prec },
 		.soil_temp_prec = { soil_temp_prec },
 		.env_temp_prec = { env_temp_prec },
+		.additive_prec = { additive_prec },
 	};
 }
 
@@ -1183,6 +1257,115 @@ series_t create_series(float *light_exposure, float *soil_temp_c,
 	};
 }
 
+additive_t *new_additive(uint32_t code, float concentration)
+{
+	additive_t *additive = malloc(sizeof(additive_t));
+	*additive = create_additive(code, concentration);
+	return additive;
+}
+
+wavelength_info_t *new_wavelength_info(uint16_t min_w_len_nm,
+									   uint16_t max_w_len_nm,
+									   uint16_t n_wavelength)
+{
+	wavelength_info_t *w_info = malloc(sizeof(wavelength_info_t));
+	*w_info = create_wavelength_info(min_w_len_nm, max_w_len_nm, n_wavelength);
+	return w_info;
+}
+
+soil_depth_info_t *new_soil_depth_info(uint16_t max_soil_depth_mm,
+									   uint16_t n_depth)
+{
+	soil_depth_info_t *s_info = malloc(sizeof(soil_depth_info_t));
+	*s_info = create_soil_depth_info(max_soil_depth_mm, n_depth);
+	return s_info;
+}
+
+soil_depth_info_t *new_trans_soil_depth_info(uint16_t max_soil_depth_mm,
+											 uint16_t n_depth, uint16_t t_y)
+{
+	soil_depth_info_t *s_info = malloc(sizeof(soil_depth_info_t));
+	*s_info = create_trans_soil_depth_info(max_soil_depth_mm, n_depth, t_y);
+	return s_info;
+}
+
+reduction_info_t *new_default_reduction_info(void)
+{
+	reduction_info_t *r_info = malloc(sizeof(reduction_info_t));
+	*r_info = default_reduction_info();
+	return r_info;
+}
+
+reduction_info_t *new_reduction_info(uint8_t soil_density_red_mode,
+									 uint8_t pressure_red_mode,
+									 uint8_t light_exposure_red_mode,
+									 uint8_t water_use_red_mode,
+									 uint8_t soil_temp_red_mode,
+									 uint8_t env_temp_red_mode)
+{
+	reduction_info_t *r_info = malloc(sizeof(reduction_info_t));
+	*r_info = create_reduction_info(soil_density_red_mode,
+									pressure_red_mode,
+									light_exposure_red_mode,
+									water_use_red_mode,
+									soil_temp_red_mode,
+									env_temp_red_mode);
+	return r_info;
+}
+
+precision_info_t *new_default_precision_info(void)
+{
+	precision_info_t *p_info = malloc(sizeof(precision_info_t));
+	*p_info = default_precision_info();
+	return p_info;
+}
+
+precision_info_t *new_precision_info(float soil_density_prec,
+									 float pressure_prec,
+									 float light_exposure_prec,
+									 float water_use_prec,
+									 float soil_temp_prec,
+									 float env_temp_prec,
+									 float additive_prec)
+{
+	precision_info_t *p_info = malloc(sizeof(precision_info_t));
+	*p_info = create_precision_info(soil_density_prec,
+									pressure_prec,
+									light_exposure_prec,
+									water_use_prec,
+									soil_temp_prec,
+									env_temp_prec,
+									additive_prec);
+	return p_info;
+}
+
+adf_header_t *new_header(uint8_t farming_tec, wavelength_info_t wave_info,
+						 soil_depth_info_t soil_info,
+						 reduction_info_t reduction_info,
+						 precision_info_t precision_info, uint32_t n_chunks)
+{
+	adf_header_t *header = malloc(sizeof(adf_header_t));
+	*header = create_header(farming_tec, wave_info, soil_info,
+							reduction_info, precision_info,
+							n_chunks);
+	return header;
+}
+
+series_t *new_series(float *light_exposure, float *soil_temp_c,
+					 float *env_temp_c, float *water_use_ml, uint8_t pH,
+					 float p_bar, float soil_density_kg_m3,
+					 uint16_t n_soil_adds, uint16_t n_atm_adds,
+					 additive_t *soil_additives, additive_t *atm_additives,
+					 uint32_t repeated)
+{
+	series_t *series = malloc(sizeof(series_t));
+	*series = create_series(light_exposure, soil_temp_c, env_temp_c,
+							water_use_ml, pH, p_bar, soil_density_kg_m3,
+							n_soil_adds, n_atm_adds, soil_additives,
+							atm_additives, repeated);
+	return series;
+}
+
 void metadata_free(adf_meta_t *metadata)
 {
 	free(metadata->additive_codes);
@@ -1207,16 +1390,16 @@ void series_free(series_t *series)
 
 void adf_free(adf_t *adf)
 {
-	DEBUG_LOG("------- adf_free -------\n")
+	DEBUG_LOG("------- adf_free -------\n");
 	adf_meta_t *metadata = (adf_meta_t *) &(adf->metadata);
 	metadata_free(metadata);
-	DEBUG_LOG("metadata has been freed\n")
+	DEBUG_LOG("metadata has been freed\n");
 	for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
 		series_free(adf->series + i);
-		DEBUG_LOG("series #%u has been freed\n", i)
+		DEBUG_LOG("series #%u has been freed\n", i);
 	}
 	free(adf->series);
-	DEBUG_LOG("Series array has been freed\n")
+	DEBUG_LOG("Series array has been freed\n");
 	adf->series = NULL;
 }
 

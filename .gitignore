@@ -66,6 +66,7 @@ test/test_series_update
 test/test_series_remove
 test/test_reindex
 test/test_perf
+test/test_comparisons
 
 # VS code conf
 .vscode/

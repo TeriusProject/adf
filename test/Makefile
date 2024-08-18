@@ -25,11 +25,12 @@ SRC = ../src/
 ADF_SOURCE = $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
 BIN = test_create test_reindex test_marshal test_unmarshal test_series_add \
 	  test_series_update test_series_remove test_lookup_table test_copy    \
-	  test_free
+	  test_comparisons test_free
 
 all: $(BIN) sample.adf
 	@echo "*****************************\n  Executing tests\n*****************************"
 	./test_create
+	./test_comparisons
 	./test_reindex
 	./test_marshal
 	./test_unmarshal
@@ -41,19 +42,22 @@ all: $(BIN) sample.adf
 	./test_free
 
 test_create: test_create.c test.c mock.c $(ADF_SOURCE)
-	$(CC) $(CFLAGS) $^  -o $@  
+	$(CC) $(CFLAGS) $^  -o $@
+
+test_comparisons: test_comparisons.c test.c mock.c $(ADF_SOURCE)
+	$(CC) $(CFLAGS) $^  -o $@
 
 test_reindex: test_reindex.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
-	$(CC) $(CFLAGS) $^  -o $@  
+	$(CC) $(CFLAGS) $^  -o $@
 
 test_marshal: test_marshal.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
-	$(CC) $(CFLAGS) $^  -o $@  
+	$(CC) $(CFLAGS) $^  -o $@
 
 test_unmarshal: test_unmarshal.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
-	$(CC) $(CFLAGS) $^  -o $@  
+	$(CC) $(CFLAGS) $^  -o $@
 
 test_series_add: test_series_add.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
-	$(CC) $(CFLAGS) $^  -o $@ 
+	$(CC) $(CFLAGS) $^  -o $@
 
 test_series_update: test_series_update.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
 	$(CC) $(CFLAGS) $^  -o $@
@@ -62,10 +66,10 @@ test_series_remove: test_series_remove.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $
 	$(CC) $(CFLAGS) $^  -o $@
 
 test_copy: test_copy.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
-	$(CC) $(CFLAGS) $^  -o $@ 
+	$(CC) $(CFLAGS) $^  -o $@
 
 test_free: test_free.c test.c mock.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
-	$(CC) $(CFLAGS) $^  -o $@ 
+	$(CC) $(CFLAGS) $^  -o $@
 
 test_lookup_table: test_lookup_table.c test.c $(SRC)adf.c $(SRC)crc.c $(SRC)lookup_table.c
 	$(CC) $(CFLAGS) $^  -o $@

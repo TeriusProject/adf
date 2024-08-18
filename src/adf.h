@@ -1,5 +1,4 @@
-/*
- * adf.h
+/* adf.h
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -462,7 +461,7 @@ typedef struct {
 } __attribute__(( packed )) reduction_info_t;
 
 /*
- * Each field of this struct specifies the precision 
+ * Each field of this struct specifies the precision
  */
 typedef struct {
 	real_t soil_density_prec;
@@ -471,12 +470,14 @@ typedef struct {
 	real_t water_use_prec;
 	real_t soil_temp_prec;
 	real_t env_temp_prec;
+	real_t additive_prec;
 } __attribute__(( packed )) precision_info_t;
 
 typedef struct {
 
 	/*
 	 * Signature contains the following four bytes
+ 
 	 * 		0x40  0x41  0x44  0x46
 	 * Those bytes are contained in the macro __ADF_SIGNATURE__
 	 */
@@ -484,7 +485,7 @@ typedef struct {
 
 	/*
 	 * Version is an 16-bit unsigned integer that contains the
-	 * version of the ADF format. These bytes is contained in
+	 * version of the ADF format. These bytes are contained in
 	 * the macro __ADF_VERSION__
 	 */
 	uint_small_t version;
@@ -636,7 +637,7 @@ uint16_t cpy_series_starting_at(series_t *, const adf_t *, uint32_t);
 /*
  * !!! This function doesn't compare the fields `code_idx` !!!
  */
-bool are_additive_t_equal(additive_t, additive_t);
+	bool are_additive_t_equal(additive_t, additive_t, float);
 
 /*
  * !!! This function doesn't compare the fields `repeated` !!!
@@ -667,7 +668,8 @@ precision_info_t create_precision_info(float soil_density_prec,
 									   float light_exposure_prec,
 									   float water_use_prec,
 									   float soil_temp_prec,
-									   float env_temp_prec);
+									   float env_temp_prec,
+									   float additive_prec);
 adf_header_t create_header(uint8_t farming_tec, wavelength_info_t wave_info,
 						   soil_depth_info_t soil_info,
 						   reduction_info_t reduction_info,
@@ -678,6 +680,43 @@ series_t create_series(float *light_exposure, float *soil_temp_c,
 					   uint16_t n_soil_adds, uint16_t n_atm_adds,
 					   additive_t *soil_additives, additive_t *atm_additives,
 					   uint32_t repeated);
+
+/*
+ *
+ */
+additive_t *new_additive(uint32_t code, float concentration);
+wavelength_info_t *new_wavelength_info(uint16_t min_w_len_nm,
+									   uint16_t max_w_len_nm,
+									   uint16_t n_wavelength);
+soil_depth_info_t *new_soil_depth_info(uint16_t max_soil_depth_mm,
+									   uint16_t n_depth);
+soil_depth_info_t *new_trans_soil_depth_info(uint16_t max_soil_depth_mm,
+											 uint16_t n_depth, uint16_t t_y);
+reduction_info_t *new_default_reduction_info(void);
+reduction_info_t *new_reduction_info(uint8_t soil_density_red_mode,
+									 uint8_t pressure_red_mode,
+									 uint8_t light_exposure_red_mode,
+									 uint8_t water_use_red_mode,
+									 uint8_t soil_temp_red_mode,
+									 uint8_t env_temp_red_mode);
+precision_info_t *new_default_precision_info(void);
+	precision_info_t *new_precision_info(float soil_density_prec,
+										 float pressure_prec,
+										 float light_exposure_prec,
+										 float water_use_prec,
+										 float soil_temp_prec,
+										 float env_temp_prec,
+										 float additive_prec);
+adf_header_t *new_header(uint8_t farming_tec, wavelength_info_t wave_info,
+						 soil_depth_info_t soil_info,
+						 reduction_info_t reduction_info,
+						 precision_info_t precision_info, uint32_t n_chunks);
+series_t *new_series(float *light_exposure, float *soil_temp_c,
+					 float *env_temp_c, float *water_use_ml, uint8_t pH,
+					 float p_bar, float soil_density_kg_m3,
+					 uint16_t n_soil_adds, uint16_t n_atm_adds,
+					 additive_t *soil_additives, additive_t *atm_additives,
+					 uint32_t repeated);
 
 /*
  *

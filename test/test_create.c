@@ -76,6 +76,11 @@ void test_create_default_reduction_info(void)
 				"`env_temp_red_mode` == NONE in def. reduction_info_t");
 }
 
+void test_aaa(void)
+{
+	
+}
+
 int main(void)
 {
 	test_init_adf();

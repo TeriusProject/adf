@@ -29,10 +29,12 @@ real_t *get_real_array(int);
 real_t **get_real_matrix(int, int);
 real_t *get_real_inline_matrix(int, int);
 adf_header_t get_default_header(void);
+series_t *get_default_series(void);
 series_t get_series(void);
 series_t get_repeated_series(void);
 adf_t get_default_object(void);
 adf_t get_object_with_zero_series(void);
+adf_t get_object_with_precision_set(void);
 series_t get_series_with_two_soil_additives(void);
 
 #endif /* __MOCK_H__ */
