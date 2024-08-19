@@ -1,0 +1,14 @@
+{
+  "name": "adf",
+  "version": "1.0.0",
+  "description": "JS APIs for ADF library",
+  "main": "adf.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ADF"
+  ],
+  "author": "Matteo Nicoli",
+  "license": "GPL-2.0"
+}
