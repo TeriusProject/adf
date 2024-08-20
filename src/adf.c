@@ -1366,6 +1366,13 @@ series_t *new_series(float *light_exposure, float *soil_temp_c,
 	return series;
 }
 
+adf_t *new_adf(adf_header_t *header, uint32_t period_sec)
+{
+	adf_t *adf = malloc(sizeof(adf_t));
+	adf_init(adf, *header, period_sec);
+	return adf;
+}
+
 void metadata_free(adf_meta_t *metadata)
 {
 	free(metadata->additive_codes);
@@ -1401,6 +1408,24 @@ void adf_free(adf_t *adf)
 	free(adf->series);
 	DEBUG_LOG("Series array has been freed\n");
 	adf->series = NULL;
+}
+
+void metadata_delete(adf_meta_t *metadata)
+{
+	metadata_free(metadata);
+	free(metadata);
+}
+
+void series_delete(series_t *series)
+{
+	series_free(series);
+	free(series);
+}
+
+void adf_delete(adf_t *adf)
+{
+	adf_free(adf);
+	free(adf);
 }
 
 uint16_t cpy_additive(additive_t *target, const additive_t *source)

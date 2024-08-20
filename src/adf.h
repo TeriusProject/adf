@@ -521,7 +521,9 @@ typedef struct {
 	adf_header_t header;
 
 	/*
-	 * 
+	 * It contains all changeable metadata of an adf struct. This metadata
+	 * typically changes whenever operations are performed on the series
+	 * (e.g., one is added or removed)
 	 */
 	adf_meta_t metadata;
 
@@ -608,7 +610,7 @@ uint16_t get_series_at(adf_t *, series_t *, uint64_t);
 /*
  * Assumes the byte array `uint8_t *` to be allocated. You can get the exact
  * byte size to be allocated by the function `size_adf_t`. Alternatively, you
- * can allocate it directly with `bytes_alloc`. 
+ * can allocate it directly with `bytes_alloc`.
  */
 uint16_t marshal(uint8_t *, adf_t *);
 
@@ -622,7 +624,8 @@ uint16_t unmarshal(adf_t *, const uint8_t *);
 uint16_t update_series(adf_t *, const series_t *, uint64_t);
 
 /*
- * 
+ * It overwrites the source series to those already contained in the adf struct.
+ * !!! All the series contained in the adf before will be deleted !!!
  */
 uint16_t set_series(adf_t *, const series_t *, uint32_t);
 
@@ -630,9 +633,6 @@ uint16_t set_series(adf_t *, const series_t *, uint32_t);
  * 
  */
 uint16_t reindex_additives(adf_t *);
-
-/* */
-uint16_t cpy_series_starting_at(series_t *, const adf_t *, uint32_t);
 
 /*
  * !!! This function doesn't compare the fields `code_idx` !!!
@@ -645,7 +645,7 @@ uint16_t cpy_series_starting_at(series_t *, const adf_t *, uint32_t);
 bool are_series_equal(const series_t *, const series_t *, const adf_t*);
 
 /*
- *
+ * Helper functions to create adf structures.
  */
 additive_t create_additive(uint32_t code, float concentration);
 wavelength_info_t create_wavelength_info(uint16_t min_w_len_nm,
@@ -682,7 +682,9 @@ series_t create_series(float *light_exposure, float *soil_temp_c,
 					   uint32_t repeated);
 
 /*
- *
+ * Helper functions to create dynamically allocated adf structures. They are
+ * mainly used in the APIs for those languages who don't have explicit pointers
+ * syntax (eg. Java or Javascript).
  */
 additive_t *new_additive(uint32_t code, float concentration);
 wavelength_info_t *new_wavelength_info(uint16_t min_w_len_nm,
@@ -717,9 +719,10 @@ series_t *new_series(float *light_exposure, float *soil_temp_c,
 					 uint16_t n_soil_adds, uint16_t n_atm_adds,
 					 additive_t *soil_additives, additive_t *atm_additives,
 					 uint32_t repeated);
+adf_t *new_adf( adf_header_t *, uint32_t);
 
 /*
- *
+ * Init functions. Each of them expects the pointer to init to e allocated.
  */
 void metadata_init(adf_meta_t *, uint32_t);
 void adf_init(adf_t *, adf_header_t, uint32_t);
@@ -728,20 +731,34 @@ uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
 						   uint16_t n_soil_additives, uint16_t n_atm_additives);
 
 /*
- *
+ * !!! Those functions does not free the parameter pointers !!!
+ * They just free the *content* of the structure. If the structure itself has
+ * been dynamically allocated, use the delete functions below instead.
+ * All the internarls pointers will be set to NULL.
  */
 void metadata_free(adf_meta_t *);
 void series_free(series_t *);
 void adf_free(adf_t *);
 
 /*
- *
+ * !!! Those functions free the paramenter pointers too !!!
+ */
+void metadata_delete(adf_meta_t *);
+void series_delete(series_t *);
+void adf_delete(adf_t *);
+
+/*
+ * Each of those functions expect the target pointer to be allocated. They
+ * perform a deep copy of the *values* of each structures.
  */
 uint16_t cpy_additive(additive_t *, const additive_t *);
 uint16_t cpy_adf(adf_t *, const adf_t *);
 uint16_t cpy_adf_header(adf_header_t *, const adf_header_t *);
 uint16_t cpy_adf_metadata(adf_meta_t *, const adf_meta_t *);
 uint16_t cpy_adf_series(series_t *, const series_t *, const adf_t *);
+
+/* */
+uint16_t cpy_series_starting_at(series_t *, const adf_t *, uint32_t);
 
 #ifdef __cplusplus
 }
