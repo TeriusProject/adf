@@ -31,6 +31,7 @@ package adflib
 */
 import "C"
 import (
+	"encoding/json"
 	"fmt"
 	"runtime"
 )
@@ -188,10 +189,18 @@ func (s *Series) toCSeries() C.series_t {
 		C.uint32_t(s.Repeated))
 }
 
+func (s *Series) toJson() ([]byte, error) {
+	jsonData, err := json.Marshal(s)
+	if err != nil {
+		return nil, err
+	}
+	return jsonData, nil
+}
+
 type WaveInfo struct {
-	MinWavelenNm uint16
-	MaxWavelenNm uint16
-	NWavelengths uint16
+	MinWavelenNm uint16 `json:"minWavelenNm"`
+	MaxWavelenNm uint16 `json:"maxWavelenNm"`
+	NWavelengths uint16 `json:"nWavelengths"`
 }
 
 func NewWaveInfo(minWavelenNm uint16, maxWavelenNm uint16, nWavelengths uint16) WaveInfo {
@@ -211,34 +220,40 @@ func (w *WaveInfo) toCWaveInfo() C.wavelength_info_t {
 }
 
 type SoilDepthInfo struct {
-	MinSoilDepthMm uint16
-	MaxSoilDepthMm uint16
-	NDepth         uint16
+	TransY         uint16 `json:"translationY"`
+	MaxSoilDepthMm uint16 `json:"maxSoilDepthMm"`
+	NDepth         uint16 `json:"nDepth"`
 }
 
-func NewSoilDepthInfo(minSoilDepthMm uint16, maxSoilDepthMm uint16, nDepth uint16) SoilDepthInfo {
+func NewSoilDepthInfo(transY uint16, maxSoilDepthMm uint16, nDepth uint16) SoilDepthInfo {
 	return SoilDepthInfo{
-		MinSoilDepthMm: minSoilDepthMm,
+		TransY:         transY,
 		MaxSoilDepthMm: maxSoilDepthMm,
 		NDepth:         nDepth,
 	}
 }
 
 func (s *SoilDepthInfo) toSoilDepthInfo() C.soil_depth_info_t {
-	return C.create_soil_depth_info(
-		C.uint16_t(s.MinSoilDepthMm),
+	if s.TransY == 0 {
+		return C.create_soil_depth_info(
+			C.uint16_t(s.MaxSoilDepthMm),
+			C.uint16_t(s.NDepth),
+		)
+	}
+	return C.create_trans_soil_depth_info(
+		C.uint16_t(s.TransY),
 		C.uint16_t(s.MaxSoilDepthMm),
 		C.uint16_t(s.NDepth),
 	)
 }
 
 type ReductionInfo struct {
-	SoilDensity   ReductionCode
-	Pressure      ReductionCode
-	LightExposure ReductionCode
-	WaterUse      ReductionCode
-	SoilTemp      ReductionCode
-	EnvTemp       ReductionCode
+	SoilDensity   ReductionCode `json:"soilDensity"`
+	Pressure      ReductionCode `json:"pressure"`
+	LightExposure ReductionCode `json:"lightExposure"`
+	WaterUse      ReductionCode `json:"waterUse"`
+	SoilTemp      ReductionCode `json:"soilTemp"`
+	EnvTemp       ReductionCode `json:"envTemp"`
 }
 
 func NewReductionInfo(soilDensity ReductionCode, pressure ReductionCode,
@@ -265,23 +280,60 @@ func (r *ReductionInfo) toCReductionInfo() C.reduction_info_t {
 	)
 }
 
+type PrecisionInfo struct {
+	SoilDensity   float32 `json:"soilDensity"`
+	Pressure      float32 `json:"pressure"`
+	LightExposure float32 `json:"lightExposure"`
+	WaterUse      float32 `json:"waterUse"`
+	SoilTemp      float32 `json:"soilTemp"`
+	EnvTemp       float32 `json:"environmentTemp"`
+	AdditiveConc  float32 `json:"additiveConcentration"`
+}
+
+func NewPrecisionInfo(soilDensity float32, pressure float32, lightExposure float32,
+	waterUse float32, soilTemp float32, envTemp float32, additiveConc float32) PrecisionInfo {
+	return PrecisionInfo{
+		SoilDensity:   soilDensity,
+		Pressure:      pressure,
+		LightExposure: lightExposure,
+		WaterUse:      waterUse,
+		SoilTemp:      soilTemp,
+		EnvTemp:       envTemp,
+		AdditiveConc:  additiveConc,
+	}
+}
+
+func (p *PrecisionInfo) toCPrecisionInfo() C.precision_info_t {
+	return C.create_precision_info(
+		C.float(p.SoilDensity),
+		C.float(p.Pressure),
+		C.float(p.LightExposure),
+		C.float(p.WaterUse),
+		C.float(p.SoilTemp),
+		C.float(p.EnvTemp),
+		C.float(p.AdditiveConc),
+	)
+}
+
 type Header struct {
-	Version    uint16
-	FarmingTec FarmingTechnique
-	WInfo      WaveInfo
-	SInfo      SoilDepthInfo
-	RedInfo    ReductionInfo
-	NChunks    uint32
+	Version    uint16           `json:"version"`
+	FarmingTec FarmingTechnique `json:"farmingTec"`
+	WInfo      WaveInfo         `json:"waveInfo"`
+	SInfo      SoilDepthInfo    `json:"soilInfo"`
+	RedInfo    ReductionInfo    `json:"reductionInfo"`
+	PrecInfo   PrecisionInfo    `json:"precisonInfo"`
+	NChunks    uint32           `json:"nChunks"`
 }
 
 func NewHeader(farmingTec FarmingTechnique, wInfo WaveInfo, sInfo SoilDepthInfo,
-	redInfo ReductionInfo, nChunks uint32) Header {
+	redInfo ReductionInfo, precInfo PrecisionInfo, nChunks uint32) Header {
 	return Header{
 		Version:    uint16(C.__ADF_VERSION__),
 		FarmingTec: farmingTec,
 		WInfo:      wInfo,
 		SInfo:      sInfo,
 		RedInfo:    redInfo,
+		PrecInfo:   precInfo,
 		NChunks:    nChunks,
 	}
 }
@@ -292,6 +344,7 @@ func (h Header) toCHeader() C.adf_header_t {
 		h.WInfo.toCWaveInfo(),
 		h.SInfo.toSoilDepthInfo(),
 		h.RedInfo.toCReductionInfo(),
+		h.PrecInfo.toCPrecisionInfo(),
 		C.uint32_t(h.NChunks),
 	)
 }

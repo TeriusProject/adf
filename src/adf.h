@@ -49,7 +49,7 @@ extern "C" {
  *     Patch version -> 0x1
  * So, this ADF version is 1.10.1
  */
-#define __ADF_VERSION__ 0x0090u
+#define __ADF_VERSION__ 0x0092u
 #define MAJOR_VERSION_MASK 0xFF00u
 #define MINOR_VERSION_MASK 0x00F0u
 #define PATCH_VERSION_MASK 0x000Fu
@@ -700,13 +700,13 @@ reduction_info_t *new_reduction_info(uint8_t soil_density_red_mode,
 									 uint8_t soil_temp_red_mode,
 									 uint8_t env_temp_red_mode);
 precision_info_t *new_default_precision_info(void);
-	precision_info_t *new_precision_info(float soil_density_prec,
-										 float pressure_prec,
-										 float light_exposure_prec,
-										 float water_use_prec,
-										 float soil_temp_prec,
-										 float env_temp_prec,
-										 float additive_prec);
+precision_info_t *new_precision_info(float soil_density_prec,
+									 float pressure_prec,
+									 float light_exposure_prec,
+									 float water_use_prec,
+									 float soil_temp_prec,
+									 float env_temp_prec,
+									 float additive_prec);
 adf_header_t *new_header(uint8_t farming_tec, wavelength_info_t wave_info,
 						 soil_depth_info_t soil_info,
 						 reduction_info_t reduction_info,

@@ -25,7 +25,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -106,6 +105,7 @@ func createAdfAndMarshal() {
 		adf.NewSoilDepthInfo(0, 0, nDepth),
 		adf.NewReductionInfo(adf.AVERAGE, adf.AVERAGE, adf.AVERAGE,
 			adf.AVERAGE, adf.AVERAGE, adf.AVERAGE),
+		adf.NewPrecisionInfo(0, 0, 0, 0, 0, 0, 0),
 		nChunks)
 	adf := adf.NewAdf(header, adf.DAY_TIME_SEC)
 	fmt.Printf("Current ADF version: %s\n", adf.GetVersion())
@@ -115,14 +115,6 @@ func createAdfAndMarshal() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-
-		jsonData, e := json.Marshal(series)
-		if e != nil {
-			fmt.Println(err)
-			return
-		}
-
-		fmt.Println(string(jsonData))
 
 		series.DisposeSeries()
 	}
