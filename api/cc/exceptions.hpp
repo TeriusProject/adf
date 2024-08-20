@@ -1,5 +1,4 @@
-/* 
- * exceptions.hpp - wrappers for ADF error codes
+/* exceptions.hpp - wrappers for ADF error codes
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli

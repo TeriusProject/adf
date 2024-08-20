@@ -1,3 +1,25 @@
+/* example.cc
+ * ------------------------------------------------------------------------
+ * ADF - Agriculture Data Format
+ * Copyright (C) 2024 Matteo Nicoli
+ *
+ * This file is part of Terius
+ *
+ * ADF is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * ADF is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include <adf.hpp>
 #include <cstdio>
 #include <fstream>
@@ -38,7 +60,7 @@ adf::Series getRandomSeries()
 		temperatureCelsius.push_back(dis(e));
 		waterUseMl.push_back(dis(e));
 	}
-	
+
 	adf::Series series(lightExposure,
 					   soilTemperature,
 					   temperatureCelsius,
@@ -59,6 +81,7 @@ void createAdfAndSaveToFile(void)
 		adf::WaveInfo(nWavelength, 350, 1000),
 		adf::SoilDepthInfo(nDepth,0,0),
 		adf::ReductionInfo(),
+		adf::PrecisionInfo(),
 		nChunks);
 	adf::Adf adf = adf::Adf(header, ADF_DAY);
 	std::vector<std::byte> bytes;
@@ -73,7 +96,7 @@ void createAdfAndSaveToFile(void)
 		std::cout << ex.what() << std::endl;
 		exit(1);
 	}
-	
+
 	std::ofstream fs(fileName, std::ios::binary);
 	fs.write(reinterpret_cast<char*>(bytes.data()), adf.size());
 	fs.close();
@@ -81,7 +104,7 @@ void createAdfAndSaveToFile(void)
 	std::cout << "Wrote ADF file (" << adf.size() << " bytes)\nfilename: " << fileName << std::endl;
 }
 
-std::vector<std::byte> readFile(void) 
+std::vector<std::byte> readFile(void)
 {
 	std::ifstream in(fileName, std::ios::binary);
     in.seekg(0, std::ios_base::end);

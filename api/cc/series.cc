@@ -1,5 +1,4 @@
-/* 
- * series.cc - Implementation of the C++ interface for the ADF library
+/* series.cc
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -20,153 +19,145 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
+
  #include "adf.hpp"
 
 namespace adf {
 
-additive_t Additive::toCAdditive(void)
-{
-	additive_t add =  {
-		/* code_idx should be set by the add_series function */
-		.code_idx = { 0 },
-		.code = { this->code },
-		.concentration = { this->concentration }
-	};
-	return add;
-}
-
-Additive::Additive(uint32_t code, float concentration)
-	: code(code), concentration(concentration)
-{ }
-
-Additive::Additive(uint16_t codeIdx, uint32_t code, float concentration)
-	: codeIdx(codeIdx), code(code), concentration(concentration)
-{ }
-
-uint16_t Additive::getCodeIdx(void)
-{
-	return this->codeIdx;
-}
-
-uint32_t Additive::getCode(void)
-{
-	return this->code;
-}
-
-float Additive::getConcentration(void)
-{
-	return this->concentration;
-}
-
-std::vector<additive_t> AdditiveList::toCAdditives(void)
-{
-	for (Additive &add : this->additives) {
-		additive_t cAdd = add.toCAdditive();
-		this->cAdditives.push_back(cAdd);
+	additive_t Additive::toCAdditive(void)
+	{
+		additive_t add =  {
+			/* code_idx should be set by the add_series function */
+			.code_idx = { 0 },
+			.code = { this->code },
+			.concentration = { this->concentration }
+		};
+		return add;
 	}
-	return this->cAdditives;
-}
 
-AdditiveList::AdditiveList() { }
+	Additive::Additive(uint32_t code, float concentration)
+		: code(code), concentration(concentration)
+	{ }
 
-AdditiveList::AdditiveList(std::vector<Additive> additives)
-{
-	this->additives = additives;
-	this->toCAdditives();
-}
+	Additive::Additive(uint16_t codeIdx, uint32_t code, float concentration)
+		: codeIdx(codeIdx), code(code), concentration(concentration)
+	{ }
 
-size_t AdditiveList::size(void)
-{
-	return this->additives.size();
-}
+	uint16_t Additive::getCodeIdx(void)
+	{
+		return this->codeIdx;
+	}
 
-series_t Series::toCSeries(void)
-{
-	real_t *lightExposureFirstElem = reinterpret_cast<real_t*>(this->lightExposure.startPointer());
-	real_t *soilTempFirstElem = reinterpret_cast<real_t*>(this->soilTempCelsius.startPointer());
-	real_t *envTempFirstElem =  reinterpret_cast<real_t*>(this->environmentTempCelsius.data());
-	real_t *waterUseFirstElem = reinterpret_cast<real_t*>(this->waterUseMl.data());
-	additive_t *soilAdditivesFirstElem =  reinterpret_cast<additive_t*>(this->soilAdditives.cAdditives.data());
-	additive_t *atmosphereAdditivesFirstElem =  reinterpret_cast<additive_t*>(this->atmosphereAdditives.cAdditives.data());
-	series_t cSeries = {
-		.light_exposure = lightExposureFirstElem,
-		.soil_temp_c = soilTempFirstElem,
-		.env_temp_c = envTempFirstElem,
-		.water_use_ml = waterUseFirstElem,
-		.pH = (uint8_t)(this->pH * 10),
-		.p_bar = { this->pressureBar },
-		.soil_density_kg_m3 = { this->soilDensityKgM3 },
-		.n_soil_adds= { (uint16_t)this->soilAdditives.size() },
-		.n_atm_adds = {(uint16_t) this->atmosphereAdditives.size() },
-		.soil_additives = soilAdditivesFirstElem,
-		.atm_additives = atmosphereAdditivesFirstElem,
-		.repeated = {this->repeated }
-	};
-	return cSeries;
-}
+	uint32_t Additive::getCode(void)
+	{
+		return this->code;
+	}
 
-Series::Series(Matrix<float> lightExposure,
-		Matrix<float> soilTemperatureCelsius,
-		std::vector<float> environmenttemperatureCelsius,
-		std::vector<float> wateruseMl, float pH, float pressureBar,
-		float soilDensityKgM3, AdditiveList soilAdditives,
-		AdditiveList atmosphereAdditives, uint32_t repeated)
-	: lightExposure(lightExposure), soilTempCelsius(soilTemperatureCelsius),
-		environmentTempCelsius(environmenttemperatureCelsius),
-		waterUseMl(wateruseMl), pH(pH), pressureBar(pressureBar),
-		soilDensityKgM3(soilDensityKgM3), soilAdditives(soilAdditives),
-		atmosphereAdditives(atmosphereAdditives), repeated(repeated)
-{ }
+	float Additive::getConcentration(void)
+	{
+		return this->concentration;
+	}
 
-Matrix<float> Series::getLightexposure(void)
-{
-	return this->lightExposure;
-}
+	std::vector<additive_t> AdditiveList::toCAdditives(void)
+	{
+		for (Additive &add : this->additives) {
+			additive_t cAdd = add.toCAdditive();
+			this->cAdditives.push_back(cAdd);
+		}
+		return this->cAdditives;
+	}
 
-Matrix<float> Series::getSoilTemperatureCelsius(void)
-{
-	return this->soilTempCelsius; 
-}
+	AdditiveList::AdditiveList() { }
 
-std::vector<float> Series::getEnvironmenttemperatureCelsius(void)
-{
-	return this->environmentTempCelsius;
-}
+	AdditiveList::AdditiveList(std::vector<Additive> additives)
+	{
+		this->additives = additives;
+		this->toCAdditives();
+	}
 
-std::vector<float> Series::getWaterUseMl(void)
-{
-	return this->waterUseMl;
-}
+	size_t AdditiveList::size(void)
+	{
+		return this->additives.size();
+	}
 
-float Series::getPh(void)
-{
-	return this->pH;
-}
+	series_t Series::toCSeries(void)
+	{
+		return create_series(
+			this->lightExposure.startPointer(),
+		    this->soilTempCelsius.startPointer(),
+			this->environmentTempCelsius.data(),
+		    this->waterUseMl.data(),
+			(uint8_t)(this->pH * 10),
+			this->pressureBar,
+			this->soilDensityKgM3,
+			(uint16_t) this->soilAdditives.size(),
+			(uint16_t) this->atmosphereAdditives.size(),
+			reinterpret_cast<additive_t*>(this->soilAdditives.cAdditives.data()),
+			reinterpret_cast<additive_t*>(this->atmosphereAdditives.cAdditives.data()),
+			this->repeated);
+	}
 
-float Series::getPressurebar(void)
-{
-	return this->pressureBar;
-}
+	Series::Series(Matrix<float> lightExposure,
+				   Matrix<float> soilTemperatureCelsius,
+				   std::vector<float> environmenttemperatureCelsius,
+				   std::vector<float> wateruseMl, float pH, float pressureBar,
+				   float soilDensityKgM3, AdditiveList soilAdditives,
+				   AdditiveList atmosphereAdditives, uint32_t repeated)
+		: lightExposure(lightExposure), soilTempCelsius(soilTemperatureCelsius),
+		  environmentTempCelsius(environmenttemperatureCelsius),
+		  waterUseMl(wateruseMl), pH(pH), pressureBar(pressureBar),
+		  soilDensityKgM3(soilDensityKgM3), soilAdditives(soilAdditives),
+		  atmosphereAdditives(atmosphereAdditives), repeated(repeated)
+	{ }
 
-float Series::getSoildensitykgm3(void)
-{
-	return this->soilDensityKgM3;
-}
+	Matrix<float> Series::getLightexposure(void)
+	{
+		return this->lightExposure;
+	}
 
-AdditiveList Series::getSoiladditives(void)
-{
-	return this->soilAdditives;
-}
+	Matrix<float> Series::getSoilTemperatureCelsius(void)
+	{
+		return this->soilTempCelsius;
+	}
 
-AdditiveList Series::getAtmosphereadditives(void)
-{
-	return this->atmosphereAdditives;
-}
+	std::vector<float> Series::getEnvironmenttemperatureCelsius(void)
+	{
+		return this->environmentTempCelsius;
+	}
 
-uint32_t Series::getRepeated(void)
-{
-	return this->repeated;
-}
+	std::vector<float> Series::getWaterUseMl(void)
+	{
+		return this->waterUseMl;
+	}
+
+	float Series::getPh(void)
+	{
+		return this->pH;
+	}
+
+	float Series::getPressurebar(void)
+	{
+		return this->pressureBar;
+	}
+
+	float Series::getSoildensitykgm3(void)
+	{
+		return this->soilDensityKgM3;
+	}
+
+	AdditiveList Series::getSoiladditives(void)
+	{
+		return this->soilAdditives;
+	}
+
+	AdditiveList Series::getAtmosphereadditives(void)
+	{
+		return this->atmosphereAdditives;
+	}
+
+	uint32_t Series::getRepeated(void)
+	{
+		return this->repeated;
+	}
 
 } /* namespace adf */
