@@ -31,6 +31,7 @@
 #define SHIFT1(byte_counter) (byte_counter++)
 #define SHIFT2(byte_counter) (byte_counter += 2)
 #define SHIFT4(byte_counter) (byte_counter += 4)
+#define SHIFT8(byte_counter) (byte_counter += 8)
 
 #ifdef __ADF_DEBUG__
 #define DEBUG_STR "*** DEBUG *** "
@@ -42,6 +43,7 @@
 
 typedef void (*number_bytes_copy)(uint8_t *, const uint8_t *);
 
+static number_bytes_copy cpy_8_bytes_fn;
 static number_bytes_copy cpy_4_bytes_fn;
 static number_bytes_copy cpy_2_bytes_fn;
 
@@ -53,6 +55,30 @@ static bool is_big_endian(void)
 	} endianess = { 0x0100 };
 
 	return endianess.bytes[0];
+}
+
+static void from_to_big_endian_8_bytes(uint8_t *dest, const uint8_t *source)
+{
+	*(dest) = *source;
+	*(dest + 1) = *(source + 1);
+	*(dest + 2) = *(source + 2);
+	*(dest + 3) = *(source + 3);
+	*(dest + 4) = *(source + 4);
+	*(dest + 5) = *(source + 5);
+	*(dest + 6) = *(source + 6);
+	*(dest + 7) = *(source + 7);
+}
+
+static void from_to_little_endian_8_bytes(uint8_t *dest, const uint8_t *source)
+{
+	*(dest) = *(source + 7);
+	*(dest + 1) = *(source + 6);
+	*(dest + 2) = *(source + 5);
+	*(dest + 3) = *(source + 4);
+	*(dest + 4) = *(source + 3);
+	*(dest + 5) = *(source + 2);
+	*(dest + 6) = *(source + 1);
+	*(dest + 7) = *source;
 }
 
 static void from_to_big_endian_4_bytes(uint8_t *dest, const uint8_t *source)
@@ -119,8 +145,8 @@ size_t size_medatata_t(adf_meta_t *metadata)
 	uint16_t add_codes_size = metadata->n_additives.val;
 	return UINT_T_SIZE                          /* size_series */
 		   + UINT_T_SIZE                        /* period_sec */
-		   + UINT_T_SIZE                        /* seeded */
-		   + UINT_T_SIZE                        /* harvested */
+		   + UINT_BIG_T_SIZE                    /* seeded */
+		   + UINT_BIG_T_SIZE                    /* harvested */
 		   + UINT_SMALL_T_SIZE                  /* n_additives */
 		   + (add_codes_size * UINT_T_SIZE)     /* additive_codes */
 		   + UINT_SMALL_T_SIZE;                 /* crc */
@@ -185,6 +211,9 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 	precision_info_t *prec_info;
 	adf_meta_t *metadata;
 	series_t *current;
+	cpy_8_bytes_fn = is_big_endian()
+					 ? &from_to_big_endian_8_bytes
+					 : &from_to_little_endian_8_bytes;
 	cpy_4_bytes_fn = is_big_endian()
 					 ? &from_to_big_endian_4_bytes
 					 : &from_to_little_endian_4_bytes;
@@ -258,10 +287,10 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 	SHIFT4(byte_c);
 	cpy_4_bytes_fn((bytes + byte_c), metadata->period_sec.bytes);
 	SHIFT4(byte_c);
-	cpy_4_bytes_fn((bytes + byte_c), metadata->seeded.bytes);
-	SHIFT4(byte_c);
-	cpy_4_bytes_fn((bytes + byte_c), metadata->harvested.bytes);
-	SHIFT4(byte_c);
+	cpy_8_bytes_fn((bytes + byte_c), metadata->seeded.bytes);
+	SHIFT8(byte_c);
+	cpy_8_bytes_fn((bytes + byte_c), metadata->harvested.bytes);
+	SHIFT8(byte_c);
 	cpy_2_bytes_fn((bytes + byte_c), metadata->n_additives.bytes);
 	SHIFT2(byte_c);
 
@@ -351,6 +380,9 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	uint_small_t expected_crc;
 	uint16_t header_crc, meta_crc, series_crc;
 	uint32_t n_series = 0, n_iter, n_chunks, n_waves, n_depth;
+	cpy_8_bytes_fn = is_big_endian()
+					 ? &from_to_big_endian_8_bytes
+					 : &from_to_little_endian_8_bytes;
 	cpy_4_bytes_fn = is_big_endian()
 					 ? &from_to_big_endian_4_bytes
 					 : &from_to_little_endian_4_bytes;
@@ -426,10 +458,10 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	n_series = adf->metadata.size_series.val;
 	cpy_4_bytes_fn(adf->metadata.period_sec.bytes, (bytes + byte_c));
 	SHIFT4(byte_c);
-	cpy_4_bytes_fn(adf->metadata.seeded.bytes, (bytes + byte_c));
-	SHIFT4(byte_c);
-	cpy_4_bytes_fn(adf->metadata.harvested.bytes, (bytes + byte_c));
-	SHIFT4(byte_c);
+	cpy_8_bytes_fn(adf->metadata.seeded.bytes, (bytes + byte_c));
+	SHIFT8(byte_c);
+	cpy_8_bytes_fn(adf->metadata.harvested.bytes, (bytes + byte_c));
+	SHIFT8(byte_c);
 	cpy_2_bytes_fn(adf->metadata.n_additives.bytes, (bytes + byte_c));
 	SHIFT2(byte_c);
 

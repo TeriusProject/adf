@@ -40,6 +40,7 @@
 					 "If not, run `make init` first."
 
 bool are_ints_equal(uint_t, uint_t);
+bool are_big_ints_equal(uint_big_t, uint_big_t);
 bool are_small_ints_equal(uint_small_t, uint_small_t);
 bool are_reals_equal(real_t, real_t);
 bool are_uint8_arrays_equal(uint8_t *, uint8_t *, uint32_t);
@@ -52,6 +53,7 @@ bool are_additives_equal(additive_t, additive_t);
 /* assertions */
 void assert_true(bool, const char *);
 void assert_int_equal(uint_t, uint_t, const char *);
+void assert_big_int_equal(uint_big_t, uint_big_t, const char *);
 void assert_long_equal(long, long, const char *);
 void assert_real_equal(real_t, real_t, const char *);
 void assert_small_int_equal(uint_small_t, uint_small_t, const char *);

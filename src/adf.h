@@ -35,14 +35,14 @@ extern "C" {
 #define __ADF_SIGNATURE__ 0x40414446u
 
 /*
- * Version is an unsigned 2-byte integer. 
+ * Version is an unsigned 2-byte integer.
  * The most significant byte represents the major release. The first half of
- * the least significant byte, the minor release, while the second half the 
+ * the least significant byte, the minor release, while the second half the
  * patch release.
  *
  * Example
  * -------
- * If the constant __ADF_VERSION__ hase the value 0x01A1u, it has to be 
+ * If the constant __ADF_VERSION__ hase the value 0x01A1u, it has to be
  * parsed as follows
  *     Major version -> 0x01
  *     Minor version -> 0xA
@@ -54,8 +54,8 @@ extern "C" {
 #define MINOR_VERSION_MASK 0x00F0u
 #define PATCH_VERSION_MASK 0x000Fu
 
-/* 
- * Used for the comparison of floating point numbers: numbers that have the 
+/*
+ * Used for the comparison of floating point numbers: numbers that have the
  * first three decimals equal, are considered equals.
  */
 #define EPSILON 1e-3
@@ -63,6 +63,7 @@ extern "C" {
 /*
  * The size of the datatypes used in the ADF format.
  */
+#define UINT_BIG_T_SIZE    8
 #define UINT_T_SIZE        4
 #define UINT_SMALL_T_SIZE  2
 #define UINT_TINY_T_SIZE   1
@@ -70,7 +71,8 @@ extern "C" {
 #define ADD_T_SIZE         6
 
 /*
- * Some constants to represent standard length of the series. 
+ * Some constants to represent some of the most frequently used standard
+ * duration of the series.
  * All numbers are expressed in seconds.
  */
 #define ADF_DAY         86'400
@@ -81,7 +83,15 @@ extern "C" {
 #define ADF_MONTH_31    2'678'400
 
 /*
+ * The most significant byte contains the parent category, while the least
+ * significant the subcategory. Thence, there are up to 16 subcategories
+ * for every parent category.
  *
+ *     + 0x00 ADF_FT_REGULAR
+ *       - 0x01 ADF_FT_INDOOR
+ *       - 0x02 ADF_FT_INDOOR_PROTECTED
+ *       - ...
+ *     + ...
  */
 typedef enum {
 	ADF_FT_REGULAR            = 0x00u,
@@ -104,7 +114,10 @@ typedef struct {
 	uint8_t patch;
 } version_t;
 
-/* 8-bit usnsigned integer  */
+/*
+ * 8-bit usnsigned integer that represents the statistical procedure applied
+ * to reduce the data within the series
+ */
 typedef enum {
 
 	/* No statistical procedure has been applied */
@@ -239,6 +252,11 @@ typedef union {
 } real_t;
 
 typedef union {
+	uint64_t val;
+	uint8_t bytes[8];
+} uint_big_t;
+
+typedef union {
 	uint32_t val;
 	uint8_t bytes[4];
 } uint_t;
@@ -248,25 +266,34 @@ typedef union {
 	uint8_t bytes[2];
 } uint_small_t;
 
+/*
+ * A structure that contains the concentration of each additive included
+ * in each series
+ */
 typedef struct {
 
 	/*
-	 * The index is the 4-byte unsigned index of the additive in
-	 * metadata.additives.
+	 * The 4-byte unsigned index of the additive in metadata.additives.
+	 * This field *should never* be populated by hand. It's automatically filled
+	 * by the function `add_series`.
 	 */
 	uint_small_t code_idx;
 
 	/*
-	 * This field won't be serialized.
+	 * This field won't be serialized into the binary file.
+	 * This field *must* be populated when you pass an additive to a series.
 	 */
 	uint_t code;
 
-	/* the concentration in mg/kg */
+	/*
+	 * The concentration of this additive in the soil/atmosphere.
+	 * It's expressed in mg/kg.
+	 */
 	real_t concentration;
-} additive_t;
+} __attribute__(( packed )) additive_t;
 
 /*
- * A structure that contains the data series.
+ * The structure that contains the data series.
  */
 typedef struct {
 
@@ -277,7 +304,7 @@ typedef struct {
 	real_t *light_exposure;
 
 	/*
-	 *
+	 * 
 	 */
 	real_t *soil_temp_c;
 
@@ -299,12 +326,16 @@ typedef struct {
 	uint8_t pH;
 
 	/*
-	 * *Average* atmosferic pressure measured in bar.
+	 * Pressure measured in bar. These data are reduced as specified in the
+	 * `pressure_red_mode` field of the reduction_info conatined in the
+	 * header section.
 	 */
 	real_t p_bar;
 
 	/*
-	 * *Average* soil density measured in kg/m3
+	 * Soil density measured in kg/m3. These data are reduced as specified
+	 * in the `soil_density_red_mode` field of the reduction_info conatined in
+	 * the header section.
 	 */
 	real_t soil_density_kg_m3;
 
@@ -320,7 +351,7 @@ typedef struct {
 
 	/*
 	 * Each series can have its own additives. These two arrays does not
-	 * contain directly the code of each additive, but its index on the 
+	 * contain directly the code of each additive, but its index on the
 	 * additive_codes array in the metadata section.
 	 */
 	additive_t *soil_additives;
@@ -334,6 +365,11 @@ typedef struct {
 	uint_t repeated;
 } __attribute__(( packed )) series_t;
 
+/*
+ * It contains all mutable metadata of an adf struct. This metadata
+ * typically changes whenever operations are performed on the series
+ * (e.g., one is added or removed)
+ */
 typedef struct {
 
 	/*
@@ -363,14 +399,14 @@ typedef struct {
 	uint_t period_sec;
 
 	/*
-	 * 
+	 * The time (measured in seconds) when the crops were seeded.
 	 */
-	uint_t seeded;
+	uint_big_t seeded;
 
 	/*
-	 * 
+	 * The time (measured in seconds) when the crops were harvested.
 	 */
-	uint_t harvested;
+	uint_big_t harvested;
 
 	/*
 	 * Contains the number of elements of the array `additive_codes`.
@@ -387,17 +423,17 @@ typedef struct {
 typedef struct {
 
 	/*
-	 * The lower bound of the light spectrum.
+	 * The lower bound of the recorded light spectrum measured in nanometers.
 	 */
 	uint_small_t min_w_len_nm;
 
 	/*
-	 * The upper bound of the light spectrum.
+	 * The upper bound of the recorded light spectrum measured in nanometers.
 	 */
 	uint_small_t max_w_len_nm;
 
 	/*
-	 * A 4 byte unsigned integer that represents the number of steps in which
+	 * A 2 byte unsigned integer that represents the number of sections in which
 	 * the light spectrum is (equally) divided. The spectrum represented here
 	 * is bounded between:
 	 *         [min_w_len_nm, max_w_len_nm]
@@ -406,7 +442,13 @@ typedef struct {
 } __attribute__(( packed )) wavelength_info_t;
 
 /*
- * The number of sensors inserted in the soil
+ * This structure contains information about the soil tempretature measurements.
+ * In particular:
+ *     - The maximum depth recorded;
+ *     - The number of layers in which the soil has been divided;
+ *     - A vertical translation coefficient.
+ * Let's consider the case in which we have a translation = 0 (i.e. we start
+ * measuring from the ground). We have something like this:
  *
  *     +-----+   <- t_y = 0 mm (ground)
  *     |     |
@@ -416,15 +458,23 @@ typedef struct {
  *     |     |      max_soil_depth_mm = 2x mm
  *     :  :  :
  *     :  :  :
- * We divide the range (0, 2x] into two chunks of size:
- * (max_soil_depth_mm - t_y) / n_depth
+ * The total length of the vertical section is l = (max_soil_depth_mm - 0). In
+ * this case we have a n_depth of 2, that means that we have two layers. The
+ * vertical length of each layer is x = l/2.
+ *
+ * !!! Note !!! Each sensor is placed at the bottom of its own layer
+ * (as you can see in figure).
+ *
+ * Here we have the general case, in which a translation on t_y mm has been
+ * applied. In this case, the total length is l = (max_soil_depth_mm - t_y),
+ * and each layer has vertical length equal to l / n_depth.
  *
  *     +-----+
- *     |     |   <- t_y = 1 unit
+ *     |_ _ _|   <- t_y = 1 mm
  *     |     |
- *     |..o..|   <- 
+ *     |..o..|   <- first sensor placed at the bottom of the first layer
  *     |     |
- *     |..o..|   <- a temperature sensor at 2x mm depth.
+ *     |..o..|   <- a temperature sensor at (2x + 1) mm depth.
  *     |     |
  *     :  :  :
  *     :  :  :
@@ -432,22 +482,23 @@ typedef struct {
 typedef struct {
 
 	/*
-	 * The value of this field indicates the quantity
-	 */
-	uint_small_t t_y;
-
-	/*
-	 * The maximum depth at which a temperature sensor was put into the soil.
+	 * The depth at which you can find the deepest temperature sensor.
 	 */
 	uint_small_t max_soil_depth_mm;
 
-	/* The number of sensors */
+	/*
+	 * The (possibly 0) translation on the (positive) Y axis of the shallowest
+	 * sensor
+	 */
+	uint_small_t t_y;
+
+	/* The number of layers in which the soil has been (vertically) divided */
 	uint_small_t n_depth;
 } __attribute__(( packed )) soil_depth_info_t;
 
 /*
  * Each of the following fields contain information about the statistical
- * procedure used to reduce the data in the series.
+ * procedure used to reduce the data within the series.
  *     Default value: None (0x00u)
  *     Meaning: No statistical procedure has been applied.
  */
@@ -461,7 +512,8 @@ typedef struct {
 } __attribute__(( packed )) reduction_info_t;
 
 /*
- * Each field of this struct specifies the precision
+ * Each field in this structure specifies the precision with which the
+ * respective values within the series are measured.
  */
 typedef struct {
 	real_t soil_density_prec;
@@ -473,34 +525,32 @@ typedef struct {
 	real_t additive_prec;
 } __attribute__(( packed )) precision_info_t;
 
+/*
+ * This structure contains the immutable data of an ADF structure.
+ * none of the operations executed on an ADF structure should change
+ * these fields, according to the specifications of the ADF format.
+ */
 typedef struct {
 
 	/*
 	 * Signature contains the following four bytes
- 
+
 	 * 		0x40  0x41  0x44  0x46
-	 * Those bytes are contained in the macro __ADF_SIGNATURE__
+	 * Those bytes are contained in the macro __ADF_SIGNATURE__.
 	 */
 	uint_t signature;
 
 	/*
 	 * Version is an 16-bit unsigned integer that contains the
 	 * version of the ADF format. These bytes are contained in
-	 * the macro __ADF_VERSION__
+	 * the macro __ADF_VERSION__.
 	 */
 	uint_small_t version;
 
-	/*
-	 *
-	 */
 	farming_technique_t farming_tec;
-
 	wavelength_info_t wave_info;
-
 	soil_depth_info_t soil_info;
-
 	reduction_info_t reduction_info;
-
 	precision_info_t precision_info;
 
 	/*
@@ -514,28 +564,18 @@ typedef struct {
  */
 typedef struct {
 
-	/*
-	 * It contains the immutable data of an ADF structure, i.e. none of the
-	 * operations you execute on an ADF structure should change these fields.
-	 */
 	adf_header_t header;
-
-	/*
-	 * It contains all changeable metadata of an adf struct. This metadata
-	 * typically changes whenever operations are performed on the series
-	 * (e.g., one is added or removed)
-	 */
 	adf_meta_t metadata;
 
 	/*
 	 * The array of the iterations of size `n_iterations`.
-	 * If size_series == 0, then iterations is NULL.
+	 * If size_series == 0, then this array is set to NULL.
 	 */
 	series_t *series;
 } __attribute__(( packed )) adf_t;
 
 /*
- * Returns the current version of ADF.
+ * Returns the (unpacked) current version of ADF.
  */
 version_t get_adf_version(void);
 
@@ -575,8 +615,8 @@ size_t size_series_t(adf_t *, series_t *);
  * The size (bytes) of the adf object, including all the crc fields.
  * IMPORTANT: This is *not* the size of the struct adf_t; this is the size of
  * the serialized object as a whole. The actual size in memory of the adf_t
- * structure may be bigger, due to some redundant fields that speed up
- * the mashalling and unmarshalling process.
+ * structure is bigger, due to some redundant fields contained in it to help
+ * speeding up the mashalling and unmarshalling process.
  */
 size_t size_adf_t(adf_t *);
 
@@ -587,12 +627,12 @@ size_t size_adf_t(adf_t *);
  */
 uint8_t *adf_bytes_alloc(adf_t *);
 
-/*
- *
- */
+/* It frees the byte array */
 void adf_bytes_free(uint8_t *);
 
 /*
+ * Adds a series to the adf structure.
+ * If the series is equal to the last one contained in the `series` array
  * 
  */
 uint16_t add_series(adf_t *, const series_t *);
@@ -601,6 +641,11 @@ uint16_t add_series(adf_t *, const series_t *);
  * 
  */
 uint16_t remove_series(adf_t *);
+
+/*
+ * 
+ */
+uint16_t reindex_additives(adf_t *);
 
 /*
  *
@@ -614,13 +659,10 @@ uint16_t get_series_at(adf_t *, series_t *, uint64_t);
  */
 uint16_t marshal(uint8_t *, adf_t *);
 
-/* Assumes the `adf_t *` structure not to be NULL. */
+/* Assumes the adf_t structure not to be NULL. */
 uint16_t unmarshal(adf_t *, const uint8_t *);
 
-/*
- * It updates the series at time `uint64_t`.
- * It considers the repetitions as well.
- */
+/* It updates the series at a certain time. */
 uint16_t update_series(adf_t *, const series_t *, uint64_t);
 
 /*
@@ -630,14 +672,9 @@ uint16_t update_series(adf_t *, const series_t *, uint64_t);
 uint16_t set_series(adf_t *, const series_t *, uint32_t);
 
 /*
- * 
- */
-uint16_t reindex_additives(adf_t *);
-
-/*
  * !!! This function doesn't compare the fields `code_idx` !!!
  */
-	bool are_additive_t_equal(additive_t, additive_t, float);
+bool are_additive_t_equal(additive_t, additive_t, float);
 
 /*
  * !!! This function doesn't compare the fields `repeated` !!!

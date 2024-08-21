@@ -30,12 +30,14 @@ void assert_true(bool condition, const char *label)
 		printf(GREEN "PASSED (" TICK "): %s" RESET "\n", label); 
 		return;
 	}
-	
+
 	printf(RED "FAILED (" CROSS "): %s\n" RESET, label);
 	exit(1);
 }
 
 bool are_ints_equal(uint_t x, uint_t y) { return x.val == y.val; }
+
+bool are_big_ints_equal(uint_big_t x, uint_big_t y) { return x.val == y.val; }
 
 bool are_small_ints_equal(uint_small_t x, uint_small_t y)
 {
@@ -115,6 +117,11 @@ bool are_additive_arrays_equal(additive_t *x, additive_t *y, size_t size)
 }
 
 void assert_int_equal(uint_t x, uint_t y, const char *label)
+{
+	assert_true(x.val == y.val, label);
+}
+
+void assert_big_int_equal(uint_big_t x, uint_big_t y, const char *label)
 {
 	assert_true(x.val == y.val, label);
 }
@@ -279,8 +286,8 @@ void assert_metadata_equal(adf_meta_t target, adf_meta_t expected,
 	bool c = are_ints_equal(target.size_series, expected.size_series)
 			 && target.n_series == expected.n_series
 			 && are_ints_equal(target.period_sec, expected.period_sec)
-			 && are_ints_equal(target.seeded, expected.seeded)
-			 && are_ints_equal(target.harvested, expected.harvested)
+			 && are_big_ints_equal(target.seeded, expected.seeded)
+			 && are_big_ints_equal(target.harvested, expected.harvested)
 			 && are_small_ints_equal(target.n_additives, expected.n_additives)
 			 && are_int_arrays_equal(target.additive_codes, 
 			 						 expected.additive_codes,
@@ -297,8 +304,8 @@ void assert_metadata_equal_verbose(adf_meta_t target, adf_meta_t expected)
 	assert_true(target.n_series == expected.n_series, "are n_series equal");
 	assert_int_equal(target.period_sec, expected.period_sec, 
 					 "are periods equal");
-	assert_int_equal(target.seeded, expected.seeded, "are seeded equal");
-	assert_int_equal(target.harvested, expected.harvested, "are harvested equal");
+	assert_big_int_equal(target.seeded, expected.seeded, "are seeded equal");
+	assert_big_int_equal(target.harvested, expected.harvested, "are harvested equal");
 	assert_small_int_equal(target.n_additives, expected.n_additives,
 						   "are number of additive codes equal");
 	assert_int_arrays_equal(target.additive_codes, expected.additive_codes,
