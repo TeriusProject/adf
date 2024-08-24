@@ -210,7 +210,8 @@ bool are_reduction_info_equal(reduction_info_t target,
 		   && target.light_exposure_red_mode == expected.light_exposure_red_mode
 		   && target.water_use_red_mode == expected.water_use_red_mode
 		   && target.soil_temp_red_mode == expected.soil_temp_red_mode
-		   && target.env_temp_red_mode == expected.env_temp_red_mode;
+		   && target.env_temp_red_mode == expected.env_temp_red_mode
+		   && target.additive_red_mode == expected.additive_red_mode;
 }
 
 void assert_wave_info_equal_verbose(wavelength_info_t target, 
@@ -250,6 +251,8 @@ void assert_reduction_info_equal_verbose(reduction_info_t target,
 				"are soil temperature's reduction mode equal");
 	assert_true(target.env_temp_red_mode == expected.env_temp_red_mode,
 				"are environment temperature's reduction mode equal");
+	assert_true(target.additive_red_mode == expected.additive_red_mode,
+				"are additive concentration's reduction mode equal");
 }
 void assert_header_equal_verbose(adf_header_t target, adf_header_t expected)
 {

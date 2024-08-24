@@ -273,13 +273,13 @@ func NewReductionInfo(soilDensity ReductionCode, pressure ReductionCode,
 
 func NewDefaultReductionInfo() ReductionInfo {
 	return ReductionInfo{
-		SoilDensity:   AVERAGE,
-		Pressure:      AVERAGE,
-		LightExposure: AVERAGE,
-		WaterUse:      AVERAGE,
-		SoilTemp:      AVERAGE,
-		EnvTemp:       AVERAGE,
-		AdditiveConc:  AVERAGE,
+		SoilDensity:   NONE,
+		Pressure:      NONE,
+		LightExposure: NONE,
+		WaterUse:      NONE,
+		SoilTemp:      NONE,
+		EnvTemp:       NONE,
+		AdditiveConc:  NONE,
 	}
 }
 

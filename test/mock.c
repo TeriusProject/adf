@@ -80,7 +80,8 @@ adf_header_t get_default_header(void)
 		.light_exposure_red_mode = 1,
 		.water_use_red_mode = 1,
 		.soil_temp_red_mode = 1,
-		.env_temp_red_mode = 1
+		.env_temp_red_mode = 1,
+		.additive_red_mode = 1,
 	};
 	return create_header(0x01u, wave_info, soil_info, reduction_info,
 						 default_precision_info(), 10);
@@ -104,7 +105,8 @@ adf_header_t get_header_with_precision(void)
 		.light_exposure_red_mode = 1,
 		.water_use_red_mode = 1,
 		.soil_temp_red_mode = 1,
-		.env_temp_red_mode = 1
+		.env_temp_red_mode = 1,
+		.additive_red_mode = 1,
 	};
 	precision_info_t precision_info = (precision_info_t) {
 		.soil_density_prec = { 1.0 },
