@@ -75,6 +75,8 @@ go run example.go
 ```
 > **_NOTE:_** This example works **without** installing the library with `go get`. It just link it to the local folder `api/go/adflib`.
 
+> **_NOTE:_** For newer version of macOS, you have to set the environment variable `export DYLD_LIBRARY_PATH=/usr/local/lib` before running the example binary.
+
 ## Test suites
 
 Test suites accomplish 3 main purposes:
