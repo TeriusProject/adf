@@ -103,9 +103,8 @@ func createAdfAndMarshal() {
 		adf.FOGPONICS,
 		adf.NewWaveInfo(350, 1000, nWavelength),
 		adf.NewSoilDepthInfo(0, 0, nDepth),
-		adf.NewReductionInfo(adf.AVERAGE, adf.AVERAGE, adf.AVERAGE,
-			adf.AVERAGE, adf.AVERAGE, adf.AVERAGE),
-		adf.NewPrecisionInfo(0, 0, 0, 0, 0, 0, 0),
+		adf.NewDefaultReductionInfo(),
+		adf.NewDefaultPrecisionInfo(),
 		nChunks)
 	adf := adf.NewAdf(header, adf.DAY_TIME_SEC)
 	fmt.Printf("Current ADF version: %s\n", adf.GetVersion())

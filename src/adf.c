@@ -169,6 +169,7 @@ size_t size_header(void)
 		   + UINT_TINY_T_SIZE      /* water_use_red_mode */
 		   + UINT_TINY_T_SIZE      /* soil_temp_red_mode */
 		   + UINT_TINY_T_SIZE      /* env_temp_red_mode */
+		   + UINT_TINY_T_SIZE      /* additive_red_mode  */
 		   + REAL_T_SIZE           /* soil_density_prec  */
 		   + REAL_T_SIZE           /* pressure_prec  */
 		   + REAL_T_SIZE           /* light_exposure_prec */
@@ -259,6 +260,8 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 	*(bytes + byte_c) = red_info->soil_temp_red_mode;
 	SHIFT1(byte_c);
 	*(bytes + byte_c) = red_info->env_temp_red_mode;
+	SHIFT1(byte_c);
+	*(bytes + byte_c) = red_info->additive_red_mode;
 	SHIFT1(byte_c);
 	cpy_4_bytes_fn((bytes + byte_c), prec_info->soil_density_prec.bytes);
 	SHIFT4(byte_c);
@@ -428,6 +431,8 @@ uint16_t unmarshal(adf_t *adf, const uint8_t *bytes)
 	red_info->soil_temp_red_mode = *(bytes + byte_c);
 	SHIFT1(byte_c);
     red_info->env_temp_red_mode = *(bytes + byte_c);
+	SHIFT1(byte_c);
+	red_info->additive_red_mode = *(bytes + byte_c);
 	SHIFT1(byte_c);
 	cpy_4_bytes_fn(prec_info->soil_density_prec.bytes, (bytes + byte_c));
 	SHIFT4(byte_c);
@@ -1154,6 +1159,7 @@ reduction_info_t default_reduction_info(void)
 		.water_use_red_mode = ADF_RM_NONE,
 		.soil_temp_red_mode = ADF_RM_NONE,
 		.env_temp_red_mode = ADF_RM_NONE,
+		.additive_red_mode = ADF_RM_NONE,
 	};
 }
 
@@ -1162,7 +1168,8 @@ reduction_info_t create_reduction_info(uint8_t soil_density_red_mode,
 									   uint8_t light_exposure_red_mode,
 									   uint8_t water_use_red_mode,
 									   uint8_t soil_temp_red_mode,
-									   uint8_t env_temp_red_mode)
+									   uint8_t env_temp_red_mode,
+									   uint8_t additive_red_mode)
 {
 	return (reduction_info_t) {
 		.soil_density_red_mode = (reduction_code_t) soil_density_red_mode,
@@ -1171,6 +1178,7 @@ reduction_info_t create_reduction_info(uint8_t soil_density_red_mode,
 		.water_use_red_mode = (reduction_code_t) water_use_red_mode,
 		.soil_temp_red_mode = (reduction_code_t) soil_temp_red_mode,
 		.env_temp_red_mode = (reduction_code_t) env_temp_red_mode,
+		.additive_red_mode = (reduction_code_t) additive_red_mode,
 	};
 }
 
@@ -1333,7 +1341,8 @@ reduction_info_t *new_reduction_info(uint8_t soil_density_red_mode,
 									 uint8_t light_exposure_red_mode,
 									 uint8_t water_use_red_mode,
 									 uint8_t soil_temp_red_mode,
-									 uint8_t env_temp_red_mode)
+									 uint8_t env_temp_red_mode,
+									 uint8_t additive_red_mode)
 {
 	reduction_info_t *r_info = malloc(sizeof(reduction_info_t));
 	*r_info = create_reduction_info(soil_density_red_mode,
@@ -1341,7 +1350,8 @@ reduction_info_t *new_reduction_info(uint8_t soil_density_red_mode,
 									light_exposure_red_mode,
 									water_use_red_mode,
 									soil_temp_red_mode,
-									env_temp_red_mode);
+									env_temp_red_mode,
+									additive_red_mode);
 	return r_info;
 }
 

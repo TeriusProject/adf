@@ -254,11 +254,12 @@ type ReductionInfo struct {
 	WaterUse      ReductionCode `json:"waterUse"`
 	SoilTemp      ReductionCode `json:"soilTemp"`
 	EnvTemp       ReductionCode `json:"envTemp"`
+	AdditiveConc  ReductionCode `json:"additive"`
 }
 
 func NewReductionInfo(soilDensity ReductionCode, pressure ReductionCode,
 	lightExposure ReductionCode, waterUse ReductionCode, soilTemp ReductionCode,
-	envTemp ReductionCode) ReductionInfo {
+	envTemp ReductionCode, additiveConc ReductionCode) ReductionInfo {
 	return ReductionInfo{
 		SoilDensity:   soilDensity,
 		Pressure:      pressure,
@@ -266,6 +267,19 @@ func NewReductionInfo(soilDensity ReductionCode, pressure ReductionCode,
 		WaterUse:      waterUse,
 		SoilTemp:      soilTemp,
 		EnvTemp:       envTemp,
+		AdditiveConc:  additiveConc,
+	}
+}
+
+func NewDefaultReductionInfo() ReductionInfo {
+	return ReductionInfo{
+		SoilDensity:   AVERAGE,
+		Pressure:      AVERAGE,
+		LightExposure: AVERAGE,
+		WaterUse:      AVERAGE,
+		SoilTemp:      AVERAGE,
+		EnvTemp:       AVERAGE,
+		AdditiveConc:  AVERAGE,
 	}
 }
 
@@ -277,6 +291,7 @@ func (r *ReductionInfo) toCReductionInfo() C.reduction_info_t {
 		C.uint8_t(r.WaterUse),
 		C.uint8_t(r.SoilTemp),
 		C.uint8_t(r.EnvTemp),
+		C.uint8_t(r.AdditiveConc),
 	)
 }
 
@@ -300,6 +315,18 @@ func NewPrecisionInfo(soilDensity float32, pressure float32, lightExposure float
 		SoilTemp:      soilTemp,
 		EnvTemp:       envTemp,
 		AdditiveConc:  additiveConc,
+	}
+}
+
+func NewDefaultPrecisionInfo() PrecisionInfo {
+	return PrecisionInfo{
+		SoilDensity:   0,
+		Pressure:      0,
+		LightExposure: 0,
+		WaterUse:      0,
+		SoilTemp:      0,
+		EnvTemp:       0,
+		AdditiveConc:  0,
 	}
 }
 

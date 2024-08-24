@@ -74,11 +74,8 @@ void test_create_default_reduction_info(void)
 				"`soil_temp_red_mode` == NONE in def. reduction_info_t");
 	assert_true(r.env_temp_red_mode == ADF_RM_NONE,
 				"`env_temp_red_mode` == NONE in def. reduction_info_t");
-}
-
-void test_aaa(void)
-{
-	
+	assert_true(r.additive_red_mode == ADF_RM_NONE,
+				"`additive_red_mode` == NONE in def. reduction_info_t");
 }
 
 int main(void)

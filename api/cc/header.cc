@@ -85,20 +85,23 @@ namespace adf {
 									 static_cast<reduction_code_t>(this->lightExposure),
 									 static_cast<reduction_code_t>(this->waterUse),
 									 static_cast<reduction_code_t>(this->soilTemp),
-									 static_cast<reduction_code_t>(this->envTemp));
+									 static_cast<reduction_code_t>(this->envTemp),
+									 static_cast<reduction_code_t>(this->additive));
 	}
 
 	ReductionInfo::ReductionInfo(void)
 		: soilDensity(ReductionCode::Average), pressure(ReductionCode::Average),
 		  lightExposure(ReductionCode::Average), waterUse(ReductionCode::Average),
-		  soilTemp(ReductionCode::Average), envTemp(ReductionCode::Average)
+		  soilTemp(ReductionCode::Average), envTemp(ReductionCode::Average),
+		  additive(ReductionCode::Average)
 	{ }
 
 	ReductionInfo::ReductionInfo(ReductionCode soilDensity, ReductionCode pressure, ReductionCode lightExposure,
-								 ReductionCode waterUse, ReductionCode soilTemp, ReductionCode envTemp)
+								 ReductionCode waterUse, ReductionCode soilTemp, ReductionCode envTemp,
+								 ReductionCode additive)
 		: soilDensity(soilDensity), pressure(pressure),
 		  lightExposure(lightExposure), waterUse(waterUse),
-		  soilTemp(soilTemp), envTemp(envTemp)
+		  soilTemp(soilTemp), envTemp(envTemp), additive(additive)
 	{ }
 
 	ReductionCode ReductionInfo::getSoilDensity(void)
@@ -130,6 +133,11 @@ namespace adf {
 	ReductionCode ReductionInfo::getEnvTemp(void)
 	{
 		return this->envTemp;
+	}
+
+	ReductionCode ReductionInfo::getAdditive(void)
+	{
+		return this->additive;
 	}
 
 	precision_info_t PrecisionInfo::toCPrecisionInfo(void)

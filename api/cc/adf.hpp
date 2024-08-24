@@ -174,19 +174,22 @@ namespace adf {
 		ReductionCode waterUse;
 		ReductionCode soilTemp;
 		ReductionCode envTemp;
+		ReductionCode additive;
 		reduction_info_t toCReductionInfo(void);
 
 	public:
 		ReductionInfo();
 		ReductionInfo(ReductionCode soilDensity, ReductionCode pressure,
 					  ReductionCode lightExposure, ReductionCode waterUse,
-					  ReductionCode soilTemp, ReductionCode envTemp);
+					  ReductionCode soilTemp, ReductionCode envTemp,
+					  ReductionCode additive);
 		ReductionCode getSoilDensity(void);
 		ReductionCode getPressure(void);
 		ReductionCode getLightExposure(void);
 		ReductionCode getWaterUse(void);
 		ReductionCode getSoilTemp(void);
 		ReductionCode getEnvTemp(void);
+		ReductionCode getAdditive(void);
 
 		friend class Header;
 	};

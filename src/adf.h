@@ -509,6 +509,7 @@ typedef struct {
 	reduction_code_t water_use_red_mode;
 	reduction_code_t soil_temp_red_mode;
 	reduction_code_t env_temp_red_mode;
+	reduction_code_t additive_red_mode;
 } __attribute__(( packed )) reduction_info_t;
 
 /*
@@ -698,7 +699,8 @@ reduction_info_t create_reduction_info(uint8_t soil_density_red_mode,
 									   uint8_t light_exposure_red_mode,
 									   uint8_t water_use_red_mode,
 									   uint8_t soil_temp_red_mode,
-									   uint8_t env_temp_red_mode);
+									   uint8_t env_temp_red_mode,
+									   uint8_t additive_red_mode);
 precision_info_t default_precision_info(void);
 precision_info_t create_precision_info(float soil_density_prec,
 									   float pressure_prec,
@@ -737,7 +739,8 @@ reduction_info_t *new_reduction_info(uint8_t soil_density_red_mode,
 									 uint8_t light_exposure_red_mode,
 									 uint8_t water_use_red_mode,
 									 uint8_t soil_temp_red_mode,
-									 uint8_t env_temp_red_mode);
+									 uint8_t env_temp_red_mode,
+									 uint8_t additive_red_mode);
 precision_info_t *new_default_precision_info(void);
 precision_info_t *new_precision_info(float soil_density_prec,
 									 float pressure_prec,
