@@ -131,6 +131,7 @@ int main(void)
 	adf_header_t header;
 	wavelength_info_t w_info;
 	soil_depth_info_t s_info;
+	precision_info_t p_info;
 	reduction_info_t r_info = { 0 }; // Init to 0
 	version_t version = get_adf_version();
 
@@ -146,7 +147,17 @@ int main(void)
 		.n_depth = { N_DEPTH },
 	};
 
-	header = create_header(ADF_FT_REGULAR, w_info, s_info, r_info, N_CHUNKS);
+	p_info = (precision_info_t) {
+		.soil_density_prec = { 1e3 },
+		.pressure_prec = { 1e3 },
+		.light_exposure_prec = { 1e3 },
+		.water_use_prec = { 1e3 },
+		.soil_temp_prec = { 1e3 },
+		.env_temp_prec = { 1e3 },
+		.additive_prec = { 1e3 },
+	};
+
+	header = create_header(ADF_FT_REGULAR, w_info, s_info, r_info, p_info, N_CHUNKS);
 	adf_init(&adf, header, ADF_DAY); // each series takes 1 day
 
 	srand(time(NULL));
