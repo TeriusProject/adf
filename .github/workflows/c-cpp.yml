@@ -26,6 +26,6 @@ jobs:
     - name: compile C++ APIs
       run: make cpp
     - name: install C++ APIs
-      run: make cpp_install
+      run: sudo make cpp_install
     - name: make and run C++ example
       run: (cd api/cc && make example && ./example)
