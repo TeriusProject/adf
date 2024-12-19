@@ -23,6 +23,9 @@
 
 #include "test.h"
 #include <time.h>
+#ifdef __linux__
+#include <linux/time.h>
+#endif
 
 void assert_true(bool condition, const char *label)
 {

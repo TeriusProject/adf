@@ -13,9 +13,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: make init
+    - name: prepare environment for C compiling
+      run: sudo apt-get install build-essential 
+    - name: generate sample
       run: make init
-    - name: make
+    - name: make library and execute tests
       run: make
-    - name: make install
-      run: make install
