@@ -32,7 +32,7 @@ install: adf.hpp $(LIB)
 
 .PHONY: example
 example: example.cc
-	$(CC) $(CXXFLAGS) -o $@ $< -I $(INCLUDE) -L $(LIB_DIR) -ladfpp
+	$(CC) $(CXXFLAGS) -o $@ $< -I $(INCLUDE) -L $(LIB_DIR) -ladfpp -Wl,-rpath,/usr/local/lib
 
 .PHONY: clean
 clean:
