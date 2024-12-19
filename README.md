@@ -104,6 +104,7 @@ int main(void)
 	wavelength_info_t w_info;
 	soil_depth_info_t s_info;
 	reduction_info_t r_info = { 0 }; // Init to 0
+	precision_info_t p_info;
 	
 	w_info = (wavelength_info_t) {
 		.min_w_len_nm = { 0 },
@@ -117,7 +118,17 @@ int main(void)
 		.n_depth = { N_DEPTH },
 	};
 
-	header = create_header(ADF_FT_REGULAR, w_info, s_info, r_info, N_CHUNKS);
+	p_info = (precision_info_t) {
+		.soil_density_prec = { 1e3 },
+		.pressure_prec = { 1e3 },
+		.light_exposure_prec = { 1e3 },
+		.water_use_prec = { 1e3 },
+		.soil_temp_prec = { 1e3 },
+		.env_temp_prec = { 1e3 },
+		.additive_prec = { 1e3 },
+	};
+
+	header = create_header(ADF_FT_REGULAR, w_info, s_info, r_info, p_info, N_CHUNKS);
 	adf_init(&adf, header, ADF_DAY); // each series takes 1 day
 	
 	/* register_data is just a procedure that adds some random series to adf. 
@@ -135,7 +146,8 @@ You can find a working example of how to use `libadf` under the `example` direct
 
 ## Further developments
 
-- [ ] Improve Makefiles and build pipeline. Wouldn't it be nice to add a `configure` script to make build and install procedures cross-platform, as well as Github actions?
+- [x] Github actions.
+- [ ] Improve Makefiles and build pipeline. Wouldn't it be nice to add a `configure` script to make build and install procedures for Windows too?
 - [ ] Extend the support to `valgrind` and `GNU gprof`. Currently the script `./memtest` only works for `leaks` (macOS).
 - [ ] Improve efficiency (speed and memory usage).
 - [ ] Bindings for the most common languages: Java, Python (via Cython) and Javascript/Typescript (via WebAssembly).
