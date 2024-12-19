@@ -2,11 +2,19 @@ CC = g++
 CXXFLAGS = -pedantic -Wall -Wextra -fPIC -std=c++20 -O3
 INCLUDE = /usr/local/include
 LIB_DIR = /usr/local/lib
-LIB = libadfpp.dylib
 OBJS = adf.o header.o series.o
 
+ifeq ($(shell uname), Darwin)
+    LIB_FLAGS = -dynamiclib
+    LIB = libadfpp.dylib
+else
+    # Assuming Linux
+    LIB_FLAGS = -shared
+    LIB = libadfpp.so
+endif
+
 $(LIB): $(OBJS)
-	$(CC) $(CXXFLAGS) -dynamiclib -o $@ $^ -ladf -I $(INCLUDE) -L $(LIB_DIR)
+	$(CC) $(CXXFLAGS) $(LIB_FLAGS) -o $@ $^ -ladf -I $(INCLUDE) -L $(LIB_DIR)
 
 adf.o: adf.cc adf.hpp exceptions.hpp
 	$(CC) $(CXXFLAGS) -c -o $@ $<
