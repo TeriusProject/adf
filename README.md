@@ -8,6 +8,8 @@ For some implementative details concerning datatypes and functions defined in th
 
 ## Build and install
 
+[![C/C++ CI](https://github.com/TeriusProject/adf/actions/workflows/c-cpp.yml/badge.svg?branch=main)](https://github.com/TeriusProject/adf/actions/workflows/c-cpp.yml)
+
 To build the library it is sufficient to run the following commands. By default, the `all` rule will compile and execute all the unit tests too.
 
 After cloning the repository, run
@@ -40,6 +42,9 @@ C implementation of the ADF format is *not* intended to be used directly. Some A
 > **_BEWARE:_** All the APIs described below need `libadf.a` to be installed in the standard directory. See build it and install it with the instructions above.
 
 ### C++
+
+[![C/C++ CI](https://github.com/TeriusProject/adf/actions/workflows/c-cpp.yml/badge.svg?branch=main)](https://github.com/TeriusProject/adf/actions/workflows/c-cpp.yml)
+
 > **_NOTE:_** In order to build the C++ API is required a compiler that fully support C++20, including `std::format`. If it's unavailable on your machine, change the command line options in the Makefile, from `-std=c++20` to `-std=c++17`.
 
 To compile C++ APIs, just run 
@@ -61,6 +66,8 @@ make example
 > **_NOTE:_** For newer version of macOS, you have to set the environment variable `export DYLD_LIBRARY_PATH=/usr/local/lib` before running the example binary.
 
 ### Go
+
+[![Go](https://github.com/TeriusProject/adf/actions/workflows/go.yml/badge.svg?branch=main)](https://github.com/TeriusProject/adf/actions/workflows/go.yml)
 
 Golang APIs are quite similar to to those for C++ in their structure.
 
