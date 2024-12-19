@@ -6,7 +6,7 @@ LIB = libadfpp.dylib
 OBJS = adf.o header.o series.o
 
 $(LIB): $(OBJS)
-	$(CC) $(CXXFLAGS) -dynamiclib -ladf -o $@ $^ -I $(INCLUDE) -L $(LIB_DIR)
+	$(CC) $(CXXFLAGS) -dynamiclib -o $@ $^ -ladf -I $(INCLUDE) -L $(LIB_DIR)
 
 adf.o: adf.cc adf.hpp exceptions.hpp
 	$(CC) $(CXXFLAGS) -c -o $@ $<
