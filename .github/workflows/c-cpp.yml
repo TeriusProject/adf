@@ -21,5 +21,11 @@ jobs:
       run: make
     - name: install
       run: sudo make install
-    - name: make example
-      run: (cd example && make example)
+    - name: make and run C example
+      run: (cd example && make example && ./example)
+    - name: compile C++ APIs
+      run: make cpp
+    - name: install C++ APIs
+      run: make cpp_install
+    - name: make and run C++ example
+      run: (cd api/cc && make example && ./example)
