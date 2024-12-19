@@ -15,14 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.20'
-
-    - name: Build
-      run: go build -v ./...
-
-    - name: Test
-      run: go test -v ./...
+        go-version: '1.21.4'
+    - name: compile adf library
+      run: make adf
+    - name: install adf library
+      run: sudo make install
+    - name: run GO APIs
+      run: go run ./api/go

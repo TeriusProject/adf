@@ -19,3 +19,7 @@ jobs:
       run: make init
     - name: make library and execute tests
       run: make
+    - name: install
+      run: sudo make install
+    - name: make example
+      run: (cd example && make example)
