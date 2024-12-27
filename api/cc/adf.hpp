@@ -78,18 +78,12 @@ namespace adf {
 	public:
 		InvalidMatrixShapeException(uint32_t size, uint32_t rows, uint32_t columns)
 			{
-#if __cplusplus >= 202002L
-				this->message = std::format(
-					"An array of size {}, cannot be expressed as a matrix of shape {}x{}", 
-					size,
-					rows,
-					columns
-					);
-#else
-				this->message = "An array of size " + std::to_string(size) +
-					", cannot be expressed as a matrix of shape " 
-					+ std::to_string(rows) + "x" + std::to_string(columns);
-#endif
+				this->message = "An array of size "
+								+ std::to_string(size) 
+								+ ", cannot be expressed as a matrix of shape " 
+								+ std::to_string(rows)
+								+ "x"
+								+ std::to_string(columns);
 			}
 
 		const char *what() { return (const char *)message.c_str(); }

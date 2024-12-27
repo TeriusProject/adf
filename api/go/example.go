@@ -1,5 +1,4 @@
-/*
- * example.go - GO API example
+/* example.go - GO API example
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli

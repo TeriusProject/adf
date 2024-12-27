@@ -1,5 +1,4 @@
-/*
- * errors.go - AdfError struct and error messages
+/* errors.go - AdfError struct and error messages
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli

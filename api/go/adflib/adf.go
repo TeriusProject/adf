@@ -1,5 +1,4 @@
-/*
- * adf.go - Golang interface for ADF library
+/* adf.go - Golang interface for ADF library
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli

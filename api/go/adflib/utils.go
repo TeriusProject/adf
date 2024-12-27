@@ -1,5 +1,4 @@
-/*
- * utils.go - Utility functions and data structures
+/* utils.go - Utility functions and data structures
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli

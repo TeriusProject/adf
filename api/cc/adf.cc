@@ -67,11 +67,11 @@ namespace adf {
 	std::string Adf::versionString(void)
 	{
 		Version v = this->version();
-#if __cplusplus >= 202002L
-		return std::format("{}.{}.{}", v.major, v.minor, v.patch);
-#else
-		return std::to_string(v.major) + "." + std::to_string(v.minor) + "." + std::to_string(v.patch);
-#endif
+		return std::to_string(v.major) 
+			   + "." 
+			   + std::to_string(v.minor)
+			   + "." 
+			   + std::to_string(v.patch);
 	}
 
 	void Adf::addSeries(Series& series)
