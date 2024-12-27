@@ -157,7 +157,12 @@ You can find a working example of how to use `libadf` under the `example` direct
 - [ ] Improve Makefiles and build pipeline. Wouldn't it be nice to add a `configure` script to make build and install procedures for Windows too?
 - [ ] Extend the support to `valgrind` and `GNU gprof`. Currently the script `./memtest` only works for `leaks` (macOS).
 - [ ] Improve efficiency (speed and memory usage).
-- [ ] Bindings for the most common languages: Java, Python (via Cython) and Javascript/Typescript (via WebAssembly).
+- [ ] Bindings for the most common languages:
+	- [x] C++
+ 	- [x] GO 
+	- [ ] Java
+ 	- [ ] Python (via Cython)
+  	- [ ] Javascript/Typescript (via WebAssembly).
 - [ ] Add SIMD support for Intel Intrinsics and ARM Neon. The development is already ongoing in a separate private repository. Once the first release will be ready, it will be linked into this one.
 - [ ] Improve factory functions. Probably we have to wait a bit in order to see how we could make them easier to use.
 
