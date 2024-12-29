@@ -52,6 +52,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+.DS_Store
 
 # Test bin
 test/test_marshal
@@ -80,12 +81,12 @@ test/test_comparisons
 # ADF
 *.adf
 
+# WASM
+*.wasm
+
 # Examples
 example/example
 example/output.adf
 example/example
 api/cc/example
 api/go/example
-
-.DS_Store
-
