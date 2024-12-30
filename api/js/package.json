@@ -10,5 +10,8 @@
     "ADF"
   ],
   "author": "Matteo Nicoli",
-  "license": "GPL-2.0"
+  "license": "GPL-2.0",
+  "devDependencies": {
+    "@types/node": "^22.10.2"
+  }
 }

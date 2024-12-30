@@ -90,3 +90,6 @@ example/output.adf
 example/example
 api/cc/example
 api/go/example
+
+# APIs
+api/js/node_modules/
