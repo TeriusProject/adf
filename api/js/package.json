@@ -1,6 +1,7 @@
 {
   "name": "adf",
   "version": "1.0.0",
+  "type": "module",
   "description": "JS APIs for ADF library",
   "main": "adf.js",
   "scripts": {
@@ -10,8 +11,5 @@
     "ADF"
   ],
   "author": "Matteo Nicoli",
-  "license": "GPL-2.0",
-  "devDependencies": {
-    "@types/node": "^22.10.2"
-  }
+  "license": "GPL-2.0"
 }

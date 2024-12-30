@@ -576,6 +576,11 @@ typedef struct {
 } __attribute__(( packed )) adf_t;
 
 /*
+ * Returns the constant __ADF_VERSION__.
+ */
+uint16_t get_hex_version(void) { return __ADF_VERSION__; }
+
+/*
  * Returns the (unpacked) current version of ADF.
  */
 version_t get_adf_version(void);
@@ -899,6 +904,44 @@ uint8_t get_reduction_code_AVG() {
 } 
 uint8_t get_reduction_code_MAVG() {
 	return ADF_RM_MAVG;
+}
+/* Datatype size */
+uint8_t get_UINT_BIG_T_SIZE() {
+	return UINT_BIG_T_SIZE;
+}
+uint8_t get_UINT_T_SIZE() {
+	return UINT_T_SIZE;
+}
+uint8_t get_UINT_SMALL_T_SIZE() {
+	return UINT_SMALL_T_SIZE;
+}
+uint8_t get_UINT_TINY_T_SIZE() {
+	return UINT_TINY_T_SIZE;
+}
+uint8_t get_REAL_T_SIZE() {
+	return REAL_T_SIZE;
+}
+uint8_t get_ADD_T_SIZE() {
+	return ADD_T_SIZE;
+}
+/* Useful time constants */
+uint32_t get_ADF_DAY() {
+	return ADF_DAY;
+}
+uint32_t get_ADF_WEEK() {
+	return ADF_WEEK;
+}
+uint32_t get_ADF_MONTH_28() {
+	return ADF_MONTH_28;
+}
+uint32_t get_ADF_MONTH_29() {
+	return ADF_MONTH_29;
+}
+uint32_t get_ADF_MONTH_30() {
+	return ADF_MONTH_30;
+}
+uint32_t get_ADF_MONTH_31() {
+	return ADF_MONTH_31;
 }
 
 #ifdef __cplusplus
