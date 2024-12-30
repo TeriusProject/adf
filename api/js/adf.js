@@ -20,7 +20,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-const StatusCode = Obnject.freeze({
+const StatusCode = Object.freeze({
 	OK: instance.exports.get_status_code_OK(),
 	HEADER_CORRUPTED: instance.exports.get_status_code_HEADER_CORRUPTED(),
 	METADATA_CORRUPTED: instance.exports.get_status_code_METADATA_CORRUPTED(),
