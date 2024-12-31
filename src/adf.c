@@ -109,6 +109,10 @@ static void from_to_little_endian_2_bytes(uint8_t *dest, const uint8_t *source)
 	*(dest + 1) = *source;
 }
 
+uint16_t get_hex_version(void) {
+	return __ADF_VERSION__;
+}
+
 version_t get_adf_version(void)
 {
 	return (version_t) {
@@ -1415,6 +1419,13 @@ adf_t *new_adf(adf_header_t *header, uint32_t period_sec)
 	return adf;
 }
 
+adf_t *new_empty_adf(void)
+{
+	adf_t *adf = malloc(sizeof(adf_t));
+	adf->series = NULL;
+	return adf;
+}
+
 void metadata_free(adf_meta_t *metadata)
 {
 	free(metadata->additive_codes);
@@ -1447,7 +1458,7 @@ void adf_free(adf_t *adf)
 		series_free(adf->series + i);
 		DEBUG_LOG("series #%u has been freed\n", i);
 	}
-	free(adf->series);
+	if (adf->series) free(adf->series);
 	DEBUG_LOG("Series array has been freed\n");
 	adf->series = NULL;
 }
@@ -1592,4 +1603,176 @@ uint16_t cpy_adf(adf_t *target, const adf_t *source)
 	}
 
 	return ADF_OK;
+}
+
+uint16_t get_status_code_OK() {
+	return ADF_OK;
+}
+
+uint16_t get_status_code_HEADER_CORRUPTED() {
+	return ADF_HEADER_CORRUPTED;
+}
+
+uint16_t get_status_code_METADATA_CORRUPTED() {
+	return ADF_METADATA_CORRUPTED;
+}
+
+uint16_t get_status_code_SERIES_CORRUPTED() {
+	return ADF_SERIES_CORRUPTED;
+}
+
+uint16_t get_status_code_ZERO_REPEATED_SERIES() {
+	return ADF_ZERO_REPEATED_SERIES;
+}
+
+uint16_t get_status_code_EMPTY_SERIES() {
+	return ADF_EMPTY_SERIES;
+}
+
+uint16_t get_status_code_TIME_OUT_OF_BOUND() {
+	return ADF_TIME_OUT_OF_BOUND;
+}
+
+uint16_t get_status_code_ADDITIVE_OVERFLOW() {
+	return ADF_ADDITIVE_OVERFLOW;
+}
+
+uint16_t get_status_code_NULL_HEADER_SOURCE() {
+	return ADF_NULL_HEADER_SOURCE;
+}
+
+uint16_t get_status_code_NULL_HEADER_TARGET() {
+	return ADF_NULL_HEADER_TARGET;
+}
+
+uint16_t get_status_code_NULL_META_SOURCE() {
+	return ADF_NULL_META_SOURCE;
+}
+
+uint16_t get_status_code_NULL_META_TARGET() {
+	return ADF_NULL_META_TARGET;
+}
+
+uint16_t get_status_code_NULL_SERIES_SOURCE() {
+	return ADF_NULL_SERIES_SOURCE;
+}
+
+uint16_t get_status_code_NULL_SERIES_TARGET() {
+	return ADF_NULL_SERIES_TARGET;
+}
+
+uint16_t get_status_code_NULL_SOURCE() {
+	return ADF_NULL_SOURCE;
+}
+
+uint16_t get_status_code_NULL_TARGET() {
+	return ADF_NULL_TARGET;
+}
+
+uint16_t get_status_code_NULL_ADDITIVE_SOURCE() {
+	return ADF_NULL_ADDITIVE_SOURCE;
+}
+
+uint16_t get_status_code_NULL_ADDITIVE_TARGET() {
+	return ADF_NULL_ADDITIVE_TARGET;
+}
+
+uint16_t get_status_code_RUNTIME_ERROR() {
+	return ADF_RUNTIME_ERROR;
+}
+
+uint8_t get_farming_tec_code_REGULAR() {
+	return ADF_FT_REGULAR;
+}
+
+uint8_t get_farming_tec_code_INDOOR() {
+	return ADF_FT_INDOOR;
+}
+
+uint8_t get_farming_tec_code_INDOOR_PROTECTED() {
+	return ADF_FT_INDOOR_PROTECTED;
+}
+
+uint8_t get_farming_tec_code_OUTDOOR() {
+	return ADF_FT_OUTDOOR;
+}
+
+uint8_t get_farming_tec_code_ARTIFICIAL_SOIL() {
+	return ADF_FT_ARTIFICIAL_SOIL;
+}
+
+uint8_t get_farming_tec_code_HYDROPONICS() {
+	return ADF_FT_HYDROPONICS;
+}
+
+uint8_t get_farming_tec_code_ANTHROPONICS() {
+	return ADF_FT_ANTHROPONICS;
+}
+
+uint8_t get_farming_tec_code_AEROPONICS() {
+	return ADF_FT_AEROPONICS;
+}
+
+uint8_t get_farming_tec_code_FOGPONICS() {
+	return ADF_FT_FOGPONICS;
+}
+
+uint8_t get_reduction_code_NONE() {
+	return ADF_RM_NONE;
+}
+
+uint8_t get_reduction_code_AVG() {
+	return ADF_RM_AVG;
+} 
+
+uint8_t get_reduction_code_MAVG() {
+	return ADF_RM_MAVG;
+}
+
+uint8_t get_UINT_BIG_T_SIZE() {
+	return UINT_BIG_T_SIZE;
+}
+
+uint8_t get_UINT_T_SIZE() {
+	return UINT_T_SIZE;
+}
+
+uint8_t get_UINT_SMALL_T_SIZE() {
+	return UINT_SMALL_T_SIZE;
+}
+
+uint8_t get_UINT_TINY_T_SIZE() {
+	return UINT_TINY_T_SIZE;
+}
+
+uint8_t get_REAL_T_SIZE() {
+	return REAL_T_SIZE;
+}
+
+uint8_t get_ADD_T_SIZE() {
+	return ADD_T_SIZE;
+}
+
+uint32_t get_ADF_DAY() {
+	return ADF_DAY;
+}
+
+uint32_t get_ADF_WEEK() {
+	return ADF_WEEK;
+}
+
+uint32_t get_ADF_MONTH_28() {
+	return ADF_MONTH_28;
+}
+
+uint32_t get_ADF_MONTH_29() {
+	return ADF_MONTH_29;
+}
+
+uint32_t get_ADF_MONTH_30() {
+	return ADF_MONTH_30;
+}
+
+uint32_t get_ADF_MONTH_31() {
+	return ADF_MONTH_31;
 }

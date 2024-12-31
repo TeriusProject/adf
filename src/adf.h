@@ -23,6 +23,7 @@
 #ifndef __ADF_H__
 #define __ADF_H__
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -578,7 +579,7 @@ typedef struct {
 /*
  * Returns the constant __ADF_VERSION__.
  */
-uint16_t get_hex_version(void) { return __ADF_VERSION__; }
+uint16_t get_hex_version(void);
 
 /*
  * Returns the (unpacked) current version of ADF.
@@ -764,7 +765,8 @@ series_t *new_series(float *light_exposure, float *soil_temp_c,
 					 uint16_t n_soil_adds, uint16_t n_atm_adds,
 					 additive_t *soil_additives, additive_t *atm_additives,
 					 uint32_t repeated);
-adf_t *new_adf( adf_header_t *, uint32_t);
+adf_t *new_adf(adf_header_t *, uint32_t);
+adf_t *new_empty_adf(void);
 
 /*
  * Init functions. Each of them expects the pointer to init to e allocated.
@@ -810,139 +812,53 @@ uint16_t cpy_series_starting_at(series_t *, const adf_t *, uint32_t);
  */
 
 /* Status code */
-uint16_t get_status_code_OK() {
-	return ADF_OK;
-}
-uint16_t get_status_code_HEADER_CORRUPTED() {
-	return ADF_HEADER_CORRUPTED;
-}
-uint16_t get_status_code_METADATA_CORRUPTED() {
-	return ADF_METADATA_CORRUPTED;
-}
-uint16_t get_status_code_SERIES_CORRUPTED() {
-	return ADF_SERIES_CORRUPTED;
-}
-uint16_t get_status_code_ZERO_REPEATED_SERIES() {
-	return ADF_ZERO_REPEATED_SERIES;
-}
-uint16_t get_status_code_EMPTY_SERIES() {
-	return ADF_EMPTY_SERIES;
-}
-uint16_t get_status_code_TIME_OUT_OF_BOUND() {
-	return ADF_TIME_OUT_OF_BOUND;
-}
-uint16_t get_status_code_ADDITIVE_OVERFLOW() {
-	return ADF_ADDITIVE_OVERFLOW;
-}
-uint16_t get_status_code_NULL_HEADER_SOURCE() {
-	return ADF_NULL_HEADER_SOURCE;
-}
-uint16_t get_status_code_NULL_HEADER_TARGET() {
-	return ADF_NULL_HEADER_TARGET;
-}
-uint16_t get_status_code_NULL_META_SOURCE() {
-	return ADF_NULL_META_SOURCE;
-}
-uint16_t get_status_code_NULL_META_TARGET() {
-	return ADF_NULL_META_TARGET;
-}
-uint16_t get_status_code_NULL_SERIES_SOURCE() {
-	return ADF_NULL_SERIES_SOURCE;
-}
-uint16_t get_status_code_NULL_SERIES_TARGET() {
-	return ADF_NULL_SERIES_TARGET;
-}
-uint16_t get_status_code_NULL_SOURCE() {
-	return ADF_NULL_SOURCE;
-}
-uint16_t get_status_code_NULL_TARGET() {
-	return ADF_NULL_TARGET;
-}
-uint16_t get_status_code_NULL_ADDITIVE_SOURCE() {
-	return ADF_NULL_ADDITIVE_SOURCE;
-}
-uint16_t get_status_code_NULL_ADDITIVE_TARGET() {
-	return ADF_NULL_ADDITIVE_TARGET;
-}
-uint16_t get_status_code_RUNTIME_ERROR() {
-	return ADF_RUNTIME_ERROR;
-}
+uint16_t get_status_code_OK();
+uint16_t get_status_code_HEADER_CORRUPTED();
+uint16_t get_status_code_METADATA_CORRUPTED();
+uint16_t get_status_code_SERIES_CORRUPTED();
+uint16_t get_status_code_ZERO_REPEATED_SERIES();
+uint16_t get_status_code_EMPTY_SERIES();
+uint16_t get_status_code_TIME_OUT_OF_BOUND();
+uint16_t get_status_code_ADDITIVE_OVERFLOW();
+uint16_t get_status_code_NULL_HEADER_SOURCE();
+uint16_t get_status_code_NULL_HEADER_TARGET();
+uint16_t get_status_code_NULL_META_SOURCE();
+uint16_t get_status_code_NULL_META_TARGET();
+uint16_t get_status_code_NULL_SERIES_SOURCE();
+uint16_t get_status_code_NULL_SERIES_TARGET();
+uint16_t get_status_code_NULL_SOURCE();
+uint16_t get_status_code_NULL_TARGET();
+uint16_t get_status_code_NULL_ADDITIVE_SOURCE();
+uint16_t get_status_code_NULL_ADDITIVE_TARGET();
+uint16_t get_status_code_RUNTIME_ERROR();
 /* Farming technique */
-uint8_t get_farming_tec_code_REGULAR() {
-	return ADF_FT_REGULAR;
-}
-uint8_t get_farming_tec_code_INDOOR() {
-	return ADF_FT_INDOOR;
-}
-uint8_t get_farming_tec_code_INDOOR_PROTECTED() {
-	return ADF_FT_INDOOR_PROTECTED;
-}
-uint8_t get_farming_tec_code_OUTDOOR() {
-	return ADF_FT_OUTDOOR;
-}
-uint8_t get_farming_tec_code_ARTIFICIAL_SOIL() {
-	return ADF_FT_ARTIFICIAL_SOIL;
-}
-uint8_t get_farming_tec_code_HYDROPONICS() {
-	return ADF_FT_HYDROPONICS;
-}
-uint8_t get_farming_tec_code_ANTHROPONICS() {
-	return ADF_FT_ANTHROPONICS;
-}
-uint8_t get_farming_tec_code_AEROPONICS() {
-	return ADF_FT_AEROPONICS;
-}
-uint8_t get_farming_tec_code_FOGPONICS() {
-	return ADF_FT_FOGPONICS;
-}
+uint8_t get_farming_tec_code_REGULAR();
+uint8_t get_farming_tec_code_INDOOR();
+uint8_t get_farming_tec_code_INDOOR_PROTECTED();
+uint8_t get_farming_tec_code_OUTDOOR();
+uint8_t get_farming_tec_code_ARTIFICIAL_SOIL();
+uint8_t get_farming_tec_code_HYDROPONICS();
+uint8_t get_farming_tec_code_ANTHROPONICS();
+uint8_t get_farming_tec_code_AEROPONICS();
+uint8_t get_farming_tec_code_FOGPONICS();
 /* reduction code */
-uint8_t get_reduction_code_NONE() {
-	return ADF_RM_NONE;
-}
-uint8_t get_reduction_code_AVG() {
-	return ADF_RM_AVG;
-} 
-uint8_t get_reduction_code_MAVG() {
-	return ADF_RM_MAVG;
-}
+uint8_t get_reduction_code_NONE();
+uint8_t get_reduction_code_AVG();
+uint8_t get_reduction_code_MAVG();
 /* Datatype size */
-uint8_t get_UINT_BIG_T_SIZE() {
-	return UINT_BIG_T_SIZE;
-}
-uint8_t get_UINT_T_SIZE() {
-	return UINT_T_SIZE;
-}
-uint8_t get_UINT_SMALL_T_SIZE() {
-	return UINT_SMALL_T_SIZE;
-}
-uint8_t get_UINT_TINY_T_SIZE() {
-	return UINT_TINY_T_SIZE;
-}
-uint8_t get_REAL_T_SIZE() {
-	return REAL_T_SIZE;
-}
-uint8_t get_ADD_T_SIZE() {
-	return ADD_T_SIZE;
-}
+uint8_t get_UINT_BIG_T_SIZE();
+uint8_t get_UINT_T_SIZE();
+uint8_t get_UINT_SMALL_T_SIZE();
+uint8_t get_UINT_TINY_T_SIZE();
+uint8_t get_REAL_T_SIZE();
+uint8_t get_ADD_T_SIZE();
 /* Useful time constants */
-uint32_t get_ADF_DAY() {
-	return ADF_DAY;
-}
-uint32_t get_ADF_WEEK() {
-	return ADF_WEEK;
-}
-uint32_t get_ADF_MONTH_28() {
-	return ADF_MONTH_28;
-}
-uint32_t get_ADF_MONTH_29() {
-	return ADF_MONTH_29;
-}
-uint32_t get_ADF_MONTH_30() {
-	return ADF_MONTH_30;
-}
-uint32_t get_ADF_MONTH_31() {
-	return ADF_MONTH_31;
-}
+uint32_t get_ADF_DAY();
+uint32_t get_ADF_WEEK();
+uint32_t get_ADF_MONTH_28();
+uint32_t get_ADF_MONTH_29();
+uint32_t get_ADF_MONTH_30();
+uint32_t get_ADF_MONTH_31();
 
 #ifdef __cplusplus
 }

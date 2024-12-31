@@ -1,12 +1,13 @@
-import fs from 'fs';
+import { readFileSync } from 'fs';
 const nullptr = 0x00;
 
-const wasmBuffer = fs.readFileSync('./adflib.wasm');
+const wasmBuffer = readFileSync('./adflib.wasm');
 const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
 	env: {},
 });
 const { instance } = wasmModule;
 const memory = instance.exports.memory;
+const adflib = instance.exports;
 
 export const StatusCode = Object.freeze({
 	OK: instance.exports.get_status_code_OK(),
@@ -71,6 +72,10 @@ export class Additive {
 		this.code = code;
 		this.concentration = concentration;
 	}
+
+	toCAdditive() {
+		return instance.exports.new_additive(this.code, this.concentration);
+	}
 }
 
 export class AdditiveList {
@@ -126,7 +131,7 @@ export class Matrix {
 		const view = new DataView(memory.buffer);
 		let offset = ptr;
 		const getUpdateFn = () => {
-			switch(this.datatype) {
+			switch (this.datatype) {
 				case DatatypeSize.UINT_BIG_T:
 					return view.setBigUint64;
 				case DatatypeSize.UINT_T:
@@ -139,7 +144,7 @@ export class Matrix {
 					return view.setFloat32;
 				case DatatypeSize.ADDITIVE_T:
 				default:
-					throw new Error(`Invalid datatype: ${this.datatype}`)
+					throw new Error(`<Matrix class> Invalid datatype: ${this.datatype}`)
 			}
 		}
 		const updateFn = getUpdateFn();
@@ -166,7 +171,7 @@ export class Series {
 	}
 
 	toCSeries() {
-		return instance.exports.create_series(
+		return instance.exports.new_series(
 			this.lightExposure.toCArray(),
 			this.soilTempC.toCArray(),
 			this.envTempC.toCArray(),
@@ -191,7 +196,7 @@ export class WaveInfo {
 	}
 
 	toCWaveInfo() {
-		return instance.exports.create_wavelength_info(this.minWavelenNm, this.maxWavelenNm, this.nWavelengths);
+		return instance.exports.new_wavelength_info(this.minWavelenNm, this.maxWavelenNm, this.nWavelengths);
 	}
 }
 
@@ -204,9 +209,9 @@ export class SoilDepthInfo {
 
 	toCSoilDepthInfo() {
 		if (this.transY === 0) {
-			return instance.exports.create_soil_depth_info(this.maxSoilDepthMm, this.nDepth);
+			return instance.exports.new_soil_depth_info(this.maxSoilDepthMm, this.nDepth);
 		}
-		return instance.exports.create_trans_soil_depth_info(this.transY, this.maxSoilDepthMm, this.nDepth);
+		return instance.exports.new_trans_soil_depth_info(this.transY, this.maxSoilDepthMm, this.nDepth);
 	}
 }
 
@@ -221,7 +226,7 @@ export class ReductionInfo {
 	}
 
 	toCReductionInfo() {
-		return instance.exports.create_reduction_info(
+		return instance.exports.new_reduction_info(
 			this.soilDensity,
 			this.pressure,
 			this.lightExposure,
@@ -244,7 +249,7 @@ export class PrecisionInfo {
 	}
 
 	toCPrecisionInfo() {
-		return instance.exports.create_precision_info(
+		return instance.exports.new_precision_info(
 			this.soilDensity,
 			this.pressure,
 			this.lightExposure,
@@ -267,7 +272,7 @@ export class Header {
 	}
 
 	toCHeader() {
-		return instance.exports.create_header(
+		return instance.exports.new_header(
 			this.farmingTec,
 			this.wInfo.toCWaveInfo(),
 			this.sInfo.toCSoilDepthInfo(),
@@ -280,34 +285,40 @@ export class Header {
 
 export class Adf {
 	constructor(header, periodSec) {
-		// this.header = header;
-		// this.periodSec = periodSec;
-		// const byteSize = ;
-		// const ptr = instance.exports.malloc(byteSize);
-		// const view = new DataView(memory.buffer);
-		// let offset = ptr;
+		if (header && periodSec)
+			this.cAdf = instance.exports.new_adf(header.toCHeader(), periodSec);
+		else
+			this.cAdf = undefined;
 	}
 
 	static unmarshal(bytes) {
-		// const adf = new Adf();
-		// const res = C.unmarshal(adf.cAdf, new Uint8Array(bytes));
-		// if (res !== C.ADF_OK) {
-		// 	return { adf: null, error: getAdfError(res) };
-		// }
-		// return adf;
+		const cAdf = instance.exports.new_empty_adf();
+		const ptr = instance.exports.malloc(bytes.byteLength);
+		const view = new DataView(memory.buffer);
+		let offset = ptr;
+		(new Uint8Array(bytes)).forEach(byte => {
+			view.setUint8(offset, byte, true);
+			offset++;
+		})
+		const res = instance.exports.unmarshal(cAdf, ptr);
+		instance.exports.free(ptr);
+		if (res !== StatusCode.OK)
+			throw new Error(`Cannot unmarshal. Error code: ${res}`);
+		const adf = new Adf();
+		adf.cAdf = cAdf;
+		return adf;
 	}
 
 	sizeBytes() {
-		// return C.size_adf_t(this.cAdf);
+		return instance.exports.size_adf_t(this.cAdf);
 	}
 
 	marshal() {
-		// const cBytes = new Uint8Array(this.sizeBytes());
-		// const res = C.marshal(cBytes, this.cAdf);
-		// if (res !== C.ADF_OK) {
-		// 	return { bytes: null, error: getAdfError(res) };
-		// }
-		// return { bytes: cBytes, error: null };
+		const ptr = instance.exports.malloc(this.sizeBytes());
+		const res = instance.exports.marshal(ptr, this.cAdf);
+		if (res !== StatusCode.OK)
+			throw new Error(`Cannot marshal. Error code: ${res}`);
+
 	}
 
 	addSeries(series) {
@@ -321,15 +332,17 @@ export class Adf {
 
 	getVersion() {
 		const version = instance.exports.get_hex_version();
-		return `${(version & 0xFF00) >> 8}.${(version & 0x00F0) >> 4}.${ version & 0x000F}`
+		return `${(version & 0xFF00) >> 8}.${(version & 0x00F0) >> 4}.${version & 0x000F}`
 	}
 
 	dispose() {
-		C.adf_free(this.cAdf);
+		instance.exports.adf_delete(this.cAdf);
+		this.cAdf = nullptr;
 	}
 }
 
-const l = new AdditiveList([new Additive(12, 34.67), new Additive(1, 4.99)]);
-const p = l.toCList();
-console.info(p);
-console.info(memory.buffer);
+const adfBuffer = readFileSync('./sample.adf');
+const a = Adf.unmarshal(adfBuffer);
+console.log(a);
+a.dispose();
+console.log(a);
