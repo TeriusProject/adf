@@ -1,12 +1,39 @@
-import { readFileSync } from 'fs';
+/* adf.js - Implementation of the JS interface for the ADF library
+ * ------------------------------------------------------------------------
+ * ADF - Agriculture Data Format
+ * Copyright (C) 2024 Matteo Nicoli
+ *
+ * This file is part of Terius
+ *
+ * ADF is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Terius is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+import { readFile, writeFile } from 'fs/promises';
 const nullptr = 0x00;
 
-const wasmBuffer = readFileSync('./adflib.wasm');
-const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
-	env: {},
+const memory = new WebAssembly.Memory({
+	initial: 10, // Initial size in pages (64KB per page)
+	maximum: 10, // Prevent memory growth
+  });
+
+const wasmPath = new URL('./adflib.wasm', import.meta.url);
+const bytes = await readFile(wasmPath);
+const wasmModule = await WebAssembly.instantiate(bytes, {
+	env: {memory},
 });
 const { instance } = wasmModule;
-const memory = instance.exports.memory;
 const adflib = instance.exports;
 
 export const StatusCode = Object.freeze({
@@ -88,7 +115,7 @@ export class AdditiveList {
 	toCList() {
 		const byteSize = this.adds.length * DatatypeSize.ADDITIVE_T;
 		const ptr = instance.exports.malloc(byteSize);
-		const view = new DataView(memory.buffer);
+		const view = new DataView(instance.exports.memory.buffer);
 		let offset = ptr;
 		this.adds.forEach(additive => {
 			view.setUint32(offset, additive.code, true);
@@ -128,7 +155,7 @@ export class Matrix {
 	toCArray() {
 		const byteSize = this.mat.length * this.datatype;
 		const ptr = instance.exports.malloc(byteSize);
-		const view = new DataView(memory.buffer);
+		const view = new DataView(instance.exports.memory.buffer);
 		let offset = ptr;
 		const getUpdateFn = () => {
 			switch (this.datatype) {
@@ -294,10 +321,10 @@ export class Adf {
 	static unmarshal(bytes) {
 		const cAdf = instance.exports.new_empty_adf();
 		const ptr = instance.exports.malloc(bytes.byteLength);
-		const view = new DataView(memory.buffer);
+		const view = new DataView(instance.exports.memory.buffer);
 		let offset = ptr;
 		(new Uint8Array(bytes)).forEach(byte => {
-			view.setUint8(offset, byte, true);
+			view.setUint8(offset, byte);
 			offset++;
 		})
 		const res = instance.exports.unmarshal(cAdf, ptr);
@@ -318,16 +345,32 @@ export class Adf {
 		const res = instance.exports.marshal(ptr, this.cAdf);
 		if (res !== StatusCode.OK)
 			throw new Error(`Cannot marshal. Error code: ${res}`);
-
+		console.info(`adf: ${this.cAdf}; ptr: ${ptr}; size: ${this.sizeBytes()}`)
+		const bytes = new Uint8Array(instance.exports.memory.buffer, ptr, this.sizeBytes());
+		instance.exports.free(ptr);
+		return bytes;
 	}
 
 	addSeries(series) {
+		const seriesPtr = series.toCSeries();
+		const res = instance.exports.add_series(this.cAdf, seriesPtr);
+		if (res !== StatusCode.OK)
+			throw new Error(`Error adding series. Error code: ${res}`);
+		instance.exports.series_delete(seriesPtr);
+	}
+	
+	removeSeries() {
+		const res = instance.exports.remove_series(this.cAdf);
+		if (res !== StatusCode.OK)
+			throw new Error(`Error removing series. Error code: ${res}`);
 	}
 
 	updateSeries(series, time) {
-	}
-
-	removeSeries() {
+		const seriesPtr = series.toCSeries();
+		const res = instance.exports.update_series(this.cAdf, seriesPtr, time);
+		if (res !== StatusCode.OK)
+			throw new Error(`Error updating series. Error code: ${res}`);
+		instance.exports.series_delete(seriesPtr);
 	}
 
 	getVersion() {
@@ -341,8 +384,10 @@ export class Adf {
 	}
 }
 
-const adfBuffer = readFileSync('./sample.adf');
+const adfBuffer = await readFile('./sample.adf');
 const a = Adf.unmarshal(adfBuffer);
 console.log(a);
+const bb = a.marshal();
+await writeFile("./out.adf", bb);
 a.dispose();
 console.log(a);
