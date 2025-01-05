@@ -1,9 +1,13 @@
 {
 	"name": "adf",
-	"version": "1.0.0",
+	"version": "0.5.0",
 	"type": "module",
-	"description": "JS APIs for ADF library",
+	"description": "JS APIs ADF file format",
 	"main": "adf.js",
+	"files": [
+		"./adf.js",
+		"./adflib.wasm"
+	],
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
