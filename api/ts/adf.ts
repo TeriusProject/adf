@@ -1,4 +1,4 @@
-/* adf.js - Implementation of the JS interface for the ADF library
+/* adf.ts - Implementation of the TS interface for the ADF library
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -20,7 +20,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import { readFile, writeFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 
 const memoryConfig = new WebAssembly.Memory({
 	initial: 10,    /* 10 pages, 64KB each   =  640 KB */
@@ -191,9 +191,9 @@ export class AdditiveList {
 		this.adds = adds;
 	}
 
-	size() { return this.adds.length; }
+	size(): number { return this.adds.length; }
 
-	toCList() {
+	toCStruct(): pointer {
 		const byteSize = this.adds.length * DatatypeSize.ADDITIVE_T;
 		const ptr = adflib.malloc(byteSize);
 		const view = new DataView(memory.buffer);
@@ -222,7 +222,7 @@ export class Matrix<T extends number | bigint> {
 		this.datatypeSize = datatype;
 	}
 
-	addRow(row: T[]) {
+	addRow(row: T[]): void {
 		this.mat.push(...row);
 		this.rows += 1;
 	}
@@ -231,7 +231,7 @@ export class Matrix<T extends number | bigint> {
 		return { rows: this.rows, columns: this.columns };
 	}
 
-	at(row: number, column: number) {
+	at(row: number, column: number): T {
 		if (row < this.rows && column < this.columns) {
 			return this.mat[column + row * this.columns];
 		} else {
@@ -239,12 +239,12 @@ export class Matrix<T extends number | bigint> {
 		}
 	}
 
-	toCArray() : pointer {
+	toCArray(): pointer {
 		const byteSize = this.mat.length * this.datatypeSize;
 		const ptr = adflib.malloc(byteSize);
 		const view = new DataView(memory.buffer);
 		let offset = ptr;
-		const getUpdateFn = () => {
+		const getUpdateFn = (): ((byteOffset: number, value: any, littleEndian?: boolean) => void) => {
 			switch (this.datatypeSize) {
 				case DatatypeSize.UINT_BIG_T:
 					return view.setBigUint64;
@@ -307,7 +307,7 @@ export class Series {
 		this.repeated = repeated;
 	}
 
-	toCSeries() {
+	toCSeries(): pointer {
 		return adflib.new_series(
 			this.lightExposure.toCArray(),
 			this.soilTempC.toCArray(),
@@ -318,8 +318,8 @@ export class Series {
 			this.soilDensityKgM3,
 			this.soilAdditives.size(),
 			this.atmAdditives.size(),
-			this.soilAdditives.toCList(),
-			this.atmAdditives.toCList(),
+			this.soilAdditives.toCStruct(),
+			this.atmAdditives.toCStruct(),
 			this.repeated
 		);
 	}
@@ -337,7 +337,7 @@ export class WaveInfo {
 		this.nWavelengths = nWavelengths;
 	}
 
-	toCWaveInfo() {
+	toCWaveInfo(): pointer {
 		return adflib.new_wavelength_info(this.minWavelenNm, this.maxWavelenNm, this.nWavelengths);
 	}
 }
@@ -354,7 +354,7 @@ export class SoilDepthInfo {
 		this.nDepth = nDepth;
 	}
 
-	toCSoilDepthInfo() {
+	toCSoilDepthInfo(): pointer {
 		if (this.transY === 0) {
 			return adflib.new_soil_depth_info(this.maxSoilDepthMm, this.nDepth);
 		}
@@ -387,7 +387,7 @@ export class ReductionInfo {
 		this.envTemp = envTemp;
 	}
 
-	toCReductionInfo() {
+	toCReductionInfo(): pointer {
 		return adflib.new_reduction_info(
 			this.soilDensity,
 			this.pressure,
@@ -552,11 +552,3 @@ export class Adf {
 		this.cAdf = nullptr;
 	}
 }
-
-const adfBuffer = await readFile('./sample.adf');
-const a = Adf.unmarshal(adfBuffer);
-console.log(a);
-const bb = a.marshal();
-await writeFile("./out.adf", bb);
-a.dispose();
-console.log(a);

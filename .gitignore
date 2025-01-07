@@ -92,5 +92,5 @@ api/cc/example
 api/go/example
 
 # APIs
-api/js/node_modules/
-api/js/dist/
+api/ts/node_modules/
+api/ts/dist/
