@@ -812,53 +812,57 @@ uint16_t cpy_series_starting_at(series_t *, const adf_t *, uint32_t);
  */
 
 /* Status code */
-uint16_t get_status_code_OK();
-uint16_t get_status_code_HEADER_CORRUPTED();
-uint16_t get_status_code_METADATA_CORRUPTED();
-uint16_t get_status_code_SERIES_CORRUPTED();
-uint16_t get_status_code_ZERO_REPEATED_SERIES();
-uint16_t get_status_code_EMPTY_SERIES();
-uint16_t get_status_code_TIME_OUT_OF_BOUND();
-uint16_t get_status_code_ADDITIVE_OVERFLOW();
-uint16_t get_status_code_NULL_HEADER_SOURCE();
-uint16_t get_status_code_NULL_HEADER_TARGET();
-uint16_t get_status_code_NULL_META_SOURCE();
-uint16_t get_status_code_NULL_META_TARGET();
-uint16_t get_status_code_NULL_SERIES_SOURCE();
-uint16_t get_status_code_NULL_SERIES_TARGET();
-uint16_t get_status_code_NULL_SOURCE();
-uint16_t get_status_code_NULL_TARGET();
-uint16_t get_status_code_NULL_ADDITIVE_SOURCE();
-uint16_t get_status_code_NULL_ADDITIVE_TARGET();
-uint16_t get_status_code_RUNTIME_ERROR();
+uint16_t get_status_code_OK(void);
+uint16_t get_status_code_HEADER_CORRUPTED(void);
+uint16_t get_status_code_METADATA_CORRUPTED(void);
+uint16_t get_status_code_SERIES_CORRUPTED(void);
+uint16_t get_status_code_ZERO_REPEATED_SERIES(void);
+uint16_t get_status_code_EMPTY_SERIES(void);
+uint16_t get_status_code_TIME_OUT_OF_BOUND(void);
+uint16_t get_status_code_ADDITIVE_OVERFLOW(void);
+uint16_t get_status_code_NULL_HEADER_SOURCE(void);
+uint16_t get_status_code_NULL_HEADER_TARGET(void);
+uint16_t get_status_code_NULL_META_SOURCE(void);
+uint16_t get_status_code_NULL_META_TARGET(void);
+uint16_t get_status_code_NULL_SERIES_SOURCE(void);
+uint16_t get_status_code_NULL_SERIES_TARGET(void);
+uint16_t get_status_code_NULL_SOURCE(void);
+uint16_t get_status_code_NULL_TARGET(void);
+uint16_t get_status_code_NULL_ADDITIVE_SOURCE(void);
+uint16_t get_status_code_NULL_ADDITIVE_TARGET(void);
+uint16_t get_status_code_RUNTIME_ERROR(void);
 /* Farming technique */
-uint8_t get_farming_tec_code_REGULAR();
-uint8_t get_farming_tec_code_INDOOR();
-uint8_t get_farming_tec_code_INDOOR_PROTECTED();
-uint8_t get_farming_tec_code_OUTDOOR();
-uint8_t get_farming_tec_code_ARTIFICIAL_SOIL();
-uint8_t get_farming_tec_code_HYDROPONICS();
-uint8_t get_farming_tec_code_ANTHROPONICS();
-uint8_t get_farming_tec_code_AEROPONICS();
-uint8_t get_farming_tec_code_FOGPONICS();
+uint8_t get_farming_tec_code_REGULAR(void);
+uint8_t get_farming_tec_code_INDOOR(void);
+uint8_t get_farming_tec_code_INDOOR_PROTECTED(void);
+uint8_t get_farming_tec_code_OUTDOOR(void);
+uint8_t get_farming_tec_code_ARTIFICIAL_SOIL(void);
+uint8_t get_farming_tec_code_HYDROPONICS(void);
+uint8_t get_farming_tec_code_ANTHROPONICS(void);
+uint8_t get_farming_tec_code_AEROPONICS(void);
+uint8_t get_farming_tec_code_FOGPONICS(void);
 /* reduction code */
-uint8_t get_reduction_code_NONE();
-uint8_t get_reduction_code_AVG();
-uint8_t get_reduction_code_MAVG();
+uint8_t get_reduction_code_NONE(void);
+uint8_t get_reduction_code_AVG(void);
+uint8_t get_reduction_code_MAVG(void);
 /* Datatype size */
-uint8_t get_UINT_BIG_T_SIZE();
-uint8_t get_UINT_T_SIZE();
-uint8_t get_UINT_SMALL_T_SIZE();
-uint8_t get_UINT_TINY_T_SIZE();
-uint8_t get_REAL_T_SIZE();
-uint8_t get_ADD_T_SIZE();
+uint8_t get_UINT_BIG_T_SIZE(void);
+uint8_t get_UINT_T_SIZE(void);
+uint8_t get_UINT_SMALL_T_SIZE(void);
+uint8_t get_UINT_TINY_T_SIZE(void);
+uint8_t get_REAL_T_SIZE(void);
+uint8_t get_ADD_T_SIZE(void);
 /* Useful time constants */
-uint32_t get_ADF_DAY();
-uint32_t get_ADF_WEEK();
-uint32_t get_ADF_MONTH_28();
-uint32_t get_ADF_MONTH_29();
-uint32_t get_ADF_MONTH_30();
-uint32_t get_ADF_MONTH_31();
+uint32_t get_ADF_DAY(void);
+uint32_t get_ADF_WEEK(void);
+uint32_t get_ADF_MONTH_28(void);
+uint32_t get_ADF_MONTH_29(void);
+uint32_t get_ADF_MONTH_30(void);
+uint32_t get_ADF_MONTH_31(void);
+/* ADF structs */
+adf_header_t *get_header(adf_t *adf);
+adf_meta_t *get_metadata(adf_t *adf);
+series_t *get_series_list(adf_t *adf);
 
 #ifdef __cplusplus
 }

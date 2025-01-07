@@ -84,14 +84,29 @@ go run example.go
 
 > **_NOTE:_** For newer version of macOS, you have to set the environment variable `export DYLD_LIBRARY_PATH=/usr/local/lib` before running the example binary.
 
+### Typescript
+
+[![Node.js](https://github.com/TeriusProject/adf/actions/workflows/node.js.yml/badge.svg?branch=main)](https://github.com/TeriusProject/adf/actions/workflows/node.js.yml)
+
+TypeScript APIs use the ADF library compiled in WebAssembly. To compile the library and the TypeScript interfaces, run:
+```bash
+cd api/ts
+make
+```
+And to create a node package, run:
+
+```bash
+make pack
+```
+
 ## Test suites
 
 Test suites accomplish 3 main purposes:
 * They test the behavior of the functionality, as any unit test should do.
 * They give examples of the way a feature should be used.
-* They are tools for finding memory leaks in implementations. Each test must, in order to be a committed, proof that every tested features - including the test itself - has no memory leak. That's the reason why they **always** free the objects they use.
+* They are tools for finding memory leaks in implementations. Each test must, in order to be a committed, proof that every tested features - including the test itself - has no memory leak. This is the reason why each of them **always** frees the objects it uses.
 
-## Example of usage
+## Example of usage (C)
 
 Here's a short operative example of how it could be created an ADF structure, and save to file
 ```c
@@ -154,15 +169,18 @@ You can find a working example of how to use `libadf` under the `example` direct
 ## Further developments
 
 - [x] Github actions.
+	- [x] C/C++
+ 	- [x] GO 
+  	- [x] Node.js.
 - [ ] Improve Makefiles and build pipeline. Wouldn't it be nice to add a `configure` script to make build and install procedures for Windows too?
 - [ ] Extend the support to `valgrind` and `GNU gprof`. Currently the script `./memtest` only works for `leaks` (macOS).
 - [ ] Improve efficiency (speed and memory usage).
 - [ ] Bindings for the most common languages:
 	- [x] C++
  	- [x] GO 
+  	- [x] Javascript/Typescript (via WebAssembly).
 	- [ ] Java
  	- [ ] Python (via Cython)
-  	- [ ] Javascript/Typescript (via WebAssembly).
 - [ ] Add SIMD support for Intel Intrinsics and ARM Neon. The development is already ongoing in a separate private repository. Once the first release will be ready, it will be linked into this one.
 - [ ] Improve factory functions. Probably we have to wait a bit in order to see how we could make them easier to use.
 

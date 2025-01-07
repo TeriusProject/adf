@@ -1605,174 +1605,232 @@ uint16_t cpy_adf(adf_t *target, const adf_t *source)
 	return ADF_OK;
 }
 
-uint16_t get_status_code_OK() {
+uint16_t get_status_code_OK(void)
+{
 	return ADF_OK;
 }
 
-uint16_t get_status_code_HEADER_CORRUPTED() {
+uint16_t get_status_code_HEADER_CORRUPTED(void)
+{
 	return ADF_HEADER_CORRUPTED;
 }
 
-uint16_t get_status_code_METADATA_CORRUPTED() {
+uint16_t get_status_code_METADATA_CORRUPTED(void)
+{
 	return ADF_METADATA_CORRUPTED;
 }
 
-uint16_t get_status_code_SERIES_CORRUPTED() {
+uint16_t get_status_code_SERIES_CORRUPTED(void)
+{
 	return ADF_SERIES_CORRUPTED;
 }
 
-uint16_t get_status_code_ZERO_REPEATED_SERIES() {
+uint16_t get_status_code_ZERO_REPEATED_SERIES(void)
+{
 	return ADF_ZERO_REPEATED_SERIES;
 }
 
-uint16_t get_status_code_EMPTY_SERIES() {
+uint16_t get_status_code_EMPTY_SERIES(void)
+{
 	return ADF_EMPTY_SERIES;
 }
 
-uint16_t get_status_code_TIME_OUT_OF_BOUND() {
+uint16_t get_status_code_TIME_OUT_OF_BOUND(void)
+{
 	return ADF_TIME_OUT_OF_BOUND;
 }
 
-uint16_t get_status_code_ADDITIVE_OVERFLOW() {
+uint16_t get_status_code_ADDITIVE_OVERFLOW(void)
+{
 	return ADF_ADDITIVE_OVERFLOW;
 }
 
-uint16_t get_status_code_NULL_HEADER_SOURCE() {
+uint16_t get_status_code_NULL_HEADER_SOURCE(void)
+{
 	return ADF_NULL_HEADER_SOURCE;
 }
 
-uint16_t get_status_code_NULL_HEADER_TARGET() {
+uint16_t get_status_code_NULL_HEADER_TARGET(void)
+{
 	return ADF_NULL_HEADER_TARGET;
 }
 
-uint16_t get_status_code_NULL_META_SOURCE() {
+uint16_t get_status_code_NULL_META_SOURCE(void)
+{
 	return ADF_NULL_META_SOURCE;
 }
 
-uint16_t get_status_code_NULL_META_TARGET() {
+uint16_t get_status_code_NULL_META_TARGET(void)
+{
 	return ADF_NULL_META_TARGET;
 }
 
-uint16_t get_status_code_NULL_SERIES_SOURCE() {
+uint16_t get_status_code_NULL_SERIES_SOURCE(void)
+{
 	return ADF_NULL_SERIES_SOURCE;
 }
 
-uint16_t get_status_code_NULL_SERIES_TARGET() {
+uint16_t get_status_code_NULL_SERIES_TARGET(void)
+{
 	return ADF_NULL_SERIES_TARGET;
 }
 
-uint16_t get_status_code_NULL_SOURCE() {
+uint16_t get_status_code_NULL_SOURCE(void)
+{
 	return ADF_NULL_SOURCE;
 }
 
-uint16_t get_status_code_NULL_TARGET() {
+uint16_t get_status_code_NULL_TARGET(void)
+{
 	return ADF_NULL_TARGET;
 }
 
-uint16_t get_status_code_NULL_ADDITIVE_SOURCE() {
+uint16_t get_status_code_NULL_ADDITIVE_SOURCE(void)
+{
 	return ADF_NULL_ADDITIVE_SOURCE;
 }
 
-uint16_t get_status_code_NULL_ADDITIVE_TARGET() {
+uint16_t get_status_code_NULL_ADDITIVE_TARGET(void)
+{
 	return ADF_NULL_ADDITIVE_TARGET;
 }
 
-uint16_t get_status_code_RUNTIME_ERROR() {
+uint16_t get_status_code_RUNTIME_ERROR(void)
+{
 	return ADF_RUNTIME_ERROR;
 }
 
-uint8_t get_farming_tec_code_REGULAR() {
+uint8_t get_farming_tec_code_REGULAR(void)
+{
 	return ADF_FT_REGULAR;
 }
 
-uint8_t get_farming_tec_code_INDOOR() {
+uint8_t get_farming_tec_code_INDOOR(void)
+{
 	return ADF_FT_INDOOR;
 }
 
-uint8_t get_farming_tec_code_INDOOR_PROTECTED() {
+uint8_t get_farming_tec_code_INDOOR_PROTECTED(void)
+{
 	return ADF_FT_INDOOR_PROTECTED;
 }
 
-uint8_t get_farming_tec_code_OUTDOOR() {
+uint8_t get_farming_tec_code_OUTDOOR(void)
+{
 	return ADF_FT_OUTDOOR;
 }
 
-uint8_t get_farming_tec_code_ARTIFICIAL_SOIL() {
+uint8_t get_farming_tec_code_ARTIFICIAL_SOIL(void)
+{
 	return ADF_FT_ARTIFICIAL_SOIL;
 }
 
-uint8_t get_farming_tec_code_HYDROPONICS() {
+uint8_t get_farming_tec_code_HYDROPONICS(void)
+{
 	return ADF_FT_HYDROPONICS;
 }
 
-uint8_t get_farming_tec_code_ANTHROPONICS() {
+uint8_t get_farming_tec_code_ANTHROPONICS(void)
+{
 	return ADF_FT_ANTHROPONICS;
 }
 
-uint8_t get_farming_tec_code_AEROPONICS() {
+uint8_t get_farming_tec_code_AEROPONICS(void)
+{
 	return ADF_FT_AEROPONICS;
 }
 
-uint8_t get_farming_tec_code_FOGPONICS() {
+uint8_t get_farming_tec_code_FOGPONICS(void)
+{
 	return ADF_FT_FOGPONICS;
 }
 
-uint8_t get_reduction_code_NONE() {
+uint8_t get_reduction_code_NONE(void)
+{
 	return ADF_RM_NONE;
 }
 
-uint8_t get_reduction_code_AVG() {
+uint8_t get_reduction_code_AVG(void)
+{
 	return ADF_RM_AVG;
 } 
 
-uint8_t get_reduction_code_MAVG() {
+uint8_t get_reduction_code_MAVG(void)
+{
 	return ADF_RM_MAVG;
 }
 
-uint8_t get_UINT_BIG_T_SIZE() {
+uint8_t get_UINT_BIG_T_SIZE(void)
+{
 	return UINT_BIG_T_SIZE;
 }
 
-uint8_t get_UINT_T_SIZE() {
+uint8_t get_UINT_T_SIZE(void)
+{
 	return UINT_T_SIZE;
 }
 
-uint8_t get_UINT_SMALL_T_SIZE() {
+uint8_t get_UINT_SMALL_T_SIZE(void)
+{
 	return UINT_SMALL_T_SIZE;
 }
 
-uint8_t get_UINT_TINY_T_SIZE() {
+uint8_t get_UINT_TINY_T_SIZE(void)
+{
 	return UINT_TINY_T_SIZE;
 }
 
-uint8_t get_REAL_T_SIZE() {
+uint8_t get_REAL_T_SIZE(void)
+{
 	return REAL_T_SIZE;
 }
 
-uint8_t get_ADD_T_SIZE() {
+uint8_t get_ADD_T_SIZE(void)
+{
 	return ADD_T_SIZE;
 }
 
-uint32_t get_ADF_DAY() {
+uint32_t get_ADF_DAY(void)
+{
 	return ADF_DAY;
 }
 
-uint32_t get_ADF_WEEK() {
+uint32_t get_ADF_WEEK(void)
+{
 	return ADF_WEEK;
 }
 
-uint32_t get_ADF_MONTH_28() {
+uint32_t get_ADF_MONTH_28(void)
+{
 	return ADF_MONTH_28;
 }
 
-uint32_t get_ADF_MONTH_29() {
+uint32_t get_ADF_MONTH_29(void)
+{
 	return ADF_MONTH_29;
 }
 
-uint32_t get_ADF_MONTH_30() {
+uint32_t get_ADF_MONTH_30(void)
+{
 	return ADF_MONTH_30;
 }
 
-uint32_t get_ADF_MONTH_31() {
+uint32_t get_ADF_MONTH_31(void)
+{
 	return ADF_MONTH_31;
+}
+
+adf_header_t *get_header(adf_t *adf)
+{
+	return &(adf->header);
+}
+
+adf_meta_t *get_metadata(adf_t *adf)
+{
+	return &(adf->metadata);
+}
+
+series_t *get_series_list(adf_t *adf)
+{
+	return adf->series;
 }

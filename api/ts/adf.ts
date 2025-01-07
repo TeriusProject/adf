@@ -104,6 +104,9 @@ const adflib = Object.freeze({
 	series_delete: exports.series_delete as (series: pointer) => void,
 	adf_delete: exports.adf_delete as (adf: pointer) => void,
 	size_adf_t: exports.size_adf_t as (adf: pointer) => number,
+	get_header: exports.get_header as (adf: pointer) => pointer,
+	get_metadata: exports.get_metadata as (adf: pointer) => pointer,
+	get_series_list: exports.get_series_list as (adf: pointer) => pointer,
 });
 
 export const StatusCode = Object.freeze({
@@ -340,6 +343,11 @@ export class WaveInfo {
 	toCWaveInfo(): pointer {
 		return adflib.new_wavelength_info(this.minWavelenNm, this.maxWavelenNm, this.nWavelengths);
 	}
+
+	static fromCWaveInfo(cWaveInfo: pointer): WaveInfo {
+		const view = new DataView(memory.buffer);
+		return new WaveInfo(view.getUint16(cWaveInfo, true), view.getUint16(cWaveInfo + 2, true), view.getUint16(cWaveInfo + 4, true));
+	}
 }
 
 export class SoilDepthInfo {
@@ -359,6 +367,11 @@ export class SoilDepthInfo {
 			return adflib.new_soil_depth_info(this.maxSoilDepthMm, this.nDepth);
 		}
 		return adflib.new_trans_soil_depth_info(this.transY, this.maxSoilDepthMm, this.nDepth);
+	}
+
+	static fromCSoilInfo(cSoilInfo: pointer): SoilDepthInfo {
+		const view = new DataView(memory.buffer);
+		return new SoilDepthInfo(view.getUint16(cSoilInfo, true), view.getUint16(cSoilInfo + 2, true), view.getUint16(cSoilInfo + 4, true));
 	}
 }
 
@@ -395,6 +408,18 @@ export class ReductionInfo {
 			this.waterUse,
 			this.soilTemp,
 			this.envTemp
+		);
+	}
+
+	static fromCReductionInfo(cReductionInfo: pointer): ReductionInfo {
+		const view = new DataView(memory.buffer);
+		return new ReductionInfo(
+			view.getUint8(cReductionInfo),
+			view.getUint8(cReductionInfo + 1),
+			view.getUint8(cReductionInfo + 2),
+			view.getUint8(cReductionInfo + 3),
+			view.getUint8(cReductionInfo + 4),
+			view.getUint8(cReductionInfo + 5)
 		);
 	}
 }
@@ -438,6 +463,19 @@ export class PrecisionInfo {
 			this.additiveConc
 		);
 	}
+
+	static fromCPrecisionInfo(cPrecisionInfo: pointer): PrecisionInfo {
+		const view = new DataView(memory.buffer);
+		return new PrecisionInfo(
+			view.getFloat32(cPrecisionInfo, true),
+			view.getFloat32(cPrecisionInfo + 4, true),
+			view.getFloat32(cPrecisionInfo + 8, true),
+			view.getFloat32(cPrecisionInfo + 12, true),
+			view.getFloat32(cPrecisionInfo + 16, true),
+			view.getFloat32(cPrecisionInfo + 20, true),
+			view.getFloat32(cPrecisionInfo + 24, true),
+		);
+	}
 }
 
 export class Header {
@@ -474,6 +512,23 @@ export class Header {
 			this.precInfo.toCPrecisionInfo(),
 			this.nChunks
 		);
+	}
+
+	static fromCHeader(cHeader: pointer): Header {
+		const view = new DataView(memory.buffer);
+		cHeader += 6;
+		const farmingTecnique = view.getUint8(cHeader);
+		cHeader++;
+		const waveInfo = WaveInfo.fromCWaveInfo(cHeader);
+		cHeader += 6;
+		const soilInfo = SoilDepthInfo.fromCSoilInfo(cHeader);
+		cHeader += 6;
+		const redInfo = ReductionInfo.fromCReductionInfo(cHeader);
+		cHeader += 7;
+		const precInfo = PrecisionInfo.fromCPrecisionInfo(cHeader);
+		cHeader += 28;
+		const nChunks = view.getUint32(cHeader, true);
+		return new Header(farmingTecnique, waveInfo, soilInfo, redInfo, precInfo, nChunks);
 	}
 }
 
@@ -547,8 +602,29 @@ export class Adf {
 		return `${(version & 0xFF00) >> 8}.${(version & 0x00F0) >> 4}.${version & 0x000F}`
 	}
 
+	getHeader(): Header {
+		const cHeader = adflib.get_header(this.cAdf);
+		return Header.fromCHeader(cHeader);
+	}
+
 	dispose(): void {
 		adflib.adf_delete(this.cAdf);
 		this.cAdf = nullptr;
 	}
 }
+
+function isLittleEndian(): boolean {
+	const buffer = new ArrayBuffer(4);
+	const uint32View = new Uint32Array(buffer);
+	const uint8View = new Uint8Array(buffer);
+  
+	uint32View[0] = 0x11223344; // Write a 32-bit number
+  
+	// Check the byte order in the 8-bit view
+	return uint8View[0] === 0x44;
+  }
+  
+  console.log(isLittleEndian() ? "Little-endian" : "Big-endian");
+const adfBuffer = await readFile('./output.adf');
+const a = Adf.unmarshal(adfBuffer);
+console.log(a.getHeader());

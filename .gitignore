@@ -45,6 +45,9 @@
 *.idb
 *.pdb
 
+# Archives
+*.tgz
+
 # Kernel Module Compile Results
 *.cmd
 .tmp_versions/
