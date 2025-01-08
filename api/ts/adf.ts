@@ -39,10 +39,9 @@ const isLittleEndian = (): boolean => {
 	const buffer = new ArrayBuffer(2);
 	const uint16View = new Uint16Array(buffer);
 	const uint8View = new Uint8Array(buffer);
-
 	uint16View[0] = 0x1122;
 	return uint8View[0] === 0x22;
-}
+};
 const littleEndian = isLittleEndian();
 
 export const nullptr = 0x00;
@@ -118,6 +117,198 @@ const adflib = Object.freeze({
 	get_series_list: exports.get_series_list as (adf: pointer) => pointer,
 });
 
+const DatatypeSize = Object.freeze({
+	UINT_BIG_T: adflib.get_UINT_BIG_T_SIZE(),
+	UINT_T: adflib.get_UINT_T_SIZE(),
+	UINT_SMALL_T: adflib.get_UINT_SMALL_T_SIZE(),
+	UINT_TINY_T: adflib.get_UINT_TINY_T_SIZE(),
+	REAL_T: adflib.get_REAL_T_SIZE(),
+	ADDITIVE_T: adflib.get_ADD_T_SIZE(),
+});
+
+class AdflibConverter {
+
+	static toCAdditive(additive: Additive): pointer {
+		return adflib.new_additive(additive.code, additive.concentration);
+	}
+
+	static toCAdditiveList(adds: Additive[]): pointer {
+		const byteSize = adds.length * DatatypeSize.ADDITIVE_T;
+		const ptr = adflib.malloc(byteSize);
+		const view = new DataView(memory.buffer);
+		let offset = ptr;
+		adds.forEach(additive => {
+			view.setUint32(offset, additive.code, littleEndian);
+			offset += 4;
+			view.setFloat32(offset, additive.concentration, littleEndian);
+			offset += 4;
+		});
+		return ptr;
+	}
+
+	static toCArray<T extends number | bigint>(matrix: Matrix<T>): pointer {
+		const datatypeSize = matrix.getDatatypeSize();
+		const byteSize = matrix.innerArray().length * datatypeSize;
+		const ptr = adflib.malloc(byteSize);
+		const view = new DataView(memory.buffer);
+		let offset = ptr;
+		const getUpdateFn = (): ((byteOffset: number, value: any, littleEndian?: boolean) => void) => {
+			switch (datatypeSize) {
+				case DatatypeSize.UINT_BIG_T:
+					return view.setBigUint64;
+				case DatatypeSize.UINT_T:
+					return view.setUint32;
+				case DatatypeSize.UINT_SMALL_T:
+					return view.setUint16;
+				case DatatypeSize.UINT_TINY_T:
+					return view.setUint8;
+				case DatatypeSize.REAL_T:
+					return view.setFloat32;
+				case DatatypeSize.ADDITIVE_T:
+				default:
+					throw new Error(`<Matrix class> Invalid datatype: ${datatypeSize}`)
+			}
+		}
+		const updateFn = getUpdateFn();
+		matrix.innerArray().forEach(e => {
+			updateFn(offset, e, littleEndian);
+			offset += datatypeSize;
+		});
+		return ptr;
+	}
+
+	static toCSeries(series: Series): pointer {
+		return adflib.new_series(
+			AdflibConverter.toCArray(series.lightExposure),
+			AdflibConverter.toCArray(series.soilTempC),
+			AdflibConverter.toCArray(series.envTempC),
+			AdflibConverter.toCArray(series.waterUseMl),
+			series.pH,
+			series.pBar,
+			series.soilDensityKgM3,
+			series.soilAdditives.length,
+			series.atmAdditives.length,
+			AdflibConverter.toCAdditiveList(series.soilAdditives),
+			AdflibConverter.toCAdditiveList(series.atmAdditives),
+			series.repeated
+		);
+	}
+
+	static toCWaveInfo(wInfo: WaveInfo): pointer {
+		return adflib.new_wavelength_info(wInfo.minWavelenNm, wInfo.maxWavelenNm, wInfo.nWavelengths);
+	}
+
+	static fromCWaveInfo(cWaveInfo: pointer): WaveInfo {
+		const view = new DataView(memory.buffer);
+		return {
+			minWavelenNm: view.getUint16(cWaveInfo, littleEndian),
+			maxWavelenNm: view.getUint16(cWaveInfo + 2, littleEndian),
+			nWavelengths: view.getUint16(cWaveInfo + 4, littleEndian)
+		};
+	}
+
+	static toCSoilDepthInfo(sInfo: SoilDepthInfo): pointer {
+		if (sInfo.transY === 0) {
+			return adflib.new_soil_depth_info(sInfo.maxSoilDepthMm, sInfo.nDepth);
+		}
+		return adflib.new_trans_soil_depth_info(sInfo.transY, sInfo.maxSoilDepthMm, sInfo.nDepth);
+	}
+
+	static fromCSoilInfo(cSoilInfo: pointer): SoilDepthInfo {
+		const view = new DataView(memory.buffer);
+		return {
+			transY: view.getUint16(cSoilInfo, littleEndian),
+			maxSoilDepthMm: view.getUint16(cSoilInfo + 2, littleEndian),
+			nDepth: view.getUint16(cSoilInfo + 4, littleEndian)
+		};
+	}
+
+	static toCReductionInfo(rInfo: ReductionInfo): pointer {
+		return adflib.new_reduction_info(rInfo.soilDensity, rInfo.pressure, rInfo.lightExposure,
+			rInfo.waterUse, rInfo.soilTemp, rInfo.envTemp);
+	}
+
+	static fromCReductionInfo(cReductionInfo: pointer): ReductionInfo {
+		const view = new DataView(memory.buffer);
+		return {
+			soilDensity: view.getUint8(cReductionInfo),
+			pressure: view.getUint8(cReductionInfo + 1),
+			lightExposure: view.getUint8(cReductionInfo + 2),
+			waterUse: view.getUint8(cReductionInfo + 3),
+			soilTemp: view.getUint8(cReductionInfo + 4),
+			envTemp: view.getUint8(cReductionInfo + 5)
+		};
+	}
+
+	static toCPrecisionInfo(pInfo: PrecisionInfo): pointer {
+		return adflib.new_precision_info(
+			pInfo.soilDensity,
+			pInfo.pressure,
+			pInfo.lightExposure,
+			pInfo.waterUse,
+			pInfo.soilTemp,
+			pInfo.envTemp,
+			pInfo.additiveConc
+		);
+	}
+
+	static fromCPrecisionInfo(cPrecisionInfo: pointer): PrecisionInfo {
+		const view = new DataView(memory.buffer);
+		return {
+			soilDensity: view.getFloat32(cPrecisionInfo, littleEndian),
+			pressure: view.getFloat32(cPrecisionInfo + 4, littleEndian),
+			lightExposure: view.getFloat32(cPrecisionInfo + 8, littleEndian),
+			waterUse: view.getFloat32(cPrecisionInfo + 12, littleEndian),
+			soilTemp: view.getFloat32(cPrecisionInfo + 16, littleEndian),
+			envTemp: view.getFloat32(cPrecisionInfo + 20, littleEndian),
+			additiveConc: view.getFloat32(cPrecisionInfo + 24, littleEndian),
+		};
+	}
+
+	static toCHeader(header: Header): pointer {
+		return adflib.new_header(
+			header.farmingTec,
+			AdflibConverter.toCWaveInfo(header.wInfo),
+			AdflibConverter.toCSoilDepthInfo(header.sInfo),
+			AdflibConverter.toCReductionInfo(header.redInfo),
+			AdflibConverter.toCPrecisionInfo(header.precInfo),
+			header.nChunks
+		);
+	}
+
+	static fromCHeader(cHeader: pointer): Header {
+		const view = new DataView(memory.buffer);
+		cHeader += 6;
+		const farmingTec = view.getUint8(cHeader);
+		cHeader++;
+		const wInfo = AdflibConverter.fromCWaveInfo(cHeader);
+		cHeader += 6;
+		const sInfo = AdflibConverter.fromCSoilInfo(cHeader);
+		cHeader += 6;
+		const redInfo = AdflibConverter.fromCReductionInfo(cHeader);
+		cHeader += 7;
+		const precInfo = AdflibConverter.fromCPrecisionInfo(cHeader);
+		cHeader += 28;
+		const nChunks = view.getUint32(cHeader, littleEndian);
+		return { farmingTec, wInfo, sInfo, redInfo, precInfo, nChunks };
+	}
+
+	static fromCMetadata(cMetadata: pointer): Metadata {
+		const view = new DataView(memory.buffer);
+		const sizeSeries = view.getUint32(cMetadata, littleEndian);
+		const nSeries = view.getBigUint64(cMetadata + 4, littleEndian);
+		const periodSec = view.getUint32(cMetadata + 12, littleEndian);
+		const seeded = view.getBigUint64(cMetadata + 16, littleEndian);
+		const harvested = view.getBigUint64(cMetadata + 24, littleEndian);
+		const nAdditives = view.getUint16(cMetadata + 32, littleEndian);
+		const additiveCodes = [];
+		for (let i = 0; i < nAdditives; i++) {
+			additiveCodes.push(view.getUint32(cMetadata + (i * 4), littleEndian));
+		}
+		return { sizeSeries, nSeries, periodSec, seeded, harvested, nAdditives, additiveCodes };
+	}
+}
+
 export const StatusCode = Object.freeze({
 	OK: adflib.get_status_code_OK(),
 	HEADER_CORRUPTED: adflib.get_status_code_HEADER_CORRUPTED(),
@@ -167,57 +358,9 @@ export const SeriesTime = Object.freeze({
 	MONTH_31: adflib.get_ADF_MONTH_31(),
 });
 
-const DatatypeSize = Object.freeze({
-	UINT_BIG_T: adflib.get_UINT_BIG_T_SIZE(),
-	UINT_T: adflib.get_UINT_T_SIZE(),
-	UINT_SMALL_T: adflib.get_UINT_SMALL_T_SIZE(),
-	UINT_TINY_T: adflib.get_UINT_TINY_T_SIZE(),
-	REAL_T: adflib.get_REAL_T_SIZE(),
-	ADDITIVE_T: adflib.get_ADD_T_SIZE(),
-});
-
-export class Additive {
-
-	private code: number;
-	private concentration: number;
-
-	constructor(code: number, concentration: number) {
-		this.code = code;
-		this.concentration = concentration;
-	}
-
-	toCAdditive(): pointer {
-		return adflib.new_additive(this.code, this.concentration);
-	}
-
-	getCode(): number { return this.code; }
-
-	getConcentration(): number { return this.concentration; }
-}
-
-export class AdditiveList {
-
-	private adds: Additive[];
-
-	constructor(adds: Additive[]) {
-		this.adds = adds;
-	}
-
-	size(): number { return this.adds.length; }
-
-	toCStruct(): pointer {
-		const byteSize = this.adds.length * DatatypeSize.ADDITIVE_T;
-		const ptr = adflib.malloc(byteSize);
-		const view = new DataView(memory.buffer);
-		let offset = ptr;
-		this.adds.forEach(additive => {
-			view.setUint32(offset, additive.getCode(), littleEndian);
-			offset += 4;
-			view.setFloat32(offset, additive.getConcentration(), littleEndian);
-			offset += 4;
-		});
-		return ptr;
-	}
+export interface Additive {
+	code: number;
+	concentration: number;
 }
 
 export class Matrix<T extends number | bigint> {
@@ -243,6 +386,14 @@ export class Matrix<T extends number | bigint> {
 		return { rows: this.rows, columns: this.columns };
 	}
 
+	innerArray(): T[] {
+		return this.mat;
+	}
+
+	getDatatypeSize(): number {
+		return this.datatypeSize;
+	}
+
 	at(row: number, column: number): T {
 		if (row < this.rows && column < this.columns) {
 			return this.mat[column + row * this.columns];
@@ -250,295 +401,69 @@ export class Matrix<T extends number | bigint> {
 			throw new Error("Index out of bounds");
 		}
 	}
-
-	toCArray(): pointer {
-		const byteSize = this.mat.length * this.datatypeSize;
-		const ptr = adflib.malloc(byteSize);
-		const view = new DataView(memory.buffer);
-		let offset = ptr;
-		const getUpdateFn = (): ((byteOffset: number, value: any, littleEndian?: boolean) => void) => {
-			switch (this.datatypeSize) {
-				case DatatypeSize.UINT_BIG_T:
-					return view.setBigUint64;
-				case DatatypeSize.UINT_T:
-					return view.setUint32;
-				case DatatypeSize.UINT_SMALL_T:
-					return view.setUint16;
-				case DatatypeSize.UINT_TINY_T:
-					return view.setUint8;
-				case DatatypeSize.REAL_T:
-					return view.setFloat32;
-				case DatatypeSize.ADDITIVE_T:
-				default:
-					throw new Error(`<Matrix class> Invalid datatype: ${this.datatypeSize}`)
-			}
-		}
-		const updateFn = getUpdateFn();
-		this.mat.forEach(e => {
-			updateFn(offset, e, littleEndian);
-			offset += this.datatypeSize;
-		});
-		return ptr;
-	}
 }
 
-export class Series {
-
-	private lightExposure: Matrix<number>;
-	private soilTempC: Matrix<number>;
-	private envTempC: Matrix<number>;
-	private waterUseMl: Matrix<number>;
-	private pH: number;
-	private pBar: number;
-	private soilDensityKgM3: number;
-	private soilAdditives: AdditiveList;
-	private atmAdditives: AdditiveList;
-	private repeated: number;
-
-	constructor(
-		lightExposure: Matrix<number>,
-		soilTempC: Matrix<number>,
-		envTempC: Matrix<number>,
-		waterUseMl: Matrix<number>,
-		pH: number,
-		pBar: number,
-		soilDensityKgM3: number,
-		soilAdditives: AdditiveList,
-		atmAdditives: AdditiveList,
-		repeated: number
-	) {
-		this.lightExposure = lightExposure;
-		this.soilTempC = soilTempC;
-		this.envTempC = envTempC;
-		this.waterUseMl = waterUseMl;
-		this.pH = pH;
-		this.pBar = pBar;
-		this.soilDensityKgM3 = soilDensityKgM3;
-		this.soilAdditives = soilAdditives;
-		this.atmAdditives = atmAdditives;
-		this.repeated = repeated;
-	}
-
-	toCSeries(): pointer {
-		return adflib.new_series(
-			this.lightExposure.toCArray(),
-			this.soilTempC.toCArray(),
-			this.envTempC.toCArray(),
-			this.waterUseMl.toCArray(),
-			this.pH,
-			this.pBar,
-			this.soilDensityKgM3,
-			this.soilAdditives.size(),
-			this.atmAdditives.size(),
-			this.soilAdditives.toCStruct(),
-			this.atmAdditives.toCStruct(),
-			this.repeated
-		);
-	}
+export interface Series {
+	lightExposure: Matrix<number>;
+	soilTempC: Matrix<number>;
+	envTempC: Matrix<number>;
+	waterUseMl: Matrix<number>;
+	pH: number;
+	pBar: number;
+	soilDensityKgM3: number;
+	soilAdditives: Additive[];
+	atmAdditives: Additive[];
+	repeated: number;
 }
 
-export class WaveInfo {
-
-	private minWavelenNm: number;
-	private maxWavelenNm: number;
-	private nWavelengths: number;
-
-	constructor(minWavelenNm: number, maxWavelenNm: number, nWavelengths: number) {
-		this.minWavelenNm = minWavelenNm;
-		this.maxWavelenNm = maxWavelenNm;
-		this.nWavelengths = nWavelengths;
-	}
-
-	toCWaveInfo(): pointer {
-		return adflib.new_wavelength_info(this.minWavelenNm, this.maxWavelenNm, this.nWavelengths);
-	}
-
-	static fromCWaveInfo(cWaveInfo: pointer): WaveInfo {
-		const view = new DataView(memory.buffer);
-		return new WaveInfo(view.getUint16(cWaveInfo, littleEndian), view.getUint16(cWaveInfo + 2, littleEndian), view.getUint16(cWaveInfo + 4, littleEndian));
-	}
+export interface WaveInfo {
+	minWavelenNm: number;
+	maxWavelenNm: number;
+	nWavelengths: number;
 }
 
-export class SoilDepthInfo {
-
-	private transY: number;
-	private maxSoilDepthMm: number;
-	private nDepth: number;
-
-	constructor(transY: number, maxSoilDepthMm: number, nDepth: number) {
-		this.transY = transY;
-		this.maxSoilDepthMm = maxSoilDepthMm;
-		this.nDepth = nDepth;
-	}
-
-	toCSoilDepthInfo(): pointer {
-		if (this.transY === 0) {
-			return adflib.new_soil_depth_info(this.maxSoilDepthMm, this.nDepth);
-		}
-		return adflib.new_trans_soil_depth_info(this.transY, this.maxSoilDepthMm, this.nDepth);
-	}
-
-	static fromCSoilInfo(cSoilInfo: pointer): SoilDepthInfo {
-		const view = new DataView(memory.buffer);
-		return new SoilDepthInfo(view.getUint16(cSoilInfo, littleEndian), view.getUint16(cSoilInfo + 2, littleEndian), view.getUint16(cSoilInfo + 4, littleEndian));
-	}
+export interface SoilDepthInfo {
+	transY: number;
+	maxSoilDepthMm: number;
+	nDepth: number;
 }
 
-export class ReductionInfo {
-
-	private soilDensity: number;
-	private pressure: number;
-	private lightExposure: number;
-	private waterUse: number;
-	private soilTemp: number;
-	private envTemp: number;
-
-	constructor(
-		soilDensity: number,
-		pressure: number,
-		lightExposure: number,
-		waterUse: number,
-		soilTemp: number,
-		envTemp: number
-	) {
-		this.soilDensity = soilDensity;
-		this.pressure = pressure;
-		this.lightExposure = lightExposure;
-		this.waterUse = waterUse;
-		this.soilTemp = soilTemp;
-		this.envTemp = envTemp;
-	}
-
-	toCReductionInfo(): pointer {
-		return adflib.new_reduction_info(
-			this.soilDensity,
-			this.pressure,
-			this.lightExposure,
-			this.waterUse,
-			this.soilTemp,
-			this.envTemp
-		);
-	}
-
-	static fromCReductionInfo(cReductionInfo: pointer): ReductionInfo {
-		const view = new DataView(memory.buffer);
-		return new ReductionInfo(
-			view.getUint8(cReductionInfo),
-			view.getUint8(cReductionInfo + 1),
-			view.getUint8(cReductionInfo + 2),
-			view.getUint8(cReductionInfo + 3),
-			view.getUint8(cReductionInfo + 4),
-			view.getUint8(cReductionInfo + 5)
-		);
-	}
+export interface ReductionInfo {
+	soilDensity: number;
+	pressure: number;
+	lightExposure: number;
+	waterUse: number;
+	soilTemp: number;
+	envTemp: number;
 }
 
-export class PrecisionInfo {
-
-	private soilDensity: number;
-	private pressure: number;
-	private lightExposure: number;
-	private waterUse: number;
-	private soilTemp: number;
-	private envTemp: number;
-	private additiveConc: number;
-
-	constructor(
-		soilDensity: number,
-		pressure: number,
-		lightExposure: number,
-		waterUse: number,
-		soilTemp: number,
-		envTemp: number,
-		additiveConc: number
-	) {
-		this.soilDensity = soilDensity;
-		this.pressure = pressure;
-		this.lightExposure = lightExposure;
-		this.waterUse = waterUse;
-		this.soilTemp = soilTemp;
-		this.envTemp = envTemp;
-		this.additiveConc = additiveConc;
-	}
-
-	toCPrecisionInfo(): pointer {
-		return adflib.new_precision_info(
-			this.soilDensity,
-			this.pressure,
-			this.lightExposure,
-			this.waterUse,
-			this.soilTemp,
-			this.envTemp,
-			this.additiveConc
-		);
-	}
-
-	static fromCPrecisionInfo(cPrecisionInfo: pointer): PrecisionInfo {
-		const view = new DataView(memory.buffer);
-		return new PrecisionInfo(
-			view.getFloat32(cPrecisionInfo, littleEndian),
-			view.getFloat32(cPrecisionInfo + 4, littleEndian),
-			view.getFloat32(cPrecisionInfo + 8, littleEndian),
-			view.getFloat32(cPrecisionInfo + 12, littleEndian),
-			view.getFloat32(cPrecisionInfo + 16, littleEndian),
-			view.getFloat32(cPrecisionInfo + 20, littleEndian),
-			view.getFloat32(cPrecisionInfo + 24, littleEndian),
-		);
-	}
+export interface PrecisionInfo {
+	soilDensity: number;
+	pressure: number;
+	lightExposure: number;
+	waterUse: number;
+	soilTemp: number;
+	envTemp: number;
+	additiveConc: number;
 }
 
-export class Header {
+export interface Header {
+	farmingTec: number;
+	wInfo: WaveInfo;
+	sInfo: SoilDepthInfo;
+	redInfo: ReductionInfo;
+	precInfo: PrecisionInfo;
+	nChunks: number;
+}
 
-	private farmingTec: number;
-	private wInfo: WaveInfo;
-	private sInfo: SoilDepthInfo;
-	private redInfo: ReductionInfo;
-	private precInfo: PrecisionInfo;
-	private nChunks: number;
-
-	constructor(
-		farmingTec: number,
-		wInfo: WaveInfo,
-		sInfo: SoilDepthInfo,
-		redInfo: ReductionInfo,
-		precInfo: PrecisionInfo,
-		nChunks: number
-	) {
-		this.farmingTec = farmingTec;
-		this.wInfo = wInfo;
-		this.sInfo = sInfo;
-		this.redInfo = redInfo;
-		this.precInfo = precInfo;
-		this.nChunks = nChunks;
-	}
-
-	toCHeader(): pointer {
-		return adflib.new_header(
-			this.farmingTec,
-			this.wInfo.toCWaveInfo(),
-			this.sInfo.toCSoilDepthInfo(),
-			this.redInfo.toCReductionInfo(),
-			this.precInfo.toCPrecisionInfo(),
-			this.nChunks
-		);
-	}
-
-	static fromCHeader(cHeader: pointer): Header {
-		const view = new DataView(memory.buffer);
-		cHeader += 6;
-		const farmingTecnique = view.getUint8(cHeader);
-		cHeader++;
-		const waveInfo = WaveInfo.fromCWaveInfo(cHeader);
-		cHeader += 6;
-		const soilInfo = SoilDepthInfo.fromCSoilInfo(cHeader);
-		cHeader += 6;
-		const redInfo = ReductionInfo.fromCReductionInfo(cHeader);
-		cHeader += 7;
-		const precInfo = PrecisionInfo.fromCPrecisionInfo(cHeader);
-		cHeader += 28;
-		const nChunks = view.getUint32(cHeader, littleEndian);
-		return new Header(farmingTecnique, waveInfo, soilInfo, redInfo, precInfo, nChunks);
-	}
+export interface Metadata {
+	sizeSeries: number;
+	nSeries: bigint;
+	periodSec: number;
+	seeded: bigint;
+	harvested: bigint;
+	nAdditives: number;
+	additiveCodes: number[];
 }
 
 export class Adf {
@@ -546,7 +471,7 @@ export class Adf {
 
 	constructor(header?: Header, periodSec?: number) {
 		if (header && periodSec)
-			this.cAdf = adflib.new_adf(header.toCHeader(), periodSec);
+			this.cAdf = adflib.new_adf(AdflibConverter.toCHeader(header), periodSec);
 		else
 			this.cAdf = nullptr;
 	}
@@ -585,7 +510,7 @@ export class Adf {
 	}
 
 	addSeries(series: Series): void {
-		const seriesPtr = series.toCSeries();
+		const seriesPtr = AdflibConverter.toCSeries(series);
 		const res = adflib.add_series(this.cAdf, seriesPtr);
 		if (res !== StatusCode.OK)
 			throw new Error(`Error adding series. Error code: ${res}`);
@@ -599,7 +524,7 @@ export class Adf {
 	}
 
 	updateSeries(series: Series, time: number): void {
-		const seriesPtr = series.toCSeries();
+		const seriesPtr =  AdflibConverter.toCSeries(series);
 		const res = adflib.update_series(this.cAdf, seriesPtr, time);
 		if (res !== StatusCode.OK)
 			throw new Error(`Error updating series. Error code: ${res}`);
@@ -613,7 +538,17 @@ export class Adf {
 
 	getHeader(): Header {
 		const cHeader = adflib.get_header(this.cAdf);
-		return Header.fromCHeader(cHeader);
+		const view = new DataView(memory.buffer);
+		console.log(view.getUint32(cHeader, littleEndian));
+		console.log(view.getUint32(cHeader, littleEndian));
+		console.log(view.getUint32(cHeader, littleEndian));
+		console.log(view.getUint32(cHeader, littleEndian));
+		return AdflibConverter.fromCHeader(cHeader);
+	}
+
+	getMetadata(): Metadata {
+		const cMetadata = adflib.get_metadata(this.cAdf);
+		return AdflibConverter.fromCMetadata(cMetadata);
 	}
 
 	dispose(): void {
