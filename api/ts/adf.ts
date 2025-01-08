@@ -35,6 +35,15 @@ const wasmModule = await WebAssembly.instantiate(bytes, {
 const { instance } = wasmModule;
 const exports = instance.exports;
 const memory = exports.memory as WebAssembly.Memory;
+const isLittleEndian = (): boolean => {
+	const buffer = new ArrayBuffer(2);
+	const uint16View = new Uint16Array(buffer);
+	const uint8View = new Uint8Array(buffer);
+
+	uint16View[0] = 0x1122;
+	return uint8View[0] === 0x22;
+}
+const littleEndian = isLittleEndian();
 
 export const nullptr = 0x00;
 export type pointer = number;
@@ -202,9 +211,9 @@ export class AdditiveList {
 		const view = new DataView(memory.buffer);
 		let offset = ptr;
 		this.adds.forEach(additive => {
-			view.setUint32(offset, additive.getCode(), true);
+			view.setUint32(offset, additive.getCode(), littleEndian);
 			offset += 4;
-			view.setFloat32(offset, additive.getConcentration(), true);
+			view.setFloat32(offset, additive.getConcentration(), littleEndian);
 			offset += 4;
 		});
 		return ptr;
@@ -266,7 +275,7 @@ export class Matrix<T extends number | bigint> {
 		}
 		const updateFn = getUpdateFn();
 		this.mat.forEach(e => {
-			updateFn(offset, e, true);
+			updateFn(offset, e, littleEndian);
 			offset += this.datatypeSize;
 		});
 		return ptr;
@@ -346,7 +355,7 @@ export class WaveInfo {
 
 	static fromCWaveInfo(cWaveInfo: pointer): WaveInfo {
 		const view = new DataView(memory.buffer);
-		return new WaveInfo(view.getUint16(cWaveInfo, true), view.getUint16(cWaveInfo + 2, true), view.getUint16(cWaveInfo + 4, true));
+		return new WaveInfo(view.getUint16(cWaveInfo, littleEndian), view.getUint16(cWaveInfo + 2, littleEndian), view.getUint16(cWaveInfo + 4, littleEndian));
 	}
 }
 
@@ -371,7 +380,7 @@ export class SoilDepthInfo {
 
 	static fromCSoilInfo(cSoilInfo: pointer): SoilDepthInfo {
 		const view = new DataView(memory.buffer);
-		return new SoilDepthInfo(view.getUint16(cSoilInfo, true), view.getUint16(cSoilInfo + 2, true), view.getUint16(cSoilInfo + 4, true));
+		return new SoilDepthInfo(view.getUint16(cSoilInfo, littleEndian), view.getUint16(cSoilInfo + 2, littleEndian), view.getUint16(cSoilInfo + 4, littleEndian));
 	}
 }
 
@@ -467,13 +476,13 @@ export class PrecisionInfo {
 	static fromCPrecisionInfo(cPrecisionInfo: pointer): PrecisionInfo {
 		const view = new DataView(memory.buffer);
 		return new PrecisionInfo(
-			view.getFloat32(cPrecisionInfo, true),
-			view.getFloat32(cPrecisionInfo + 4, true),
-			view.getFloat32(cPrecisionInfo + 8, true),
-			view.getFloat32(cPrecisionInfo + 12, true),
-			view.getFloat32(cPrecisionInfo + 16, true),
-			view.getFloat32(cPrecisionInfo + 20, true),
-			view.getFloat32(cPrecisionInfo + 24, true),
+			view.getFloat32(cPrecisionInfo, littleEndian),
+			view.getFloat32(cPrecisionInfo + 4, littleEndian),
+			view.getFloat32(cPrecisionInfo + 8, littleEndian),
+			view.getFloat32(cPrecisionInfo + 12, littleEndian),
+			view.getFloat32(cPrecisionInfo + 16, littleEndian),
+			view.getFloat32(cPrecisionInfo + 20, littleEndian),
+			view.getFloat32(cPrecisionInfo + 24, littleEndian),
 		);
 	}
 }
@@ -527,7 +536,7 @@ export class Header {
 		cHeader += 7;
 		const precInfo = PrecisionInfo.fromCPrecisionInfo(cHeader);
 		cHeader += 28;
-		const nChunks = view.getUint32(cHeader, true);
+		const nChunks = view.getUint32(cHeader, littleEndian);
 		return new Header(farmingTecnique, waveInfo, soilInfo, redInfo, precInfo, nChunks);
 	}
 }
@@ -613,18 +622,6 @@ export class Adf {
 	}
 }
 
-function isLittleEndian(): boolean {
-	const buffer = new ArrayBuffer(4);
-	const uint32View = new Uint32Array(buffer);
-	const uint8View = new Uint8Array(buffer);
-  
-	uint32View[0] = 0x11223344; // Write a 32-bit number
-  
-	// Check the byte order in the 8-bit view
-	return uint8View[0] === 0x44;
-  }
-  
-  console.log(isLittleEndian() ? "Little-endian" : "Big-endian");
 const adfBuffer = await readFile('./output.adf');
 const a = Adf.unmarshal(adfBuffer);
 console.log(a.getHeader());
