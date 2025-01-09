@@ -115,6 +115,10 @@ const adflib = Object.freeze({
 	get_header: exports.get_header as (adf: pointer) => pointer,
 	get_metadata: exports.get_metadata as (adf: pointer) => pointer,
 	get_series_list: exports.get_series_list as (adf: pointer) => pointer,
+	get_w_info: exports.get_w_info as (header: pointer) => pointer,
+	get_soil_info: exports.get_soil_info as (header: pointer) => pointer,
+	get_red_info: exports.get_red_info as (header: pointer) => pointer,
+	get_prec_info: exports.get_prec_info as (header: pointer) => pointer,
 });
 
 const DatatypeSize = Object.freeze({
@@ -198,8 +202,7 @@ class AdflibConverter {
 		return adflib.new_wavelength_info(wInfo.minWavelenNm, wInfo.maxWavelenNm, wInfo.nWavelengths);
 	}
 
-	static fromCWaveInfo(cWaveInfo: pointer): WaveInfo {
-		const view = new DataView(memory.buffer);
+	static fromCWaveInfo(cWaveInfo: pointer, view: DataView): WaveInfo {
 		return {
 			minWavelenNm: view.getUint16(cWaveInfo, littleEndian),
 			maxWavelenNm: view.getUint16(cWaveInfo + 2, littleEndian),
@@ -276,12 +279,11 @@ class AdflibConverter {
 		);
 	}
 
-	static fromCHeader(cHeader: pointer): Header {
-		const view = new DataView(memory.buffer);
-		cHeader += 6;
-		const farmingTec = view.getUint8(cHeader);
+	static fromCHeader(cHeader: pointer, view: DataView): Header {
+		const farmingTec = view.getUint8(cHeader + 6);
 		cHeader++;
-		const wInfo = AdflibConverter.fromCWaveInfo(cHeader);
+		const wInfoPtr = adflib.get_w_info(cHeader);
+		const wInfo = AdflibConverter.fromCWaveInfo(wInfoPtr, view);
 		cHeader += 6;
 		const sInfo = AdflibConverter.fromCSoilInfo(cHeader);
 		cHeader += 6;
@@ -540,10 +542,11 @@ export class Adf {
 		const cHeader = adflib.get_header(this.cAdf);
 		const view = new DataView(memory.buffer);
 		console.log(view.getUint32(cHeader, littleEndian));
-		console.log(view.getUint32(cHeader, littleEndian));
-		console.log(view.getUint32(cHeader, littleEndian));
-		console.log(view.getUint32(cHeader, littleEndian));
-		return AdflibConverter.fromCHeader(cHeader);
+		console.log(view.getUint16(cHeader+4, littleEndian));
+		console.log(view.getUint16(cHeader+6, littleEndian));
+		console.log(view.getUint16(cHeader+10, littleEndian));
+		console.log(memory.buffer.slice(cHeader, cHeader+20));
+		return AdflibConverter.fromCHeader(cHeader, view);
 	}
 
 	getMetadata(): Metadata {

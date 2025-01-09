@@ -1834,3 +1834,23 @@ series_t *get_series_list(adf_t *adf)
 {
 	return adf->series;
 }
+
+wavelength_info_t *get_w_info(adf_header_t *header)
+{
+	return &header->wave_info;
+}
+
+soil_depth_info_t*get_soil_info(adf_header_t *header)
+{
+	return &header->soil_info;
+}
+
+reduction_info_t *get_red_info(adf_header_t *header)
+{
+	return &header->reduction_info;
+}
+
+precision_info_t *get_prec_info(adf_header_t *header)
+{
+	return &header->precision_info;
+}
