@@ -99,7 +99,7 @@ const adflib = Object.freeze({
 	new_precision_info: exports.new_precision_info as (soilDensity: number, pressure: number, lightExposure: number, waterUse: number, soilTemp: number, envTemp: number, additiveConc: number) => pointer,
 	new_soil_depth_info: exports.new_soil_depth_info as (maxSoilDepthMm: number, nDepth: number) => pointer,
 	new_trans_soil_depth_info: exports.new_trans_soil_depth_info as (transY: number, maxSoilDepthMm: number, nDepth: number) => pointer,
-	new_reduction_info: exports.new_reduction_info as (soilDensity: number, pressure: number, lightExposure: number, waterUse: number, soilTemp: number, envTemp: number) => pointer,
+	new_reduction_info: exports.new_reduction_info as (soilDensity: number, pressure: number, lightExposure: number, waterUse: number, soilTemp: number, envTemp: number, additiveConc: number) => pointer,
 	new_header: exports.new_header as (farmingTec: number, wInfo: pointer, sInfo: pointer, redInfo: pointer, precInfo: pointer, nChunks: number) => pointer,
 	new_adf: exports.new_adf as (header: pointer, periodSec: number) => pointer,
 	new_empty_adf: exports.new_empty_adf as () => pointer,
@@ -119,6 +119,8 @@ const adflib = Object.freeze({
 	get_soil_info: exports.get_soil_info as (header: pointer) => pointer,
 	get_red_info: exports.get_red_info as (header: pointer) => pointer,
 	get_prec_info: exports.get_prec_info as (header: pointer) => pointer,
+	set_seed_time: exports.set_seed_time as (adf: pointer, seedTime: bigint) => number,
+	set_harvest_time: exports.set_harvest_time as (adf: pointer, harvestTime: bigint) => number,
 });
 
 const DatatypeSize = Object.freeze({
@@ -217,8 +219,7 @@ class AdflibConverter {
 		return adflib.new_trans_soil_depth_info(sInfo.transY, sInfo.maxSoilDepthMm, sInfo.nDepth);
 	}
 
-	static fromCSoilInfo(cSoilInfo: pointer): SoilDepthInfo {
-		const view = new DataView(memory.buffer);
+	static fromCSoilInfo(cSoilInfo: pointer, view: DataView): SoilDepthInfo {
 		return {
 			maxSoilDepthMm: view.getUint16(cSoilInfo, littleEndian),
 			transY: view.getUint16(cSoilInfo + 2, littleEndian),
@@ -228,18 +229,18 @@ class AdflibConverter {
 
 	static toCReductionInfo(rInfo: ReductionInfo): pointer {
 		return adflib.new_reduction_info(rInfo.soilDensity, rInfo.pressure, rInfo.lightExposure,
-			rInfo.waterUse, rInfo.soilTemp, rInfo.envTemp);
+			rInfo.waterUse, rInfo.soilTemp, rInfo.envTemp, rInfo.additiveConc);
 	}
 
-	static fromCReductionInfo(cReductionInfo: pointer): ReductionInfo {
-		const view = new DataView(memory.buffer);
+	static fromCReductionInfo(cReductionInfo: pointer, view: DataView): ReductionInfo {
 		return {
-			soilDensity: view.getUint8(cReductionInfo),
-			pressure: view.getUint8(cReductionInfo + 1),
-			lightExposure: view.getUint8(cReductionInfo + 2),
-			waterUse: view.getUint8(cReductionInfo + 3),
-			soilTemp: view.getUint8(cReductionInfo + 4),
-			envTemp: view.getUint8(cReductionInfo + 5)
+			soilDensity: view.getUint32(cReductionInfo, littleEndian),
+			pressure: view.getUint32(cReductionInfo + 4),
+			lightExposure: view.getUint32(cReductionInfo + 8),
+			waterUse: view.getUint32(cReductionInfo + 12),
+			soilTemp: view.getUint32(cReductionInfo + 16),
+			envTemp: view.getUint32(cReductionInfo + 20),
+			additiveConc: view.getUint32(cReductionInfo + 24)
 		};
 	}
 
@@ -255,8 +256,7 @@ class AdflibConverter {
 		);
 	}
 
-	static fromCPrecisionInfo(cPrecisionInfo: pointer): PrecisionInfo {
-		const view = new DataView(memory.buffer);
+	static fromCPrecisionInfo(cPrecisionInfo: pointer, view: DataView): PrecisionInfo {
 		return {
 			soilDensity: view.getFloat32(cPrecisionInfo, littleEndian),
 			pressure: view.getFloat32(cPrecisionInfo + 4, littleEndian),
@@ -280,20 +280,16 @@ class AdflibConverter {
 	}
 
 	static fromCHeader(cHeader: pointer, view: DataView): Header {
-		const farmingTec = view.getUint16(cHeader+6, littleEndian);
-		const wInfo = AdflibConverter.fromCWaveInfo(cHeader + 8, view);
-		const sInfo = AdflibConverter.fromCSoilInfo(cHeader + 16);
-		cHeader += 6;
-		const redInfo = AdflibConverter.fromCReductionInfo(cHeader);
-		cHeader += 7;
-		const precInfo = AdflibConverter.fromCPrecisionInfo(cHeader);
-		cHeader += 28;
-		const nChunks = view.getUint32(cHeader, littleEndian);
+		const farmingTec = view.getUint32(cHeader, littleEndian);
+		const wInfo = AdflibConverter.fromCWaveInfo(cHeader + 4, view);
+		const sInfo = AdflibConverter.fromCSoilInfo(cHeader + 10, view);
+		const redInfo = AdflibConverter.fromCReductionInfo(cHeader + 16, view);
+		const precInfo = AdflibConverter.fromCPrecisionInfo(cHeader + 44, view);
+		const nChunks = view.getUint32(cHeader + 72, littleEndian);
 		return { farmingTec, wInfo, sInfo, redInfo, precInfo, nChunks };
 	}
 
-	static fromCMetadata(cMetadata: pointer): Metadata {
-		const view = new DataView(memory.buffer);
+	static fromCMetadata(cMetadata: pointer, view: DataView): Metadata {
 		const sizeSeries = view.getUint32(cMetadata, littleEndian);
 		const nSeries = view.getBigUint64(cMetadata + 4, littleEndian);
 		const periodSec = view.getUint32(cMetadata + 12, littleEndian);
@@ -302,7 +298,7 @@ class AdflibConverter {
 		const nAdditives = view.getUint16(cMetadata + 32, littleEndian);
 		const additiveCodes = [];
 		for (let i = 0; i < nAdditives; i++) {
-			additiveCodes.push(view.getUint32(cMetadata + (i * 4), littleEndian));
+			additiveCodes.push(view.getUint32(cMetadata + 34 + (i * 4), littleEndian));
 		}
 		return { sizeSeries, nSeries, periodSec, seeded, harvested, nAdditives, additiveCodes };
 	}
@@ -434,6 +430,7 @@ export interface ReductionInfo {
 	waterUse: number;
 	soilTemp: number;
 	envTemp: number;
+	additiveConc: number;
 }
 
 export interface PrecisionInfo {
@@ -466,13 +463,11 @@ export interface Metadata {
 }
 
 export class Adf {
-	private cAdf: number;
+	private cAdf: pointer = nullptr;;
 
 	constructor(header?: Header, periodSec?: number) {
 		if (header && periodSec)
 			this.cAdf = adflib.new_adf(AdflibConverter.toCHeader(header), periodSec);
-		else
-			this.cAdf = nullptr;
 	}
 
 	static unmarshal(bytes: Buffer<ArrayBufferLike>): Adf {
@@ -523,7 +518,7 @@ export class Adf {
 	}
 
 	updateSeries(series: Series, time: number): void {
-		const seriesPtr =  AdflibConverter.toCSeries(series);
+		const seriesPtr = AdflibConverter.toCSeries(series);
 		const res = adflib.update_series(this.cAdf, seriesPtr, time);
 		if (res !== StatusCode.OK)
 			throw new Error(`Error updating series. Error code: ${res}`);
@@ -538,37 +533,32 @@ export class Adf {
 	getHeader(): Header {
 		const cHeader = adflib.get_header(this.cAdf);
 		const view = new DataView(memory.buffer);
-		console.log(view.getUint32(cHeader, littleEndian));
-		console.log(view.getUint16(cHeader+4, littleEndian));
-		console.log(view.getUint16(cHeader+6, littleEndian));
-		console.log(view.getUint32(cHeader+8, littleEndian));
-		console.log(view.getUint16(cHeader+12, littleEndian));
-		console.log(view.getUint16(cHeader+14, littleEndian));
-		console.log(view.getUint16(cHeader+16, littleEndian));
-		console.log(view.getUint16(cHeader+18, littleEndian));
-		console.log(view.getUint16(cHeader+20, littleEndian));
-		console.log(view.getUint32(cHeader+22, littleEndian));
-		console.log(view.getUint32(cHeader+26, littleEndian));
-		console.log(view.getUint32(cHeader+30, littleEndian));
-		console.log(view.getUint32(cHeader+34, littleEndian));
-		console.log(view.getUint32(cHeader+38, littleEndian));
-		console.log(view.getUint32(cHeader+42, littleEndian));
-		console.log(view.getUint32(cHeader+46, littleEndian));
-		console.log(view.getFloat32(cHeader+50, littleEndian));
-		console.log(view.getFloat32(cHeader+54, littleEndian));
-		console.log(view.getFloat32(cHeader+58, littleEndian));
-		console.log(view.getFloat32(cHeader+62, littleEndian));
-		console.log(view.getFloat32(cHeader+66, littleEndian));
-		console.log(view.getFloat32(cHeader+70, littleEndian));
-		console.log(view.getFloat32(cHeader+74, littleEndian));
-		console.log(view.getUint32(cHeader+78, littleEndian));
-		console.log(memory.buffer.slice(cHeader, cHeader+20));
-		return AdflibConverter.fromCHeader(cHeader, view);
+		return AdflibConverter.fromCHeader(cHeader + 6, view);
 	}
 
 	getMetadata(): Metadata {
 		const cMetadata = adflib.get_metadata(this.cAdf);
-		return AdflibConverter.fromCMetadata(cMetadata);
+		const view = new DataView(memory.buffer);
+		console.log(memory.buffer.slice(cMetadata, cMetadata + 20))
+		return AdflibConverter.fromCMetadata(cMetadata, view);
+	}
+
+	setSeedTime(seedTime: bigint): void {
+		const res = adflib.set_seed_time(this.cAdf, seedTime);
+		if (res !== StatusCode.OK) {
+			throw new Error(`Error setting the seed time: ${res}`);
+		}
+	}
+
+	setHarvestTime(harvestTime: bigint): void {
+		const res = adflib.set_harvest_time(this.cAdf, harvestTime);
+		if (res !== StatusCode.OK) {
+			throw new Error(`Error setting the seed time: ${res}`);
+		}
+	}
+
+	getSeries(): Series[] {
+		return [];
 	}
 
 	dispose(): void {
@@ -579,4 +569,6 @@ export class Adf {
 
 const adfBuffer = await readFile('./output.adf');
 const a = Adf.unmarshal(adfBuffer);
-console.log(a.getHeader());
+a.setSeedTime(BigInt(123456));
+a.setHarvestTime(BigInt(654321));
+console.log(a.getMetadata());
