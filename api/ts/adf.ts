@@ -296,9 +296,10 @@ class AdflibConverter {
 		const seeded = view.getBigUint64(cMetadata + 16, littleEndian);
 		const harvested = view.getBigUint64(cMetadata + 24, littleEndian);
 		const nAdditives = view.getUint16(cMetadata + 32, littleEndian);
+		const additivePtr = view.getUint32(cMetadata + 34, littleEndian);
 		const additiveCodes = [];
 		for (let i = 0; i < nAdditives; i++) {
-			additiveCodes.push(view.getUint32(cMetadata + 34 + (i * 4), littleEndian));
+			additiveCodes.push(view.getUint32(additivePtr + (i * 4), littleEndian));
 		}
 		return { sizeSeries, nSeries, periodSec, seeded, harvested, nAdditives, additiveCodes };
 	}
@@ -463,7 +464,7 @@ export interface Metadata {
 }
 
 export class Adf {
-	private cAdf: pointer = nullptr;;
+	private cAdf: pointer = nullptr;
 
 	constructor(header?: Header, periodSec?: number) {
 		if (header && periodSec)
@@ -539,7 +540,6 @@ export class Adf {
 	getMetadata(): Metadata {
 		const cMetadata = adflib.get_metadata(this.cAdf);
 		const view = new DataView(memory.buffer);
-		console.log(memory.buffer.slice(cMetadata, cMetadata + 20))
 		return AdflibConverter.fromCMetadata(cMetadata, view);
 	}
 
