@@ -132,6 +132,33 @@ const DatatypeSize = Object.freeze({
 	ADDITIVE_T: adflib.get_ADD_T_SIZE(),
 });
 
+export enum AdfDatatype {
+	TINY_INT,
+	SMALL_INT,
+	INT,
+	BIG_INT,
+	FLOAT
+}
+
+type WasmSetter = (byteOffset: number, value: any, littleEndian?: boolean) => void;
+const getUpdateFn = (view: DataView, datatypeSize: number): WasmSetter => {
+	switch (datatypeSize) {
+		case DatatypeSize.UINT_BIG_T:
+			return view.setBigUint64;
+		case DatatypeSize.UINT_T:
+			return view.setUint32;
+		case DatatypeSize.UINT_SMALL_T:
+			return view.setUint16;
+		case DatatypeSize.UINT_TINY_T:
+			return view.setUint8;
+		case DatatypeSize.REAL_T:
+			return view.setFloat32;
+		case DatatypeSize.ADDITIVE_T:
+		default:
+			throw new Error(`Invalid datatype: ${datatypeSize}`)
+	}
+};
+
 class AdflibConverter {
 
 	static toCAdditive(additive: Additive): pointer {
@@ -152,35 +179,28 @@ class AdflibConverter {
 		return ptr;
 	}
 
+	static fromCAdditiveList(additiveList: pointer, view: DataView): Additive[] {
+		return [];
+	}
+
 	static toCArray<T extends number | bigint>(matrix: Matrix<T>): pointer {
 		const datatypeSize = matrix.getDatatypeSize();
 		const byteSize = matrix.innerArray().length * datatypeSize;
 		const ptr = adflib.malloc(byteSize);
 		const view = new DataView(memory.buffer);
 		let offset = ptr;
-		const getUpdateFn = (): ((byteOffset: number, value: any, littleEndian?: boolean) => void) => {
-			switch (datatypeSize) {
-				case DatatypeSize.UINT_BIG_T:
-					return view.setBigUint64;
-				case DatatypeSize.UINT_T:
-					return view.setUint32;
-				case DatatypeSize.UINT_SMALL_T:
-					return view.setUint16;
-				case DatatypeSize.UINT_TINY_T:
-					return view.setUint8;
-				case DatatypeSize.REAL_T:
-					return view.setFloat32;
-				case DatatypeSize.ADDITIVE_T:
-				default:
-					throw new Error(`<Matrix class> Invalid datatype: ${datatypeSize}`)
-			}
-		}
-		const updateFn = getUpdateFn();
+		const updateFn = getUpdateFn(view, datatypeSize);
 		matrix.innerArray().forEach(e => {
 			updateFn(offset, e, littleEndian);
 			offset += datatypeSize;
 		});
 		return ptr;
+	}
+
+	static fromCArray<T extends number | bigint>(array: pointer, view: DataView, datatypeSize: number, shape: MatrixShape): Matrix<any> {
+		const m = new Matrix(shape.rows, shape.columns);
+
+		return m;
 	}
 
 	static toCSeries(series: Series): pointer {
@@ -198,6 +218,20 @@ class AdflibConverter {
 			AdflibConverter.toCAdditiveList(series.atmAdditives),
 			series.repeated
 		);
+	}
+
+	static fromCSeries(series: pointer, header: Header, view: DataView): Series {
+		const lightExposure = AdflibConverter.fromCArray(view.getFloat32(series, littleEndian), view, DatatypeSize.REAL_T, { rows: header.wInfo.nWavelengths, columns: header.nChunks });
+		const soilTempC = AdflibConverter.fromCArray(view.getFloat32(series, littleEndian), view, DatatypeSize.REAL_T, { rows: header.sInfo.nDepth, columns: header.nChunks });
+		const envTempC = AdflibConverter.fromCArray(view.getFloat32(series, littleEndian), view, DatatypeSize.REAL_T, { rows: 1, columns: header.nChunks });
+		const waterUseMl = AdflibConverter.fromCArray(view.getFloat32(series, littleEndian), view, DatatypeSize.REAL_T, { rows: 1, columns: header.nChunks });
+		const pH = view.getUint8(series);
+		const pBar = view.getFloat32(series, littleEndian);
+		const soilDensityKgM3 = view.getFloat32(series, littleEndian);
+		const soilAdditives = AdflibConverter.fromCAdditiveList(view.getFloat32(series, littleEndian), view);
+		const atmAdditives = AdflibConverter.fromCAdditiveList(view.getFloat32(series, littleEndian), view);
+		const repeated = view.getUint32(series, littleEndian);
+		return { lightExposure, soilTempC, envTempC, waterUseMl, pH, pBar, soilDensityKgM3, soilAdditives, atmAdditives, repeated };
 	}
 
 	static toCWaveInfo(wInfo: WaveInfo): pointer {
@@ -354,9 +388,9 @@ export const SeriesTime = Object.freeze({
 	MONTH_31: adflib.get_ADF_MONTH_31(),
 });
 
-export interface Additive {
-	code: number;
-	concentration: number;
+export interface MatrixShape {
+	rows: number;
+	columns: number;
 }
 
 export class Matrix<T extends number | bigint> {
@@ -378,7 +412,7 @@ export class Matrix<T extends number | bigint> {
 		this.rows += 1;
 	}
 
-	shape(): Object {
+	shape(): MatrixShape {
 		return { rows: this.rows, columns: this.columns };
 	}
 
@@ -391,12 +425,14 @@ export class Matrix<T extends number | bigint> {
 	}
 
 	at(row: number, column: number): T {
-		if (row < this.rows && column < this.columns) {
-			return this.mat[column + row * this.columns];
-		} else {
-			throw new Error("Index out of bounds");
-		}
+		if (row >= this.rows || column >= this.columns) { throw new Error("Index out of bounds"); }
+		return this.mat[column + row * this.columns];
 	}
+}
+
+export interface Additive {
+	code: number;
+	concentration: number;
 }
 
 export interface Series {

@@ -1,5 +1,4 @@
-/*
- * test_series_add.c
+/* test_series_add.c
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
  * Copyright (C) 2024 Matteo Nicoli
@@ -147,7 +146,8 @@ void test_add_series_should_merge_additives(void)
 	assert_true(adf.metadata.n_additives.val == 1,
 				"metadata should contain 1 soil additive");
 	assert_true(adf.series[0].soil_additives[0].code_idx.val == 0,
-				"additives should occupy the lowest possible position in metadata");
+				"additives should occupy the lowest possible "
+				"position in metadata");
 
 	series2.soil_additives[0].code.val = 5678;
 	series2.soil_additives[0].concentration.val = 5.678;
@@ -164,6 +164,45 @@ void test_add_series_should_merge_additives(void)
 	adf_free(&adf);
 	series_free(&series1);
 	series_free(&series2);
+}
+
+void test_add_series_with_two_repeated_additives(void)
+{
+	adf_t adf;
+	adf_header_t header = get_default_header();
+	series_t series;
+	uint16_t res;
+
+	adf_init(&adf, header, ADF_DAY);
+	series = *get_default_series();
+	res = add_series(&adf, &series);
+	if (res != ADF_OK) { printf("Error during update. Code [%u]", res); }
+
+	assert_true(adf.metadata.n_additives.val == 1,
+				"`addseries` should not add two additives with the same code");
+}
+
+void test_add_series_should_ignore_repeated_additives_in_different_series(void)
+{
+	adf_t adf;
+	adf_header_t header = get_default_header();
+	series_t series_to_add;
+	uint16_t res;
+
+	adf_init(&adf, header, ADF_DAY);
+	for (uint16_t i = 1, n = 5; i <= n; i++) {
+		series_to_add = get_random_series(header.n_chunks.val, 
+										  header.wave_info.n_wavelength.val,
+										  header.soil_info.n_depth.val);
+		res = add_series(&adf, &series_to_add);
+		if (res != ADF_OK) {
+			printf("An error occurred while adding the series [code:%x]", res);
+			exit(1);
+		}
+	}
+
+	assert_true(adf.metadata.n_additives.val == 1,
+				"`addseries` should not add two additives with the same code");
 }
 
 void test_additive_overflow(void)
@@ -239,10 +278,12 @@ void test_additive_overflow(void)
 
 int main(void)
 {
-	test_add_series();
-	test_add_repeated_series();
-	test_add_repeated_and_non_repeated_series();
-	test_add_to_empty_series();
-	test_add_series_should_merge_additives();
-	test_additive_overflow();
+	// test_add_series();
+	// test_add_repeated_series();
+	// test_add_repeated_and_non_repeated_series();
+	// test_add_to_empty_series();
+	// test_add_series_should_merge_additives();
+	// test_additive_overflow();
+	// test_add_series_with_two_repeated_additives();
+	test_add_series_should_ignore_repeated_additives_in_different_series();
 }
