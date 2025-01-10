@@ -220,8 +220,8 @@ class AdflibConverter {
 	static fromCSoilInfo(cSoilInfo: pointer): SoilDepthInfo {
 		const view = new DataView(memory.buffer);
 		return {
-			transY: view.getUint16(cSoilInfo, littleEndian),
-			maxSoilDepthMm: view.getUint16(cSoilInfo + 2, littleEndian),
+			maxSoilDepthMm: view.getUint16(cSoilInfo, littleEndian),
+			transY: view.getUint16(cSoilInfo + 2, littleEndian),
 			nDepth: view.getUint16(cSoilInfo + 4, littleEndian)
 		};
 	}
@@ -280,12 +280,9 @@ class AdflibConverter {
 	}
 
 	static fromCHeader(cHeader: pointer, view: DataView): Header {
-		const farmingTec = view.getUint8(cHeader + 6);
-		cHeader++;
-		const wInfoPtr = adflib.get_w_info(cHeader);
-		const wInfo = AdflibConverter.fromCWaveInfo(wInfoPtr, view);
-		cHeader += 6;
-		const sInfo = AdflibConverter.fromCSoilInfo(cHeader);
+		const farmingTec = view.getUint16(cHeader+6, littleEndian);
+		const wInfo = AdflibConverter.fromCWaveInfo(cHeader + 8, view);
+		const sInfo = AdflibConverter.fromCSoilInfo(cHeader + 16);
 		cHeader += 6;
 		const redInfo = AdflibConverter.fromCReductionInfo(cHeader);
 		cHeader += 7;
@@ -544,7 +541,27 @@ export class Adf {
 		console.log(view.getUint32(cHeader, littleEndian));
 		console.log(view.getUint16(cHeader+4, littleEndian));
 		console.log(view.getUint16(cHeader+6, littleEndian));
-		console.log(view.getUint16(cHeader+10, littleEndian));
+		console.log(view.getUint32(cHeader+8, littleEndian));
+		console.log(view.getUint16(cHeader+12, littleEndian));
+		console.log(view.getUint16(cHeader+14, littleEndian));
+		console.log(view.getUint16(cHeader+16, littleEndian));
+		console.log(view.getUint16(cHeader+18, littleEndian));
+		console.log(view.getUint16(cHeader+20, littleEndian));
+		console.log(view.getUint32(cHeader+22, littleEndian));
+		console.log(view.getUint32(cHeader+26, littleEndian));
+		console.log(view.getUint32(cHeader+30, littleEndian));
+		console.log(view.getUint32(cHeader+34, littleEndian));
+		console.log(view.getUint32(cHeader+38, littleEndian));
+		console.log(view.getUint32(cHeader+42, littleEndian));
+		console.log(view.getUint32(cHeader+46, littleEndian));
+		console.log(view.getFloat32(cHeader+50, littleEndian));
+		console.log(view.getFloat32(cHeader+54, littleEndian));
+		console.log(view.getFloat32(cHeader+58, littleEndian));
+		console.log(view.getFloat32(cHeader+62, littleEndian));
+		console.log(view.getFloat32(cHeader+66, littleEndian));
+		console.log(view.getFloat32(cHeader+70, littleEndian));
+		console.log(view.getFloat32(cHeader+74, littleEndian));
+		console.log(view.getUint32(cHeader+78, littleEndian));
 		console.log(memory.buffer.slice(cHeader, cHeader+20));
 		return AdflibConverter.fromCHeader(cHeader, view);
 	}

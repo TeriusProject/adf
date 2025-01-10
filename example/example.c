@@ -148,16 +148,16 @@ int main(void)
 	};
 
 	p_info = (precision_info_t) {
-		.soil_density_prec = { 1e3 },
-		.pressure_prec = { 1e3 },
-		.light_exposure_prec = { 1e3 },
-		.water_use_prec = { 1e3 },
-		.soil_temp_prec = { 1e3 },
-		.env_temp_prec = { 1e3 },
-		.additive_prec = { 1e3 },
+		.soil_density_prec = { 1e-3 },
+		.pressure_prec = { 1e-3 },
+		.light_exposure_prec = { 1e-3 },
+		.water_use_prec = { 1e-3 },
+		.soil_temp_prec = { 1e-3 },
+		.env_temp_prec = { 1e-3 },
+		.additive_prec = { 1e-3 },
 	};
 
-	header = create_header(ADF_FT_REGULAR, w_info, s_info, r_info, p_info, N_CHUNKS);
+	header = create_header(ADF_FT_OUTDOOR, w_info, s_info, r_info, p_info, N_CHUNKS);
 	adf_init(&adf, header, ADF_DAY); // each series takes 1 day
 
 	srand(time(NULL));

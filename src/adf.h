@@ -863,6 +863,10 @@ uint32_t get_ADF_MONTH_31(void);
 adf_header_t *get_header(adf_t *adf);
 adf_meta_t *get_metadata(adf_t *adf);
 series_t *get_series_list(adf_t *adf);
+wavelength_info_t *get_w_info(adf_header_t *header);
+soil_depth_info_t*get_soil_info(adf_header_t *header);
+reduction_info_t *get_red_info(adf_header_t *header);
+precision_info_t *get_prec_info(adf_header_t *header);
 
 #ifdef __cplusplus
 }
