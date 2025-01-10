@@ -208,6 +208,50 @@ adf_t get_object_with_zero_series(void)
 	};
 }
 
+series_t get_random_series(uint32_t n_chunks, uint16_t n_wavelength,
+						   uint16_t n_depth)
+{
+	series_t series;
+	additive_t sample_additive;
+
+	sample_additive = (additive_t) {
+		.code = {1234},
+		.code_idx = {0},
+		.concentration = {123.456}
+	};
+	series.pH = rand() % 0xFFu;
+	series.p_bar.val = (float)rand()/(float)(RAND_MAX);
+	series.soil_density_kg_m3.val = (float)rand()/(float)(RAND_MAX);
+	/* Repeated should never be less that 1 */
+	series.repeated.val = 1 + (rand() % 10); 
+	series.n_soil_adds.val = 1;
+	series.n_atm_adds.val = 1;
+
+	series.light_exposure = malloc(n_chunks * n_wavelength
+								   * sizeof(real_t *));
+	series.soil_temp_c = malloc(n_chunks * n_depth * sizeof(real_t *));
+	series.env_temp_c = malloc(n_chunks * sizeof(real_t));
+	series.water_use_ml = malloc(n_chunks * sizeof(real_t));
+	series.soil_additives = malloc(sizeof(additive_t));
+	series.atm_additives = malloc(sizeof(additive_t));
+
+	for (uint32_t i = 0; i < n_chunks; i++) {
+		series.env_temp_c[i].val = (float)rand()/(float)(RAND_MAX);
+		series.water_use_ml[i].val = (float)rand()/(float)(RAND_MAX);
+
+		for (uint16_t j = 0; j < n_wavelength; j++) 
+			series.light_exposure[i].val = (float)rand()/(float)(RAND_MAX);
+		for (uint16_t j = 0; j < n_depth; j++) 
+			series.soil_temp_c[i].val = (float)rand()/(float)(RAND_MAX);
+
+	}
+
+	*series.soil_additives = sample_additive;
+	*series.atm_additives = sample_additive;
+
+	return series;
+}
+
 series_t *get_default_series(void)
 {
 	additive_t *add_code_series_1, *add_code_series_2;

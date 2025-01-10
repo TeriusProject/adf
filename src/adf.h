@@ -234,7 +234,7 @@ typedef enum {
 								  "specified is out of bound"
 #define ADF_ADDITIVE_OVERFLOW_STR "Cannot add/update the series. Yhe number " \
 								  "of additives present in this ADF file is " \
-								  "greter than 65'535"
+								  "greater than 65'535"
 #define ADF_NULL_HEADER_SOURCE_STR "Cannot copy: source header is NULL"
 #define ADF_NULL_HEADER_TARGET_STR "Cannot copy: target header is NULL"
 #define ADF_NULL_META_SOURCE_STR "Cannot copy: source metadata is NULL"
@@ -536,7 +536,6 @@ typedef struct {
 
 	/*
 	 * Signature contains the following four bytes
-
 	 * 		0x40  0x41  0x44  0x46
 	 * Those bytes are contained in the macro __ADF_SIGNATURE__.
 	 */
@@ -671,6 +670,12 @@ uint16_t unmarshal(adf_t *, const uint8_t *);
 
 /* It updates the series at a certain time. */
 uint16_t update_series(adf_t *, const series_t *, uint64_t);
+
+/* */
+uint16_t set_seed_time(adf_t *adf, uint64_t time_sec);
+
+/* */
+uint16_t set_harvest_time(adf_t *adf, uint64_t time_sec);
 
 /*
  * It overwrites the source series to those already contained in the adf struct.
@@ -831,6 +836,26 @@ uint16_t get_status_code_NULL_TARGET(void);
 uint16_t get_status_code_NULL_ADDITIVE_SOURCE(void);
 uint16_t get_status_code_NULL_ADDITIVE_TARGET(void);
 uint16_t get_status_code_RUNTIME_ERROR(void);
+/* Error messages */
+const char *get_ADF_ERROR_PREFIX();
+const char *get_ADF_HEADER_CORRUPTED_STR();
+const char *get_ADF_METADATA_CORRUPTED_STR();
+const char *get_ADF_SERIES_CORRUPTED_STR();
+const char *get_ADF_ZERO_REPEATED_SERIES_STR();
+const char *get_ADF_EMPTY_SERIES_STR();
+const char *get_ADF_TIME_OUT_OF_BOUND_STR();
+const char *get_ADF_ADDITIVE_OVERFLOW_STR();
+const char *get_ADF_NULL_HEADER_SOURCE_STR();
+const char *get_ADF_NULL_HEADER_TARGET_STR();
+const char *get_ADF_NULL_META_SOURCE_STR();
+const char *get_ADF_NULL_META_TARGET_STR();
+const char *get_ADF_NULL_SERIES_SOURCE_STR();
+const char *get_ADF_NULL_SERIES_TARGET_STR();
+const char *get_ADF_NULL_SOURCE_STR();
+const char *get_ADF_NULL_TARGET_STR();
+const char *get_ADF_NULL_ADDITIVE_SOURCE_STR();
+const char *get_ADF_NULL_ADDITIVE_TARGET_STR();
+const char *get_ADF_RUNTIME_ERROR_STR();
 /* Farming technique */
 uint8_t get_farming_tec_code_REGULAR(void);
 uint8_t get_farming_tec_code_INDOOR(void);

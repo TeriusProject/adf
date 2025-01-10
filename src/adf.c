@@ -628,9 +628,9 @@ bool are_series_equal(const series_t *first, const series_t *second,
 	real_fields_eq = compare_reals(first->p_bar,
 								   second->p_bar,
 								   tol.pressure_prec.val)
-		&& compare_reals(first->soil_density_kg_m3,
-						 second->soil_density_kg_m3,
-						 tol.soil_density_prec.val);
+					 && compare_reals(first->soil_density_kg_m3,
+									  second->soil_density_kg_m3,
+									  tol.soil_density_prec.val);
 
 	DEBUG_LOG("are real fields equal? %d\n", real_fields_eq);
 
@@ -1028,6 +1028,22 @@ uint16_t set_series(adf_t *adf, const series_t *series, uint32_t size)
 		if (res != ADF_OK) { return res; }
 	}
 
+	return ADF_OK;
+}
+
+uint16_t set_seed_time(adf_t *adf, uint64_t time_sec)
+{
+	uint64_t tot = adf->metadata.n_series * adf->metadata.period_sec.val;
+	if (time_sec > tot) { return ADF_TIME_OUT_OF_BOUND; }
+	adf->metadata.seeded.val = time_sec;
+	return ADF_OK;
+}
+
+uint16_t set_harvest_time(adf_t *adf, uint64_t time_sec)
+{
+	uint64_t tot = adf->metadata.n_series * adf->metadata.period_sec.val;
+	if (time_sec > tot) { return ADF_TIME_OUT_OF_BOUND; }
+	adf->metadata.harvested.val = time_sec;
 	return ADF_OK;
 }
 
@@ -1698,6 +1714,101 @@ uint16_t get_status_code_NULL_ADDITIVE_TARGET(void)
 uint16_t get_status_code_RUNTIME_ERROR(void)
 {
 	return ADF_RUNTIME_ERROR;
+}
+
+const char *get_ADF_ERROR_PREFIX()
+{
+	return ADF_ERROR_PREFIX;
+}
+
+const char *get_ADF_HEADER_CORRUPTED_STR()
+{
+	return ADF_HEADER_CORRUPTED_STR;
+}
+
+const char *get_ADF_METADATA_CORRUPTED_STR()
+{
+	return ADF_METADATA_CORRUPTED_STR;
+}
+
+const char *get_ADF_SERIES_CORRUPTED_STR()
+{
+	return ADF_SERIES_CORRUPTED_STR;
+}
+
+const char *get_ADF_ZERO_REPEATED_SERIES_STR()
+{
+	return ADF_ZERO_REPEATED_SERIES_STR;
+}
+
+const char *get_ADF_EMPTY_SERIES_STR()
+{
+	return ADF_EMPTY_SERIES_STR;
+}
+
+const char *get_ADF_TIME_OUT_OF_BOUND_STR()
+{
+	return ADF_TIME_OUT_OF_BOUND_STR;
+}
+
+const char *get_ADF_ADDITIVE_OVERFLOW_STR()
+{
+	return ADF_ADDITIVE_OVERFLOW_STR;
+}
+
+const char *get_ADF_NULL_HEADER_SOURCE_STR()
+{
+	return ADF_NULL_HEADER_SOURCE_STR;
+}
+
+const char *get_ADF_NULL_HEADER_TARGET_STR()
+{
+	return ADF_NULL_HEADER_TARGET_STR;
+}
+
+const char *get_ADF_NULL_META_SOURCE_STR()
+{
+	return ADF_NULL_META_SOURCE_STR;
+}
+
+const char *get_ADF_NULL_META_TARGET_STR()
+{
+	return ADF_NULL_META_TARGET_STR;
+}
+
+const char *get_ADF_NULL_SERIES_SOURCE_STR()
+{
+	return ADF_NULL_SERIES_SOURCE_STR;
+}
+
+const char *get_ADF_NULL_SERIES_TARGET_STR()
+{
+	return ADF_NULL_SERIES_TARGET_STR;
+}
+
+const char *get_ADF_NULL_SOURCE_STR()
+{
+	return ADF_NULL_SOURCE_STR;
+}
+
+const char *get_ADF_NULL_TARGET_STR()
+{
+	return ADF_NULL_TARGET_STR;
+}
+
+const char *get_ADF_NULL_ADDITIVE_SOURCE_STR()
+{
+	return ADF_NULL_ADDITIVE_SOURCE_STR;
+}
+
+const char *get_ADF_NULL_ADDITIVE_TARGET_STR()
+{
+	return ADF_NULL_ADDITIVE_TARGET_STR;
+}
+
+const char *get_ADF_RUNTIME_ERROR_STR()
+{
+	return ADF_RUNTIME_ERROR_STR;
 }
 
 uint8_t get_farming_tec_code_REGULAR(void)

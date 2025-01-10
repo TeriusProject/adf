@@ -36,5 +36,7 @@ adf_t get_default_object(void);
 adf_t get_object_with_zero_series(void);
 adf_t get_object_with_precision_set(void);
 series_t get_series_with_two_soil_additives(void);
+series_t get_random_series(uint32_t n_chunks, uint16_t n_wavelength,
+						   uint16_t n_depth);
 
 #endif /* __MOCK_H__ */

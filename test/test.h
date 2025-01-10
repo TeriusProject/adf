@@ -35,9 +35,9 @@
 #define TICK "\u2713"
 #define CROSS "\u2A09"
 
-#define WARN_SAMPLE  "WARNING: for this test to work properly, the file "     \
-					 "sample.adf must be up to date to the latest version. "  \
-					 "If not, run `make init` first."
+#define WARN_SAMPLE  "WARNING: for this test to work properly, the file "    \
+					 "sample.adf must be up to date to the latest version "  \
+					 "of the library. If not, run `make init` first."
 
 bool are_ints_equal(uint_t, uint_t);
 bool are_big_ints_equal(uint_big_t, uint_big_t);

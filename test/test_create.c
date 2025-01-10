@@ -35,13 +35,62 @@ void test_init_adf(void)
 				"additive_codes should be initialized to NULL");
 }
 
+void add_seed_time_out_of_bound(void)
+{
+	adf_t adf;
+	adf_header_t header = get_default_header();
+	series_t s;
+	uint16_t res;
+
+	adf_init(&adf, header, ADF_DAY);
+	res = set_seed_time(&adf, 1);
+	assert_true(res == ADF_TIME_OUT_OF_BOUND,
+				"cannot set a seed time on empty adf");
+	s = get_series_with_two_soil_additives();
+	res = add_series(&adf, &s);
+	if (res != ADF_OK) {
+		printf("[%x] An error occurred while adding the series\n", res);
+		exit(1);
+	}
+	res = set_seed_time(&adf, (ADF_DAY * s.repeated.val) + 1);
+	assert_true(res == ADF_TIME_OUT_OF_BOUND,
+				"seed time cannot exceed the total time length");
+	res = set_seed_time(&adf, 1);
+	assert_true(res == ADF_OK,
+				"correctly set the seed time within the time length");
+}
+
+void add_harvest_time_out_of_bound(void)
+{
+	adf_t adf;
+	adf_header_t header = get_default_header();
+	series_t s;
+	uint16_t res;
+
+	adf_init(&adf, header, ADF_DAY);
+	res = set_harvest_time(&adf, 1);
+	assert_true(res == ADF_TIME_OUT_OF_BOUND,
+				"cannot set an harvest time on empty adf");
+	s = get_series_with_two_soil_additives();
+	res = add_series(&adf, &s);
+	if (res != ADF_OK) {
+		printf("[%x] An error occurred while adding the series\n", res);
+		exit(1);
+	}
+	res = set_harvest_time(&adf, (ADF_DAY * s.repeated.val) + 1);
+	assert_true(res == ADF_TIME_OUT_OF_BOUND,
+				"harvest time cannot exceed the total time length");
+	res = set_harvest_time(&adf, 1);
+	assert_true(res == ADF_OK,
+				"correctly set the harvest time within the time length");
+}
+
 void test_create_default_precision_info(void)
 {
 	precision_info_t p;
 	real_t zero = { 0.0 };
 
 	p = default_precision_info();
-
 	assert_real_equal(p.soil_density_prec, zero,
 					  "`soil_density_prec` ==  0 in def. precision_info_t");
 	assert_real_equal(p.pressure_prec, zero,
@@ -61,7 +110,6 @@ void test_create_default_reduction_info(void)
 	reduction_info_t r;
 
 	r = default_reduction_info();
-
 	assert_true(r.soil_density_red_mode == ADF_RM_NONE,
 				"`soil_density_red_mode` == NONE in def. reduction_info_t");
 	assert_true(r.pressure_red_mode == ADF_RM_NONE,
@@ -83,4 +131,6 @@ int main(void)
 	test_init_adf();
 	test_create_default_precision_info();
 	test_create_default_reduction_info();
+	add_seed_time_out_of_bound();
+	add_harvest_time_out_of_bound();
 }
