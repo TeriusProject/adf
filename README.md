@@ -182,7 +182,7 @@ You can find a working example of how to use `libadf` under the `example` direct
 	- [ ] Java
  	- [ ] Python (via Cython)
 - [ ] Add SIMD support for Intel Intrinsics and ARM Neon. The development is already ongoing in a separate private repository. Once the first release will be ready, it will be linked into this one.
-- [ ] Improve factory functions. Probably we have to wait a bit in order to see how we could make them easier to use.
+- [x] Improve factory functions. Probably we have to wait a bit in order to see how we could make them easier to use.
 
 ## Contributions
 
