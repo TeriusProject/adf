@@ -121,43 +121,17 @@ const adflib = Object.freeze({
 	get_prec_info: exports.get_prec_info as (header: pointer) => pointer,
 	set_seed_time: exports.set_seed_time as (adf: pointer, seedTime: bigint) => number,
 	set_harvest_time: exports.set_harvest_time as (adf: pointer, harvestTime: bigint) => number,
+	size_series_t: exports.size_series_t as (adf: pointer, series: pointer) => number,
 });
 
-const DatatypeSize = Object.freeze({
-	UINT_BIG_T: adflib.get_UINT_BIG_T_SIZE(),
-	UINT_T: adflib.get_UINT_T_SIZE(),
-	UINT_SMALL_T: adflib.get_UINT_SMALL_T_SIZE(),
-	UINT_TINY_T: adflib.get_UINT_TINY_T_SIZE(),
-	REAL_T: adflib.get_REAL_T_SIZE(),
+export const AdfDatatype = Object.freeze({
+	BIG_INT: adflib.get_UINT_BIG_T_SIZE(),
+	INT: adflib.get_UINT_T_SIZE(),
+	SMALL_INT: adflib.get_UINT_SMALL_T_SIZE(),
+	TINY_INT: adflib.get_UINT_TINY_T_SIZE(),
+	FLOAT: adflib.get_REAL_T_SIZE(),
 	ADDITIVE_T: adflib.get_ADD_T_SIZE(),
 });
-
-export enum AdfDatatype {
-	TINY_INT,
-	SMALL_INT,
-	INT,
-	BIG_INT,
-	FLOAT
-}
-
-type WasmSetter = (byteOffset: number, value: any, littleEndian?: boolean) => void;
-const getUpdateFn = (view: DataView, datatypeSize: number): WasmSetter => {
-	switch (datatypeSize) {
-		case DatatypeSize.UINT_BIG_T:
-			return view.setBigUint64;
-		case DatatypeSize.UINT_T:
-			return view.setUint32;
-		case DatatypeSize.UINT_SMALL_T:
-			return view.setUint16;
-		case DatatypeSize.UINT_TINY_T:
-			return view.setUint8;
-		case DatatypeSize.REAL_T:
-			return view.setFloat32;
-		case DatatypeSize.ADDITIVE_T:
-		default:
-			throw new Error(`Invalid datatype: ${datatypeSize}`)
-	}
-};
 
 class AdflibConverter {
 
@@ -165,8 +139,15 @@ class AdflibConverter {
 		return adflib.new_additive(additive.code, additive.concentration);
 	}
 
+	static fromCAdditive(additive: pointer, view: DataView): Additive {
+		return {
+			code: view.getUint32(additive + 2, littleEndian),
+			concentration: view.getFloat32(additive + 6, littleEndian),
+		};
+	}
+
 	static toCAdditiveList(adds: Additive[]): pointer {
-		const byteSize = adds.length * DatatypeSize.ADDITIVE_T;
+		const byteSize = adds.length * AdfDatatype.ADDITIVE_T;
 		const ptr = adflib.malloc(byteSize);
 		const view = new DataView(memory.buffer);
 		let offset = ptr;
@@ -179,27 +160,36 @@ class AdflibConverter {
 		return ptr;
 	}
 
-	static fromCAdditiveList(additiveList: pointer, view: DataView): Additive[] {
-		return [];
+	static fromCAdditiveList(additiveList: pointer, length: number, view: DataView): Additive[] {
+		const additives: Additive[] = [];
+
+		if (length === 0) return additives;
+
+		const additivesPtr = view.getUint32(additiveList, littleEndian);
+		for (let i = 0; i < length; i++) {
+			additives.push(AdflibConverter.fromCAdditive(additivesPtr + (i * 4), view));
+		}
+		return additives;
 	}
 
-	static toCArray<T extends number | bigint>(matrix: Matrix<T>): pointer {
-		const datatypeSize = matrix.getDatatypeSize();
-		const byteSize = matrix.innerArray().length * datatypeSize;
+	static toCArray(matrix: Matrix): pointer {
+		const byteSize = matrix.innerArray().length * AdfDatatype.FLOAT;
 		const ptr = adflib.malloc(byteSize);
 		const view = new DataView(memory.buffer);
 		let offset = ptr;
-		const updateFn = getUpdateFn(view, datatypeSize);
 		matrix.innerArray().forEach(e => {
-			updateFn(offset, e, littleEndian);
-			offset += datatypeSize;
+			view.setFloat32(offset, e, littleEndian);
+			offset += AdfDatatype.FLOAT;
 		});
 		return ptr;
 	}
 
-	static fromCArray<T extends number | bigint>(array: pointer, view: DataView, datatypeSize: number, shape: MatrixShape): Matrix<any> {
+	static fromCArray(array: pointer, view: DataView, shape: MatrixShape): Matrix {
 		const m = new Matrix(shape.rows, shape.columns);
-
+		const arr: any[] = [];
+		for (let i = 0; i < shape.rows * shape.columns; i++)
+			arr.push(view.getFloat32(array + (i * AdfDatatype.FLOAT), littleEndian));
+		m.setInnerArray(arr);
 		return m;
 	}
 
@@ -221,16 +211,22 @@ class AdflibConverter {
 	}
 
 	static fromCSeries(series: pointer, header: Header, view: DataView): Series {
-		const lightExposure = AdflibConverter.fromCArray(view.getFloat32(series, littleEndian), view, DatatypeSize.REAL_T, { rows: header.wInfo.nWavelengths, columns: header.nChunks });
-		const soilTempC = AdflibConverter.fromCArray(view.getFloat32(series, littleEndian), view, DatatypeSize.REAL_T, { rows: header.sInfo.nDepth, columns: header.nChunks });
-		const envTempC = AdflibConverter.fromCArray(view.getFloat32(series, littleEndian), view, DatatypeSize.REAL_T, { rows: 1, columns: header.nChunks });
-		const waterUseMl = AdflibConverter.fromCArray(view.getFloat32(series, littleEndian), view, DatatypeSize.REAL_T, { rows: 1, columns: header.nChunks });
-		const pH = view.getUint8(series);
-		const pBar = view.getFloat32(series, littleEndian);
-		const soilDensityKgM3 = view.getFloat32(series, littleEndian);
-		const soilAdditives = AdflibConverter.fromCAdditiveList(view.getFloat32(series, littleEndian), view);
-		const atmAdditives = AdflibConverter.fromCAdditiveList(view.getFloat32(series, littleEndian), view);
-		const repeated = view.getUint32(series, littleEndian);
+		const lightExposurePtr = view.getUint32(series, littleEndian);
+		const lightExposure = AdflibConverter.fromCArray(lightExposurePtr, view, { rows: header.wInfo.nWavelengths, columns: header.nChunks });
+		const soilTempPtr = view.getUint32(series + 4, littleEndian);
+		const soilTempC = AdflibConverter.fromCArray(soilTempPtr, view, { rows: header.sInfo.nDepth, columns: header.nChunks });
+		const envTempPtr = view.getUint32(series + 8, littleEndian);
+		const envTempC = AdflibConverter.fromCArray(envTempPtr, view, { rows: 1, columns: header.nChunks });
+		const waterUsePtr = view.getUint32(series + 12, littleEndian);
+		const waterUseMl = AdflibConverter.fromCArray(waterUsePtr, view, { rows: 1, columns: header.nChunks });
+		const pH = view.getUint8(series + 16);
+		const pBar = view.getFloat32(series + 17, littleEndian);
+		const soilDensityKgM3 = view.getFloat32(series + 21, littleEndian);
+		const nSoilAdditives = view.getUint16(series + 25, littleEndian);
+		const nAtmAdditives = view.getUint16(series + 27, littleEndian);
+		const soilAdditives = AdflibConverter.fromCAdditiveList(series + 29, nSoilAdditives, view);
+		const atmAdditives = AdflibConverter.fromCAdditiveList(series + 33, nAtmAdditives, view);
+		const repeated = view.getUint32(series + 37, littleEndian);
 		return { lightExposure, soilTempC, envTempC, waterUseMl, pH, pBar, soilDensityKgM3, soilAdditives, atmAdditives, repeated };
 	}
 
@@ -393,38 +389,38 @@ export interface MatrixShape {
 	columns: number;
 }
 
-export class Matrix<T extends number | bigint> {
+export class Matrix {
 
-	private mat: T[];
+	private mat: number[];
 	private rows: number;
 	private columns: number;
-	private datatypeSize: number;
 
-	constructor(rows: number = 1, columns: number = 1, datatype: number = DatatypeSize.REAL_T) {
+	constructor(rows: number = 1, columns: number = 1) {
 		this.mat = new Array(rows * columns).fill(0);
 		this.rows = rows;
 		this.columns = columns;
-		this.datatypeSize = datatype;
 	}
 
-	addRow(row: T[]): void {
+	addRow(row: number[]): void {
 		this.mat.push(...row);
 		this.rows += 1;
+	}
+
+	setInnerArray(arr: number[]): void {
+		if (arr.length != (this.rows * this.columns))
+			throw new Error();
+		this.mat = arr;
 	}
 
 	shape(): MatrixShape {
 		return { rows: this.rows, columns: this.columns };
 	}
 
-	innerArray(): T[] {
+	innerArray(): number[] {
 		return this.mat;
 	}
 
-	getDatatypeSize(): number {
-		return this.datatypeSize;
-	}
-
-	at(row: number, column: number): T {
+	at(row: number, column: number): number {
 		if (row >= this.rows || column >= this.columns) { throw new Error("Index out of bounds"); }
 		return this.mat[column + row * this.columns];
 	}
@@ -436,10 +432,10 @@ export interface Additive {
 }
 
 export interface Series {
-	lightExposure: Matrix<number>;
-	soilTempC: Matrix<number>;
-	envTempC: Matrix<number>;
-	waterUseMl: Matrix<number>;
+	lightExposure: Matrix;
+	soilTempC: Matrix;
+	envTempC: Matrix;
+	waterUseMl: Matrix;
 	pH: number;
 	pBar: number;
 	soilDensityKgM3: number;
@@ -501,10 +497,17 @@ export interface Metadata {
 
 export class Adf {
 	private cAdf: pointer = nullptr;
+	private header: Header | undefined;
+	private metadata: Metadata | undefined;
+	private series: Series[] | undefined;
 
-	constructor(header?: Header, periodSec?: number) {
-		if (header && periodSec)
-			this.cAdf = adflib.new_adf(AdflibConverter.toCHeader(header), periodSec);
+	private constructor() { }
+
+	static new(header: Header, periodSec: number): Adf {
+		const adf = new Adf();
+		adf.cAdf = adflib.new_adf(AdflibConverter.toCHeader(header), periodSec);
+		adf.header = header;
+		return adf;
 	}
 
 	static unmarshal(bytes: Buffer<ArrayBufferLike>): Adf {
@@ -568,15 +571,31 @@ export class Adf {
 	}
 
 	getHeader(): Header {
+		if (this.header) return this.header;
 		const cHeader = adflib.get_header(this.cAdf);
 		const view = new DataView(memory.buffer);
-		return AdflibConverter.fromCHeader(cHeader + 6, view);
+		this.header = AdflibConverter.fromCHeader(cHeader + 6, view);
+		return this.header;
 	}
 
 	getMetadata(): Metadata {
+		if (this.metadata) return this.metadata;
 		const cMetadata = adflib.get_metadata(this.cAdf);
 		const view = new DataView(memory.buffer);
-		return AdflibConverter.fromCMetadata(cMetadata, view);
+		this.metadata = AdflibConverter.fromCMetadata(cMetadata, view);
+		return this.metadata;
+	}
+
+	getSeries(): Series[] {
+		if (this.series) return this.series;
+		this.series = [];
+		const view = new DataView(memory.buffer);
+		const nSeries = this.getMetadata().sizeSeries;
+		const cSeries = adflib.get_series_list(this.cAdf);
+		for (let i = 0; i < nSeries; i++) {
+			this.series.push(AdflibConverter.fromCSeries(cSeries + (i * 41), this.getHeader(), view));
+		}
+		return this.series;
 	}
 
 	setSeedTime(seedTime: bigint): void {
@@ -593,18 +612,8 @@ export class Adf {
 		}
 	}
 
-	getSeries(): Series[] {
-		return [];
-	}
-
 	dispose(): void {
 		adflib.adf_delete(this.cAdf);
 		this.cAdf = nullptr;
 	}
 }
-
-const adfBuffer = await readFile('./output.adf');
-const a = Adf.unmarshal(adfBuffer);
-a.setSeedTime(BigInt(123456));
-a.setHarvestTime(BigInt(654321));
-console.log(a.getMetadata());
