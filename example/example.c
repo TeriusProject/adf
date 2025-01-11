@@ -94,10 +94,10 @@ series_t get_series(uint32_t n_chunks, uint16_t n_wavelength, uint16_t n_depth)
 		series.water_use_ml[i].val = (float)rand()/(float)(RAND_MAX);
 
 		for (uint16_t j = 0; j < n_wavelength; j++) 
-			series.light_exposure[i].val = (float)rand()/(float)(RAND_MAX);
+			series.light_exposure[(i * n_wavelength) + j].val = (float)rand()
+																/RAND_MAX;
 		for (uint16_t j = 0; j < n_depth; j++) 
-			series.soil_temp_c[i].val = (float)rand()/(float)(RAND_MAX);
-
+			series.soil_temp_c[(i * n_depth) + j].val = (float)rand()/RAND_MAX;
 	}
 
 	*series.soil_additives = sample_additive;
