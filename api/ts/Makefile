@@ -33,6 +33,7 @@ EXPORTS = -sEXPORTED_FUNCTIONS="\
 		  _remove_series,\
 		  _get_hex_version,\
 		  _size_header,\
+		  _size_series_t,\
 		  _get_header,\
 		  _get_metadata,\
 		  _get_series_list,\
