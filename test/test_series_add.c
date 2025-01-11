@@ -180,6 +180,9 @@ void test_add_series_with_two_repeated_additives(void)
 
 	assert_true(adf.metadata.n_additives.val == 1,
 				"`addseries` should not add two additives with the same code");
+	
+	adf_free(&adf);
+	series_free(&series);
 }
 
 void test_add_series_should_ignore_repeated_additives_in_different_series(void)
@@ -195,6 +198,7 @@ void test_add_series_should_ignore_repeated_additives_in_different_series(void)
 										  header.wave_info.n_wavelength.val,
 										  header.soil_info.n_depth.val);
 		res = add_series(&adf, &series_to_add);
+		series_free(&series_to_add);
 		if (res != ADF_OK) {
 			printf("An error occurred while adding the series [code:%x]", res);
 			exit(1);
@@ -203,6 +207,8 @@ void test_add_series_should_ignore_repeated_additives_in_different_series(void)
 
 	assert_true(adf.metadata.n_additives.val == 1,
 				"`addseries` should not add two additives with the same code");
+	
+	adf_free(&adf);
 }
 
 void test_additive_overflow(void)

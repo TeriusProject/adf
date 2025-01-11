@@ -33,6 +33,7 @@ void test_init_adf(void)
 	assert_true(!adf.series, "series should be initialized to NULL");
 	assert_true(!adf.metadata.additive_codes,
 				"additive_codes should be initialized to NULL");
+	adf_free(&adf);
 }
 
 void add_seed_time_out_of_bound(void)
@@ -58,6 +59,9 @@ void add_seed_time_out_of_bound(void)
 	res = set_seed_time(&adf, 1);
 	assert_true(res == ADF_OK,
 				"correctly set the seed time within the time length");
+
+	adf_free(&adf);
+	series_free(&s);
 }
 
 void add_harvest_time_out_of_bound(void)
@@ -83,6 +87,9 @@ void add_harvest_time_out_of_bound(void)
 	res = set_harvest_time(&adf, 1);
 	assert_true(res == ADF_OK,
 				"correctly set the harvest time within the time length");
+
+	adf_free(&adf);
+	series_free(&s);
 }
 
 void test_create_default_precision_info(void)

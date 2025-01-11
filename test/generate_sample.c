@@ -1,5 +1,4 @@
-/* 
- * generate_sample.c - Generate the file `sample.adf`, required by some 
+/* generate_sample.c - Generate the file `sample.adf`, required by some 
  * test suites
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
