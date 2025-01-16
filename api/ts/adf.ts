@@ -384,6 +384,8 @@ export const SeriesTime = Object.freeze({
 	MONTH_31: adflib.get_ADF_MONTH_31(),
 });
 
+const formatStatusCode = (n: number): string => `0x${n.toString(16).padStart(2, "0").toUpperCase()}`;
+
 export interface MatrixShape {
 	rows: number;
 	columns: number;
@@ -522,7 +524,7 @@ export class Adf {
 		const res = adflib.unmarshal(cAdf, ptr);
 		adflib.free(ptr);
 		if (res !== StatusCode.OK)
-			throw new Error(`Cannot unmarshal. Error code: ${res}`);
+			throw new Error(`Cannot unmarshal. Error code: ${formatStatusCode(res)}`);
 		const adf = new Adf();
 		adf.cAdf = cAdf;
 		return adf;
@@ -536,7 +538,7 @@ export class Adf {
 		const ptr = adflib.malloc(this.sizeBytes());
 		const res = adflib.marshal(ptr, this.cAdf);
 		if (res !== StatusCode.OK)
-			throw new Error(`Cannot marshal. Error code: ${res}`);
+			throw new Error(`Cannot marshal. Error code: ${formatStatusCode(res)}`);
 		const bytes = new Uint8Array(this.sizeBytes());
 		bytes.set(new Uint8Array(memory.buffer, ptr, this.sizeBytes()));
 		adflib.free(ptr);
@@ -547,21 +549,21 @@ export class Adf {
 		const seriesPtr = AdflibConverter.toCSeries(series);
 		const res = adflib.add_series(this.cAdf, seriesPtr);
 		if (res !== StatusCode.OK)
-			throw new Error(`Error adding series. Error code: ${res}`);
+			throw new Error(`Error adding series. Error code: ${formatStatusCode(res)}`);
 		adflib.series_delete(seriesPtr);
 	}
 
 	removeSeries(): void {
 		const res = adflib.remove_series(this.cAdf);
 		if (res !== StatusCode.OK)
-			throw new Error(`Error removing series. Error code: ${res}`);
+			throw new Error(`Error removing series. Error code: ${formatStatusCode(res)}`);
 	}
 
 	updateSeries(series: Series, time: number): void {
 		const seriesPtr = AdflibConverter.toCSeries(series);
 		const res = adflib.update_series(this.cAdf, seriesPtr, time);
 		if (res !== StatusCode.OK)
-			throw new Error(`Error updating series. Error code: ${res}`);
+			throw new Error(`Error updating series. Error code: ${formatStatusCode(res)}`);
 		adflib.series_delete(seriesPtr);
 	}
 
@@ -601,14 +603,14 @@ export class Adf {
 	setSeedTime(seedTime: bigint): void {
 		const res = adflib.set_seed_time(this.cAdf, seedTime);
 		if (res !== StatusCode.OK) {
-			throw new Error(`Error setting the seed time: ${res}`);
+			throw new Error(`Error setting the seed time: ${formatStatusCode(res)}`);
 		}
 	}
 
 	setHarvestTime(harvestTime: bigint): void {
 		const res = adflib.set_harvest_time(this.cAdf, harvestTime);
 		if (res !== StatusCode.OK) {
-			throw new Error(`Error setting the seed time: ${res}`);
+			throw new Error(`Error setting the seed time: ${formatStatusCode(res)}`);
 		}
 	}
 
