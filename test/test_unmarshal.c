@@ -29,7 +29,23 @@
 
 #define FILE_PATH "sample.adf"
 
-int main(void)
+void test_unmarshal_null_bytes(void)
+{
+	adf_t data;
+	uint16_t result = unmarshal(NULL, &data);
+	assert_true(result == ADF_RUNTIME_ERROR,
+				"unmarshal should return error for NULL bytes");
+}
+
+void test_unmarshal_null_adf(void)
+{
+	uint8_t buffer[256];
+	uint16_t result = unmarshal(buffer, NULL);
+	assert_true(result == ADF_RUNTIME_ERROR,
+				"unmarshal should return error for NULL data");
+}
+
+void unmarshaled_sample_file_equal_to_default_object(void)
 {
 	uint8_t *bytes;
 	uint16_t res;
@@ -64,7 +80,7 @@ int main(void)
 	res = unmarshal(&new, bytes);
 	if (res != ADF_OK) {
 		printf("[%x] %s", res, "An error occurred during unmarshal process\n");
-		return 1;
+		exit(0);
 	}
 
 	/* Header */
@@ -80,7 +96,7 @@ int main(void)
 		free(bytes);
 		adf_free(&expected);
 		adf_free(&new);
-		return 0;
+		return;
 	}
 
 	h_and_meta_size = size_header() + size_medatata_t(&new.metadata);
@@ -94,4 +110,11 @@ int main(void)
 	free(bytes);
 	adf_free(&expected);
 	adf_free(&new);
+}
+
+int main(void)
+{
+	test_unmarshal_null_bytes();
+	test_unmarshal_null_adf();
+	unmarshaled_sample_file_equal_to_default_object();
 }

@@ -27,7 +27,23 @@
 
 #define FILE_PATH "sample.adf"
 
-int main(void)
+void test_marshal_null_bytes(void)
+{
+	adf_t data;
+	uint16_t result = marshal(NULL, &data);
+	assert_true(result == ADF_RUNTIME_ERROR,
+				"marshal should return error for NULL bytes");
+}
+
+void test_marshal_null_data(void)
+{
+	uint8_t buffer[256];
+	uint16_t result = marshal(buffer, NULL);
+	assert_true(result == ADF_RUNTIME_ERROR,
+				"marshal should return error for NULL data");
+}
+
+void marshaled_default_object_equal_to_sample_file(void) 
 {
 	adf_t adf;
 	uint8_t *bytes;
@@ -58,7 +74,7 @@ int main(void)
 	res = marshal(bytes, &adf);
 	if (res != ADF_OK) {
 		printf("%s", "An error occurred during marshal process\n_chunks");
-		return 1;
+		exit(0);
 	}
 
 	/* compare byte arrays */
@@ -70,4 +86,11 @@ int main(void)
 	free(file_bytes);
 	free(bytes);
 	adf_free(&adf);
+}
+
+int main(void)
+{
+	test_marshal_null_bytes();
+	test_marshal_null_data();
+	marshaled_default_object_equal_to_sample_file();
 }

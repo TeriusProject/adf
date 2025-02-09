@@ -228,7 +228,7 @@ uint16_t marshal(uint8_t *bytes, adf_t *data)
 
 	DEBUG_LOG("------- marshal -------\n");
 
-	if (!bytes) { return ADF_RUNTIME_ERROR; }
+	if (!bytes || !data) { return ADF_RUNTIME_ERROR; }
 
 	header = &data->header;
 	wave_info = &header->wave_info;
