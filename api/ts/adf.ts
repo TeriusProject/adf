@@ -1,7 +1,7 @@
 /* adf.ts - Implementation of the TS interface for the ADF library
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
- * Copyright (C) 2024 Matteo Nicoli
+ * Copyright (C) 2024-2026 Matteo Nicoli
  *
  * This file is part of Terius
  *

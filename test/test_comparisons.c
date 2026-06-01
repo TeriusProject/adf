@@ -1,7 +1,7 @@
 /* test_comparisons.c
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
- * Copyright (C) 2024 Matteo Nicoli
+ * Copyright (C) 2024-2026 Matteo Nicoli
  *
  * This file is part of Terius
  *

@@ -1,7 +1,7 @@
 /* mock.c - a collection of functions to mock some ADF structures for tests
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
- * Copyright (C) 2024 Matteo Nicoli
+ * Copyright (C) 2024-2026 Matteo Nicoli
  *
  * This file is part of Terius
  *
