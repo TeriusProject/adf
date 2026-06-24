@@ -1,4 +1,4 @@
-/* lookup_table.c - Implements a lookup table with linear probing as 
+/* lookup_table.c - Implements a lookup table with linear probing as
  * collision resolution strategy
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
@@ -21,144 +21,139 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <stdio.h>
-#include <stdbool.h>
 #include "lookup_table.h"
+#include <stdbool.h>
+#include <stdio.h>
 
 static uint16_t increase_table_size(table_t *table)
 {
-	size_t old_size = table->max_size,
-		   new_size = old_size + table->increment;
+    size_t old_size = table->max_size, new_size = old_size + table->increment;
 
     if (new_size <= old_size) { return LM_MAP_SIZE_OVERFLOW; }
-	
-	table->pairs = realloc(table->pairs, new_size * sizeof(pair_t));
-	if (!table->pairs) { return LM_FAILED_EXPANDING_MAP_SIZE; }
 
-	for (size_t i = old_size; i < new_size; i++) {
-		table->pairs[i].key = 0;
-		table->pairs[i].value = 0;
-	}
+    table->pairs = realloc(table->pairs, new_size * sizeof(pair_t));
+    if (!table->pairs) { return LM_FAILED_EXPANDING_MAP_SIZE; }
 
-	table->max_size = new_size;
-	return LM_OK;
+    for (size_t i = old_size; i < new_size; i++) {
+        table->pairs[i].key = 0;
+        table->pairs[i].value = 0;
+    }
+
+    table->max_size = new_size;
+    return LM_OK;
 }
 
 static bool should_be_resized(table_t *table)
-{
-	return table->size >= table->max_size / 2;
-}
+{ return table->size >= table->max_size / 2; }
 
 uint16_t table_init(table_t *table, size_t capacity, size_t increment,
-					hash_fn_t hash)
+                    hash_fn_t hash)
 {
-	if (!table) { return LM_CANNOT_INIT_TABLE; }
-	
-	table->size = 0;
+    if (!table) { return LM_CANNOT_INIT_TABLE; }
+
+    table->size = 0;
     table->max_size = capacity;
-	table->increment = increment;
-	table->pairs = calloc(capacity, sizeof(pair_t));
-	table->hash = hash;
+    table->increment = increment;
+    table->pairs = calloc(capacity, sizeof(pair_t));
+    table->hash = hash;
     if (table->pairs == NULL) { return LM_CANNOT_INIT_TABLE_PAIRS; }
-	return LM_OK;
+    return LM_OK;
 }
 
 uint16_t table_put(table_t *table, uint32_t key, uint32_t val)
 {
-	uint32_t hash;
+    uint32_t hash;
     size_t idx;
 
-	if (should_be_resized(table)) {
-		uint16_t res = increase_table_size(table);
+    if (should_be_resized(table)) {
+        uint16_t res = increase_table_size(table);
         if (res != LM_OK) { return res; }
     }
 
-	hash = table->hash(&key);
+    hash = table->hash(&key);
 
-	for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
-		idx = (hash + i) % (max_size - 1);
-		if (!table->pairs[idx].value) {
-			table->pairs[idx] = (pair_t) {.key = idx, .value = val};
-			table->size++;
-			return LM_OK;
-		}
-	}
+    for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
+        idx = (hash + i) % (max_size - 1);
+        if (!table->pairs[idx].value) {
+            table->pairs[idx] = (pair_t){ .key = idx, .value = val };
+            table->size++;
+            return LM_OK;
+        }
+    }
     return LM_CANNOT_INSERT_VALUE;
 }
 
 uint16_t table_update(table_t *table, uint32_t key, uint32_t val)
 {
-	uint32_t hash;
+    uint32_t hash;
     size_t idx;
 
-	hash = table->hash(&key);
+    hash = table->hash(&key);
 
-	for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
-		idx = (hash + i) % (max_size - 1);
-		if (table->pairs[idx].key == key) {
-			table->pairs[idx].value = val;
-			return LM_OK;
-		}
-	}
+    for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
+        idx = (hash + i) % (max_size - 1);
+        if (table->pairs[idx].key == key) {
+            table->pairs[idx].value = val;
+            return LM_OK;
+        }
+    }
     return LM_CANNOT_INSERT_VALUE;
 }
 
-uint32_t table_get(const table_t * table, uint32_t key)
+uint32_t table_get(const table_t *table, uint32_t key)
 {
     uint16_t hash;
     size_t idx;
 
-	hash = table->hash(&key);
-	for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
-		idx = (hash + i) % (max_size - 1);
-		if (table->pairs[idx].key == key) {
-			return table->pairs[idx].value;
-		}
-	}
-	return 0;
+    hash = table->hash(&key);
+    for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
+        idx = (hash + i) % (max_size - 1);
+        if (table->pairs[idx].key == key) { return table->pairs[idx].value; }
+    }
+    return 0;
 }
 
-uint16_t table_remove(table_t * table, uint32_t key)
+uint16_t table_remove(table_t *table, uint32_t key)
 {
-	uint32_t hash;
+    uint32_t hash;
     size_t idx;
 
-	hash = table->hash(&key);
+    hash = table->hash(&key);
 
-	for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
-		idx = (hash + i) % (max_size - 1);
-		if (table->pairs[idx].key == key) {
-			table->pairs[idx].value = 0;
-			table->pairs[idx].key = 0;
-			table->size--;
-			return LM_OK;
-		}
-	}
+    for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
+        idx = (hash + i) % (max_size - 1);
+        if (table->pairs[idx].key == key) {
+            table->pairs[idx].value = 0;
+            table->pairs[idx].key = 0;
+            table->size--;
+            return LM_OK;
+        }
+    }
     return LM_CANNOT_REMOVE_NONEXISTENT_VALUE;
 }
 
 uint16_t table_get_pairs(const table_t *table, pair_t *keys)
 {
-	size_t counter = 0;
+    size_t counter = 0;
 
-	if (!keys) { return LM_NULL_KEY_ARRAY; }
+    if (!keys) { return LM_NULL_KEY_ARRAY; }
 
-	for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
-		if (table->pairs[i].value) {
-			keys[counter].key = table->pairs[i].key;
-			keys[counter].value = table->pairs[i].value;
-			counter++;
-		}
-	}
+    for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
+        if (table->pairs[i].value) {
+            keys[counter].key = table->pairs[i].key;
+            keys[counter].value = table->pairs[i].value;
+            counter++;
+        }
+    }
 
-	return LM_OK;
+    return LM_OK;
 }
 
 void table_free(table_t *table)
 {
     free(table->pairs);
-	table->increment = 0;
-	table->max_size = 0;
-	table->size = 0;
-	table->pairs = NULL;
+    table->increment = 0;
+    table->max_size = 0;
+    table->size = 0;
+    table->pairs = NULL;
 }

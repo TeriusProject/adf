@@ -35,9 +35,10 @@
 #define TICK "\u2713"
 #define CROSS "\u2A09"
 
-#define WARN_SAMPLE  "WARNING: for this test to work properly, the file "    \
-					 "sample.adf must be up to date to the latest version "  \
-					 "of the library. If not, run `make init` first."
+#define WARN_SAMPLE                                                            \
+    "WARNING: for this test to work properly, the file "                       \
+    "sample.adf must be up to date to the latest version "                     \
+    "of the library. If not, run `make init` first."
 
 bool are_ints_equal(uint_t, uint_t);
 bool are_big_ints_equal(uint_big_t, uint_big_t);
@@ -57,12 +58,11 @@ void assert_big_int_equal(uint_big_t, uint_big_t, const char *);
 void assert_long_equal(long, long, const char *);
 void assert_real_equal(real_t, real_t, const char *);
 void assert_small_int_equal(uint_small_t, uint_small_t, const char *);
-void assert_uint32_arrays_equal(uint32_t *, uint32_t *, uint32_t, 
-								const char *);
+void assert_uint32_arrays_equal(uint32_t *, uint32_t *, uint32_t, const char *);
 void assert_int_arrays_equal(uint_t *, uint_t *, uint32_t, const char *);
 void assert_real_arrays_equal(real_t *, real_t *, uint32_t, const char *);
 void assert_additive_arrays_equal(additive_t *, additive_t *, uint32_t,
-								  const char *);
+                                  const char *);
 void assert_uint8_arrays_equal(uint8_t *, uint8_t *, uint32_t, const char *);
 void assert_pair_arrays_equal(pair_t *, pair_t *, uint32_t, const char *);
 void assert_header_equal(adf_header_t, adf_header_t, const char *);

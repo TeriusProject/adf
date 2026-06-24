@@ -23,42 +23,42 @@
 #ifndef __LOOKUP_TABLE_H__
 #define __LOOKUP_TABLE_H__
 
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #define DEFAULT_MAP_SIZE 1024
 
 typedef enum {
-	LM_OK = 0x00u,
-	LM_CANNOT_INIT_TABLE = 0x01u,
-	LM_CANNOT_INIT_TABLE_PAIRS = 0x02u,
-	LM_CANNOT_INSERT_VALUE = 0x03u,
-	LM_CANNOT_REMOVE_NONEXISTENT_VALUE = 0x04u,
-	LM_NULL_VALUE_NOT_ALLOWED = 0x05u,
-	LM_VALUE_NOT_FOUND = 0x06u,
-	LM_MAP_SIZE_OVERFLOW = 0x07u,
-	LM_FAILED_EXPANDING_MAP_SIZE = 0x08u,
-	LM_NULL_KEY_ARRAY = 0x09u
+    LM_OK = 0x00u,
+    LM_CANNOT_INIT_TABLE = 0x01u,
+    LM_CANNOT_INIT_TABLE_PAIRS = 0x02u,
+    LM_CANNOT_INSERT_VALUE = 0x03u,
+    LM_CANNOT_REMOVE_NONEXISTENT_VALUE = 0x04u,
+    LM_NULL_VALUE_NOT_ALLOWED = 0x05u,
+    LM_VALUE_NOT_FOUND = 0x06u,
+    LM_MAP_SIZE_OVERFLOW = 0x07u,
+    LM_FAILED_EXPANDING_MAP_SIZE = 0x08u,
+    LM_NULL_KEY_ARRAY = 0x09u
 } table_code;
 
 typedef uint32_t (*hash_fn_t)(void *);
 
 typedef struct {
-	uint32_t key;
-	uint32_t value;
+    uint32_t key;
+    uint32_t value;
 } pair_t;
 
 typedef struct {
-	pair_t *pairs;
-	size_t max_size;
-	size_t increment;
+    pair_t *pairs;
+    size_t max_size;
+    size_t increment;
     size_t size;
-	hash_fn_t hash;
+    hash_fn_t hash;
 } table_t;
 
 uint16_t table_init(table_t *, size_t, size_t, hash_fn_t);
 uint16_t table_put(table_t *, uint32_t, uint32_t);
-uint16_t table_update(table_t *,uint32_t, uint32_t);
+uint16_t table_update(table_t *, uint32_t, uint32_t);
 uint16_t table_remove(table_t *, uint32_t);
 uint32_t table_get(const table_t *, uint32_t);
 uint16_t table_get_pairs(const table_t *, pair_t *);

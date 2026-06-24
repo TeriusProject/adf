@@ -1,4 +1,4 @@
-/* 
+/*
  * test_unmarshal.c
  * ------------------------------------------------------------------------
  * ADF - Agriculture Data Format
@@ -31,90 +31,88 @@
 
 void test_unmarshal_null_bytes(void)
 {
-	adf_t data;
-	uint16_t result = unmarshal(NULL, &data);
-	assert_true(result == ADF_RUNTIME_ERROR,
-				"unmarshal should return error for NULL bytes");
+    adf_t data;
+    uint16_t result = unmarshal(NULL, &data);
+    assert_true(result == ADF_RUNTIME_ERROR,
+                "unmarshal should return error for NULL bytes");
 }
 
 void test_unmarshal_null_adf(void)
 {
-	uint8_t buffer[256];
-	uint16_t result = unmarshal(buffer, NULL);
-	assert_true(result == ADF_RUNTIME_ERROR,
-				"unmarshal should return error for NULL data");
+    uint8_t buffer[256];
+    uint16_t result = unmarshal(buffer, NULL);
+    assert_true(result == ADF_RUNTIME_ERROR,
+                "unmarshal should return error for NULL data");
 }
 
 void unmarshaled_sample_file_equal_to_default_object(void)
 {
-	uint8_t *bytes;
-	uint16_t res;
-	adf_t expected, new;
-	FILE *sample_file;
-	long file_len;
-	size_t series_size, h_and_meta_size;
+    uint8_t *bytes;
+    uint16_t res;
+    adf_t expected, new;
+    FILE *sample_file;
+    long file_len;
+    size_t series_size, h_and_meta_size;
 
-	printf(YELLOW WARN_SAMPLE RESET "\n");
+    printf(YELLOW WARN_SAMPLE RESET "\n");
 
-	sample_file = fopen(FILE_PATH, "rb");
-	if (sample_file == NULL) {
-		printf("The file `%s` is not opened.", FILE_PATH);
-		exit(0);
-	}
-	fseek(sample_file, 0, SEEK_END);
-	file_len = ftell(sample_file);
-	rewind(sample_file);
+    sample_file = fopen(FILE_PATH, "rb");
+    if (sample_file == NULL) {
+        printf("The file `%s` is not opened.", FILE_PATH);
+        exit(0);
+    }
+    fseek(sample_file, 0, SEEK_END);
+    file_len = ftell(sample_file);
+    rewind(sample_file);
 
-	bytes = (uint8_t *)malloc(file_len * sizeof(uint8_t));
-	fread(bytes, file_len, 1, sample_file);
-	fclose(sample_file);
+    bytes = (uint8_t *)malloc(file_len * sizeof(uint8_t));
+    fread(bytes, file_len, 1, sample_file);
+    fclose(sample_file);
 
-	expected = get_default_object();
-	printf("expected bytes: %zu\n", size_adf_t(&expected));
-	printf("read bytes: %ld\n", file_len);
-	assert_true(
-		size_adf_t(&expected) == (unsigned long)file_len,
-		"are byte arrays of the same length"
-	);
+    expected = get_default_object();
+    printf("expected bytes: %zu\n", size_adf_t(&expected));
+    printf("read bytes: %ld\n", file_len);
+    assert_true(size_adf_t(&expected) == (unsigned long)file_len,
+                "are byte arrays of the same length");
 
-	res = unmarshal(&new, bytes);
-	if (res != ADF_OK) {
-		printf("[%x] %s", res, "An error occurred during unmarshal process\n");
-		exit(0);
-	}
+    res = unmarshal(&new, bytes);
+    if (res != ADF_OK) {
+        printf("[%x] %s", res, "An error occurred during unmarshal process\n");
+        exit(0);
+    }
 
-	/* Header */
-	printf("(header - from byte 0)\n");
-	assert_header_equal_verbose(new.header, expected.header);
+    /* Header */
+    printf("(header - from byte 0)\n");
+    assert_header_equal_verbose(new.header, expected.header);
 
-	/* Metadata */
-	printf("(metadata - from byte %lu)\n", size_header());
-	assert_metadata_equal_verbose(new.metadata, expected.metadata);
+    /* Metadata */
+    printf("(metadata - from byte %lu)\n", size_header());
+    assert_metadata_equal_verbose(new.metadata, expected.metadata);
 
-	/* Series */
-	if (new.metadata.size_series.val == 0) {
-		free(bytes);
-		adf_free(&expected);
-		adf_free(&new);
-		return;
-	}
+    /* Series */
+    if (new.metadata.size_series.val == 0) {
+        free(bytes);
+        adf_free(&expected);
+        adf_free(&new);
+        return;
+    }
 
-	h_and_meta_size = size_header() + size_medatata_t(&new.metadata);
-	series_size = size_series_t(&new, new.series);
-	for (uint32_t i = 0; i < new.metadata.size_series.val; i++) {
-		printf("(iteration %u - from byte %lu)\n", i,
-			   h_and_meta_size + (i * series_size));
-		assert_series_equal_verbose(new, new.series[i], expected.series[i]);
-	}
+    h_and_meta_size = size_header() + size_medatata_t(&new.metadata);
+    series_size = size_series_t(&new, new.series);
+    for (uint32_t i = 0; i < new.metadata.size_series.val; i++) {
+        printf("(iteration %u - from byte %lu)\n", i,
+               h_and_meta_size + (i * series_size));
+        assert_series_equal_verbose(new, new.series[i], expected.series[i]);
+    }
 
-	free(bytes);
-	adf_free(&expected);
-	adf_free(&new);
+    free(bytes);
+    adf_free(&expected);
+    adf_free(&new);
 }
 
 int main(void)
 {
-	test_unmarshal_null_bytes();
-	test_unmarshal_null_adf();
-	unmarshaled_sample_file_equal_to_default_object();
+    test_unmarshal_null_bytes();
+    test_unmarshal_null_adf();
+    unmarshaled_sample_file_equal_to_default_object();
 }

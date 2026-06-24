@@ -23,13 +23,12 @@
 #ifndef __ADF_H__
 #define __ADF_H__
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 /* The (hex) bytes of `@ADF` */
@@ -64,24 +63,24 @@ extern "C" {
 /*
  * The size of the datatypes used in the ADF format.
  */
-#define UINT_BIG_T_SIZE    8
-#define UINT_T_SIZE        4
-#define UINT_SMALL_T_SIZE  2
-#define UINT_TINY_T_SIZE   1
-#define REAL_T_SIZE        4
-#define ADD_T_SIZE         6
+#define UINT_BIG_T_SIZE 8
+#define UINT_T_SIZE 4
+#define UINT_SMALL_T_SIZE 2
+#define UINT_TINY_T_SIZE 1
+#define REAL_T_SIZE 4
+#define ADD_T_SIZE 6
 
 /*
  * Some constants to represent some of the most frequently used standard
  * duration of the series.
  * All numbers are expressed in seconds.
  */
-#define ADF_DAY         86'400
-#define ADF_WEEK        604'800
-#define ADF_MONTH_28    2'419'200
-#define ADF_MONTH_29    2'505'600
-#define ADF_MONTH_30    2'592'000
-#define ADF_MONTH_31    2'678'400
+#define ADF_DAY 86'400
+#define ADF_WEEK 604'800
+#define ADF_MONTH_28 2'419'200
+#define ADF_MONTH_29 2'505'600
+#define ADF_MONTH_30 2'592'000
+#define ADF_MONTH_31 2'678'400
 
 /*
  * The most significant byte contains the parent category, while the least
@@ -95,24 +94,24 @@ extern "C" {
  *     + ...
  */
 typedef enum {
-	ADF_FT_REGULAR            = 0x00u,
-	ADF_FT_INDOOR             = 0x01u,
-	ADF_FT_INDOOR_PROTECTED   = 0x02u,
-	ADF_FT_OUTDOOR            = 0x03u,
-	ADF_FT_ARTIFICIAL_SOIL    = 0x10u,
-	ADF_FT_HYDROPONICS        = 0x20u,
-	ADF_FT_ANTHROPONICS       = 0x21u,
-	ADF_FT_AEROPONICS         = 0x30u,
-	ADF_FT_FOGPONICS          = 0x31u
+    ADF_FT_REGULAR = 0x00u,
+    ADF_FT_INDOOR = 0x01u,
+    ADF_FT_INDOOR_PROTECTED = 0x02u,
+    ADF_FT_OUTDOOR = 0x03u,
+    ADF_FT_ARTIFICIAL_SOIL = 0x10u,
+    ADF_FT_HYDROPONICS = 0x20u,
+    ADF_FT_ANTHROPONICS = 0x21u,
+    ADF_FT_AEROPONICS = 0x30u,
+    ADF_FT_FOGPONICS = 0x31u
 } farming_technique_t;
 
 /*
- * 
+ *
  */
 typedef struct {
-	uint8_t major;
-	uint8_t minor;
-	uint8_t patch;
+    uint8_t major;
+    uint8_t minor;
+    uint8_t patch;
 } version_t;
 
 /*
@@ -121,14 +120,14 @@ typedef struct {
  */
 typedef enum {
 
-	/* No statistical procedure has been applied */
-	ADF_RM_NONE = 0x00u,
+    /* No statistical procedure has been applied */
+    ADF_RM_NONE = 0x00u,
 
-	/* Average */
-	ADF_RM_AVG  = 0x01u,
+    /* Average */
+    ADF_RM_AVG = 0x01u,
 
-	/* Moving average */
-	ADF_RM_MAVG = 0x02u
+    /* Moving average */
+    ADF_RM_MAVG = 0x02u
 } reduction_code_t;
 
 /*
@@ -136,87 +135,87 @@ typedef enum {
  */
 typedef enum {
 
-	/*
-	 * Everything's OK.
-	 */
-	ADF_OK = 0x00u,
+    /*
+     * Everything's OK.
+     */
+    ADF_OK = 0x00u,
 
-	/*
-	 * Returned during unmarshalling, when the checksum included in the last
-	 * two bytes of the header doesn't match with that calculated on the fly.
-	 */
-	ADF_HEADER_CORRUPTED = 0x01u,
+    /*
+     * Returned during unmarshalling, when the checksum included in the last
+     * two bytes of the header doesn't match with that calculated on the fly.
+     */
+    ADF_HEADER_CORRUPTED = 0x01u,
 
-	/*
-	 * Returned during unmarshalling, when the checksum included in the last
-	 * two bytes of the metadata doesn't match with that calculated on the fly.
-	 */
-	ADF_METADATA_CORRUPTED = 0x02u,
+    /*
+     * Returned during unmarshalling, when the checksum included in the last
+     * two bytes of the metadata doesn't match with that calculated on the fly.
+     */
+    ADF_METADATA_CORRUPTED = 0x02u,
 
-	/*
-	 * Returned during unmarshalling, when the checksum included in the last
-	 * two bytes of the header doesn't match with that calculated on the fly.
-	 */
-	ADF_SERIES_CORRUPTED = 0x03u,
+    /*
+     * Returned during unmarshalling, when the checksum included in the last
+     * two bytes of the header doesn't match with that calculated on the fly.
+     */
+    ADF_SERIES_CORRUPTED = 0x03u,
 
-	/*
-	 * Returned when you are trying to add or aupdate a series with the field
-	 * `repeated` set to 0.
-	 */
-	ADF_ZERO_REPEATED_SERIES = 0x04u,
+    /*
+     * Returned when you are trying to add or aupdate a series with the field
+     * `repeated` set to 0.
+     */
+    ADF_ZERO_REPEATED_SERIES = 0x04u,
 
-	/*
-	 * Returned in the delete_series function, when you are trying to delete
-	 * a series, but the collection is empty.
-	 */
-	ADF_EMPTY_SERIES = 0x05u,
+    /*
+     * Returned in the delete_series function, when you are trying to delete
+     * a series, but the collection is empty.
+     */
+    ADF_EMPTY_SERIES = 0x05u,
 
-	/*
-	 * Returned when you are trying to select a series (tipically for update),
-	 * by specifying a time (in seconds) that is greater than the `period_sec`
-	 * contained in the metadata section.
-	 */
-	ADF_TIME_OUT_OF_BOUND = 0x06u,
+    /*
+     * Returned when you are trying to select a series (tipically for update),
+     * by specifying a time (in seconds) that is greater than the `period_sec`
+     * contained in the metadata section.
+     */
+    ADF_TIME_OUT_OF_BOUND = 0x06u,
 
-	/*
-	 * You are trying to add a series with additives that are not already
-	 * present in metadata's additive_codes array. You reached the limit
-	 * of that array though (0xFFFF).
-	 */
-	ADF_ADDITIVE_OVERFLOW = 0x07u,
+    /*
+     * You are trying to add a series with additives that are not already
+     * present in metadata's additive_codes array. You reached the limit
+     * of that array though (0xFFFF).
+     */
+    ADF_ADDITIVE_OVERFLOW = 0x07u,
 
-	/* Error raised when NULL is passed as source in cpy_adf_header. */
-	ADF_NULL_HEADER_SOURCE = 0x08u,
+    /* Error raised when NULL is passed as source in cpy_adf_header. */
+    ADF_NULL_HEADER_SOURCE = 0x08u,
 
-	/* Error raised when NULL is passed as target in cpy_adf_header. */
-	ADF_NULL_HEADER_TARGET = 0x09u,
+    /* Error raised when NULL is passed as target in cpy_adf_header. */
+    ADF_NULL_HEADER_TARGET = 0x09u,
 
-	/* Error raised when NULL is passed as source in cpy_adf_metadata. */
-	ADF_NULL_META_SOURCE = 0x0Au,
+    /* Error raised when NULL is passed as source in cpy_adf_metadata. */
+    ADF_NULL_META_SOURCE = 0x0Au,
 
-	/* Error raised when NULL is passed as target in cpy_adf_metadata. */
-	ADF_NULL_META_TARGET = 0x0Bu,
+    /* Error raised when NULL is passed as target in cpy_adf_metadata. */
+    ADF_NULL_META_TARGET = 0x0Bu,
 
-	/* Error raised when  NULL is passed as source in cpy_adf_series. */
-	ADF_NULL_SERIES_SOURCE = 0x0Cu,
+    /* Error raised when  NULL is passed as source in cpy_adf_series. */
+    ADF_NULL_SERIES_SOURCE = 0x0Cu,
 
-	/* Error raised when NULL is passed as target in cpy_adf_series. */
-	ADF_NULL_SERIES_TARGET = 0x0Du,
+    /* Error raised when NULL is passed as target in cpy_adf_series. */
+    ADF_NULL_SERIES_TARGET = 0x0Du,
 
-	/* Error raised when NULL is passed as source in cpy_adf. */
-	ADF_NULL_SOURCE = 0x0Eu,
+    /* Error raised when NULL is passed as source in cpy_adf. */
+    ADF_NULL_SOURCE = 0x0Eu,
 
-	/* Error raised when NULL is passed as target in cpy_adf. */
-	ADF_NULL_TARGET = 0x0Fu,
+    /* Error raised when NULL is passed as target in cpy_adf. */
+    ADF_NULL_TARGET = 0x0Fu,
 
-	/* Error raised when NULL is passed as source in cpy_series. */
-	ADF_NULL_ADDITIVE_SOURCE = 0x10u,
+    /* Error raised when NULL is passed as source in cpy_series. */
+    ADF_NULL_ADDITIVE_SOURCE = 0x10u,
 
-	/* Error raised when NULL is passed as target in cpy_series. */
-	ADF_NULL_ADDITIVE_TARGET = 0x11u,
+    /* Error raised when NULL is passed as target in cpy_series. */
+    ADF_NULL_ADDITIVE_TARGET = 0x11u,
 
-	/* The most generic error code. */
-	ADF_RUNTIME_ERROR = 0xFFFFu
+    /* The most generic error code. */
+    ADF_RUNTIME_ERROR = 0xFFFFu
 } code_t;
 
 /*
@@ -226,15 +225,19 @@ typedef enum {
 #define ADF_HEADER_CORRUPTED_STR "Header is corrupted. Cannot unmarshal"
 #define ADF_METADATA_CORRUPTED_STR "Metadata is corrupted. Cannot unmarshal"
 #define ADF_SERIES_CORRUPTED_STR "A series is corrupted. Cannot unmarshal"
-#define ADF_ZERO_REPEATED_SERIES_STR "Cannot add/update a series repeated 0 " \
-									 "times"
-#define ADF_EMPTY_SERIES_STR "Cannot remove a series. The series collection " \
-							 "is empty"
-#define ADF_TIME_OUT_OF_BOUND_STR "Cannot update the series. the time you "   \
-								  "specified is out of bound"
-#define ADF_ADDITIVE_OVERFLOW_STR "Cannot add/update the series. Yhe number " \
-								  "of additives present in this ADF file is " \
-								  "greater than 65'535"
+#define ADF_ZERO_REPEATED_SERIES_STR                                           \
+    "Cannot add/update a series repeated 0 "                                   \
+    "times"
+#define ADF_EMPTY_SERIES_STR                                                   \
+    "Cannot remove a series. The series collection "                           \
+    "is empty"
+#define ADF_TIME_OUT_OF_BOUND_STR                                              \
+    "Cannot update the series. the time you "                                  \
+    "specified is out of bound"
+#define ADF_ADDITIVE_OVERFLOW_STR                                              \
+    "Cannot add/update the series. Yhe number "                                \
+    "of additives present in this ADF file is "                                \
+    "greater than 65'535"
 #define ADF_NULL_HEADER_SOURCE_STR "Cannot copy: source header is NULL"
 #define ADF_NULL_HEADER_TARGET_STR "Cannot copy: target header is NULL"
 #define ADF_NULL_META_SOURCE_STR "Cannot copy: source metadata is NULL"
@@ -248,23 +251,23 @@ typedef enum {
 #define ADF_RUNTIME_ERROR_STR "An error occurred"
 
 typedef union {
-	float val;
-	uint8_t bytes[4];
+    float val;
+    uint8_t bytes[4];
 } real_t;
 
 typedef union {
-	uint64_t val;
-	uint8_t bytes[8];
+    uint64_t val;
+    uint8_t bytes[8];
 } uint_big_t;
 
 typedef union {
-	uint32_t val;
-	uint8_t bytes[4];
+    uint32_t val;
+    uint8_t bytes[4];
 } uint_t;
 
 typedef union {
-	uint16_t val;
-	uint8_t bytes[2];
+    uint16_t val;
+    uint8_t bytes[2];
 } uint_small_t;
 
 /*
@@ -273,98 +276,98 @@ typedef union {
  */
 typedef struct {
 
-	/*
-	 * The 4-byte unsigned index of the additive in metadata.additives.
-	 * This field *should never* be populated by hand. It's automatically filled
-	 * by the function `add_series`.
-	 */
-	uint_small_t code_idx;
+    /*
+     * The 4-byte unsigned index of the additive in metadata.additives.
+     * This field *should never* be populated by hand. It's automatically filled
+     * by the function `add_series`.
+     */
+    uint_small_t code_idx;
 
-	/*
-	 * This field won't be serialized into the binary file.
-	 * This field *must* be populated when you pass an additive to a series.
-	 */
-	uint_t code;
+    /*
+     * This field won't be serialized into the binary file.
+     * This field *must* be populated when you pass an additive to a series.
+     */
+    uint_t code;
 
-	/*
-	 * The concentration of this additive in the soil/atmosphere.
-	 * It's expressed in mg/kg.
-	 */
-	real_t concentration;
-} __attribute__(( packed )) additive_t;
+    /*
+     * The concentration of this additive in the soil/atmosphere.
+     * It's expressed in mg/kg.
+     */
+    real_t concentration;
+} __attribute__((packed)) additive_t;
 
 /*
  * The structure that contains the data series.
  */
 typedef struct {
 
-	/*
-	 * It represents the series of data collecting the energy flux
-	 * of light radiation measured in W/m2 and divided in n_chunks.
-	 */
-	real_t *light_exposure;
+    /*
+     * It represents the series of data collecting the energy flux
+     * of light radiation measured in W/m2 and divided in n_chunks.
+     */
+    real_t *light_exposure;
 
-	/*
-	 * 
-	 */
-	real_t *soil_temp_c;
+    /*
+     *
+     */
+    real_t *soil_temp_c;
 
-	/*
-	 * It represents the series of data collecting the environment temperature
-	 * measured in ºC and divided in n_chunks.
-	 */
-	real_t *env_temp_c;
+    /*
+     * It represents the series of data collecting the environment temperature
+     * measured in ºC and divided in n_chunks.
+     */
+    real_t *env_temp_c;
 
-	/*
-	 * It represents the series of data collecting the water use
-	 * measured in milliliters and divided in n_chunks.
-	 */
-	real_t *water_use_ml;
+    /*
+     * It represents the series of data collecting the water use
+     * measured in milliliters and divided in n_chunks.
+     */
+    real_t *water_use_ml;
 
-	/*
-	 * *Average* pH of the soil. The data is stored as an 8-byte integer.
-	 */
-	uint8_t pH;
+    /*
+     * *Average* pH of the soil. The data is stored as an 8-byte integer.
+     */
+    uint8_t pH;
 
-	/*
-	 * Pressure measured in bar. These data are reduced as specified in the
-	 * `pressure_red_mode` field of the reduction_info conatined in the
-	 * header section.
-	 */
-	real_t p_bar;
+    /*
+     * Pressure measured in bar. These data are reduced as specified in the
+     * `pressure_red_mode` field of the reduction_info conatined in the
+     * header section.
+     */
+    real_t p_bar;
 
-	/*
-	 * Soil density measured in kg/m3. These data are reduced as specified
-	 * in the `soil_density_red_mode` field of the reduction_info conatined in
-	 * the header section.
-	 */
-	real_t soil_density_kg_m3;
+    /*
+     * Soil density measured in kg/m3. These data are reduced as specified
+     * in the `soil_density_red_mode` field of the reduction_info conatined in
+     * the header section.
+     */
+    real_t soil_density_kg_m3;
 
-	/*
-	 * The number of elements of the array `soil_additives`.
-	 */
-	uint_small_t n_soil_adds;
+    /*
+     * The number of elements of the array `soil_additives`.
+     */
+    uint_small_t n_soil_adds;
 
-	/*
-	 * The number of elements of the array `atm_additives`.
-	 */
-	uint_small_t n_atm_adds;
+    /*
+     * The number of elements of the array `atm_additives`.
+     */
+    uint_small_t n_atm_adds;
 
-	/*
-	 * Each series can have its own additives. These two arrays does not
-	 * contain directly the code of each additive, but its index on the
-	 * additive_codes array in the metadata section.
-	 */
-	additive_t *soil_additives;
-	additive_t *atm_additives;
+    /*
+     * Each series can have its own additives. These two arrays does not
+     * contain directly the code of each additive, but its index on the
+     * additive_codes array in the metadata section.
+     */
+    additive_t *soil_additives;
+    additive_t *atm_additives;
 
-	/*
-	 * The number of times this series is repeated consecutively. The number 0
-	 * is not allowed. Set this field to 0 cause the ZERO_REPEATED_SERIES to
-	 * be returned.
-	 */
-	uint_t repeated;
-} __attribute__(( packed )) series_t;
+    /*
+     * The number of times this series is repeated consecutively. The number 0
+     * is not allowed. Set this field to 0 cause the ZERO_REPEATED_SERIES to
+     * be returned.
+     */
+    uint_t repeated;
+} __attribute__((packed)) series_t;
 
 /*
  * It contains all mutable metadata of an adf struct. This metadata
@@ -373,74 +376,74 @@ typedef struct {
  */
 typedef struct {
 
-	/*
-	 * The number of series registered. The number 0 is used to
-	 * indicate that there are no series. In that case, the `series`
-	 * array could be NULL.
-	 */
-	uint_t size_series;
+    /*
+     * The number of series registered. The number 0 is used to
+     * indicate that there are no series. In that case, the `series`
+     * array could be NULL.
+     */
+    uint_t size_series;
 
-	/*
-	 * The main difference between size_series and n_series is that
-	 * size_series contains the size of the array `series`, while n_series
-	 * contains the overall number of series (including repeated ones).
-	 * This field won't be marshalled; it's computed on the fly during the
-	 * unmarshalling procedure.
-	 * It should be a 64-bits integer, since it has to contain the number
-	 *     (0xFFFFFFFF*0xFFFFFFFF)
-	 */
-	uint64_t n_series;
+    /*
+     * The main difference between size_series and n_series is that
+     * size_series contains the size of the array `series`, while n_series
+     * contains the overall number of series (including repeated ones).
+     * This field won't be marshalled; it's computed on the fly during the
+     * unmarshalling procedure.
+     * It should be a 64-bits integer, since it has to contain the number
+     *     (0xFFFFFFFF*0xFFFFFFFF)
+     */
+    uint64_t n_series;
 
-	/*
-	 * It represents the time (measured in seconds) that each series last. The
-	 * total time elapsed (in seconds) is given by the period multiplied by
-	 * the number of the series, including each repetition. Each series can last
-	 * up to 4,294,967,295 seconds
-	 */
-	uint_t period_sec;
+    /*
+     * It represents the time (measured in seconds) that each series last. The
+     * total time elapsed (in seconds) is given by the period multiplied by
+     * the number of the series, including each repetition. Each series can last
+     * up to 4,294,967,295 seconds
+     */
+    uint_t period_sec;
 
-	/*
-	 * The time (measured in seconds) when the crops were seeded.
-	 */
-	uint_big_t seeded;
+    /*
+     * The time (measured in seconds) when the crops were seeded.
+     */
+    uint_big_t seeded;
 
-	/*
-	 * The time (measured in seconds) when the crops were harvested.
-	 */
-	uint_big_t harvested;
+    /*
+     * The time (measured in seconds) when the crops were harvested.
+     */
+    uint_big_t harvested;
 
-	/*
-	 * Contains the number of elements of the array `additive_codes`.
-	 */
-	uint_small_t n_additives;
+    /*
+     * Contains the number of elements of the array `additive_codes`.
+     */
+    uint_small_t n_additives;
 
-	/*
-	 * Contains the unique code of each additive present in the series. Each
-	 * additive should appear just once.
-	 */
-	uint_t *additive_codes;
-} __attribute__(( packed )) adf_meta_t;
+    /*
+     * Contains the unique code of each additive present in the series. Each
+     * additive should appear just once.
+     */
+    uint_t *additive_codes;
+} __attribute__((packed)) adf_meta_t;
 
 typedef struct {
 
-	/*
-	 * The lower bound of the recorded light spectrum measured in nanometers.
-	 */
-	uint_small_t min_w_len_nm;
+    /*
+     * The lower bound of the recorded light spectrum measured in nanometers.
+     */
+    uint_small_t min_w_len_nm;
 
-	/*
-	 * The upper bound of the recorded light spectrum measured in nanometers.
-	 */
-	uint_small_t max_w_len_nm;
+    /*
+     * The upper bound of the recorded light spectrum measured in nanometers.
+     */
+    uint_small_t max_w_len_nm;
 
-	/*
-	 * A 2 byte unsigned integer that represents the number of sections in which
-	 * the light spectrum is (equally) divided. The spectrum represented here
-	 * is bounded between:
-	 *         [min_w_len_nm, max_w_len_nm]
-	 */
-	uint_small_t n_wavelength;
-} __attribute__(( packed )) wavelength_info_t;
+    /*
+     * A 2 byte unsigned integer that represents the number of sections in which
+     * the light spectrum is (equally) divided. The spectrum represented here
+     * is bounded between:
+     *         [min_w_len_nm, max_w_len_nm]
+     */
+    uint_small_t n_wavelength;
+} __attribute__((packed)) wavelength_info_t;
 
 /*
  * This structure contains information about the soil tempretature measurements.
@@ -482,20 +485,20 @@ typedef struct {
  */
 typedef struct {
 
-	/*
-	 * The depth at which you can find the deepest temperature sensor.
-	 */
-	uint_small_t max_soil_depth_mm;
+    /*
+     * The depth at which you can find the deepest temperature sensor.
+     */
+    uint_small_t max_soil_depth_mm;
 
-	/*
-	 * The (possibly 0) translation on the (positive) Y axis of the shallowest
-	 * sensor
-	 */
-	uint_small_t t_y;
+    /*
+     * The (possibly 0) translation on the (positive) Y axis of the shallowest
+     * sensor
+     */
+    uint_small_t t_y;
 
-	/* The number of layers in which the soil has been (vertically) divided */
-	uint_small_t n_depth;
-} __attribute__(( packed )) soil_depth_info_t;
+    /* The number of layers in which the soil has been (vertically) divided */
+    uint_small_t n_depth;
+} __attribute__((packed)) soil_depth_info_t;
 
 /*
  * Each of the following fields contain information about the statistical
@@ -504,28 +507,28 @@ typedef struct {
  *     Meaning: No statistical procedure has been applied.
  */
 typedef struct {
-	reduction_code_t soil_density_red_mode;
-	reduction_code_t pressure_red_mode;
-	reduction_code_t light_exposure_red_mode;
-	reduction_code_t water_use_red_mode;
-	reduction_code_t soil_temp_red_mode;
-	reduction_code_t env_temp_red_mode;
-	reduction_code_t additive_red_mode;
-} __attribute__(( packed )) reduction_info_t;
+    reduction_code_t soil_density_red_mode;
+    reduction_code_t pressure_red_mode;
+    reduction_code_t light_exposure_red_mode;
+    reduction_code_t water_use_red_mode;
+    reduction_code_t soil_temp_red_mode;
+    reduction_code_t env_temp_red_mode;
+    reduction_code_t additive_red_mode;
+} __attribute__((packed)) reduction_info_t;
 
 /*
  * Each field in this structure specifies the precision with which the
  * respective values within the series are measured.
  */
 typedef struct {
-	real_t soil_density_prec;
-	real_t pressure_prec;
-	real_t light_exposure_prec;
-	real_t water_use_prec;
-	real_t soil_temp_prec;
-	real_t env_temp_prec;
-	real_t additive_prec;
-} __attribute__(( packed )) precision_info_t;
+    real_t soil_density_prec;
+    real_t pressure_prec;
+    real_t light_exposure_prec;
+    real_t water_use_prec;
+    real_t soil_temp_prec;
+    real_t env_temp_prec;
+    real_t additive_prec;
+} __attribute__((packed)) precision_info_t;
 
 /*
  * This structure contains the immutable data of an ADF structure.
@@ -534,46 +537,46 @@ typedef struct {
  */
 typedef struct {
 
-	/*
-	 * Signature contains the following four bytes
-	 * 		0x40  0x41  0x44  0x46
-	 * Those bytes are contained in the macro __ADF_SIGNATURE__.
-	 */
-	uint_t signature;
+    /*
+     * Signature contains the following four bytes
+     * 		0x40  0x41  0x44  0x46
+     * Those bytes are contained in the macro __ADF_SIGNATURE__.
+     */
+    uint_t signature;
 
-	/*
-	 * Version is an 16-bit unsigned integer that contains the
-	 * version of the ADF format. These bytes are contained in
-	 * the macro __ADF_VERSION__.
-	 */
-	uint_small_t version;
+    /*
+     * Version is an 16-bit unsigned integer that contains the
+     * version of the ADF format. These bytes are contained in
+     * the macro __ADF_VERSION__.
+     */
+    uint_small_t version;
 
-	farming_technique_t farming_tec;
-	wavelength_info_t wave_info;
-	soil_depth_info_t soil_info;
-	reduction_info_t reduction_info;
-	precision_info_t precision_info;
+    farming_technique_t farming_tec;
+    wavelength_info_t wave_info;
+    soil_depth_info_t soil_info;
+    reduction_info_t reduction_info;
+    precision_info_t precision_info;
 
-	/*
-	 * The number of chunks in which each data series is (equally) divided.
-	 */
-	uint_t n_chunks;
-} __attribute__(( packed )) adf_header_t;
+    /*
+     * The number of chunks in which each data series is (equally) divided.
+     */
+    uint_t n_chunks;
+} __attribute__((packed)) adf_header_t;
 
 /*
  * The structure that contains all the ADF data.
  */
 typedef struct {
 
-	adf_header_t header;
-	adf_meta_t metadata;
+    adf_header_t header;
+    adf_meta_t metadata;
 
-	/*
-	 * The array of the iterations of size `n_iterations`.
-	 * If size_series == 0, then this array is set to NULL.
-	 */
-	series_t *series;
-} __attribute__(( packed )) adf_t;
+    /*
+     * The array of the iterations of size `n_iterations`.
+     * If size_series == 0, then this array is set to NULL.
+     */
+    series_t *series;
+} __attribute__((packed)) adf_t;
 
 /*
  * Returns the constant __ADF_VERSION__.
@@ -639,17 +642,17 @@ void adf_bytes_free(uint8_t *);
 /*
  * Adds a series to the adf structure.
  * If the series is equal to the last one contained in the `series` array
- * 
+ *
  */
 uint16_t add_series(adf_t *, const series_t *);
 
 /*
- * 
+ *
  */
 uint16_t remove_series(adf_t *);
 
 /*
- * 
+ *
  */
 uint16_t reindex_additives(adf_t *);
 
@@ -691,45 +694,41 @@ bool are_additive_t_equal(additive_t, additive_t, float);
 /*
  * !!! This function doesn't compare the fields `repeated` !!!
  */
-bool are_series_equal(const series_t *, const series_t *, const adf_t*);
+bool are_series_equal(const series_t *, const series_t *, const adf_t *);
 
 /*
  * Helper functions to create adf structures.
  */
 additive_t create_additive(uint32_t code, float concentration);
 wavelength_info_t create_wavelength_info(uint16_t min_w_len_nm,
-										 uint16_t max_w_len_nm,
-										 uint16_t n_wavelength);
+                                         uint16_t max_w_len_nm,
+                                         uint16_t n_wavelength);
 soil_depth_info_t create_soil_depth_info(uint16_t max_soil_depth_mm,
-										 uint16_t n_depth);
+                                         uint16_t n_depth);
 soil_depth_info_t create_trans_soil_depth_info(uint16_t max_soil_depth_mm,
-											   uint16_t n_depth, uint16_t t_y);
+                                               uint16_t n_depth, uint16_t t_y);
 reduction_info_t default_reduction_info(void);
-reduction_info_t create_reduction_info(uint8_t soil_density_red_mode,
-									   uint8_t pressure_red_mode,
-									   uint8_t light_exposure_red_mode,
-									   uint8_t water_use_red_mode,
-									   uint8_t soil_temp_red_mode,
-									   uint8_t env_temp_red_mode,
-									   uint8_t additive_red_mode);
+reduction_info_t
+create_reduction_info(uint8_t soil_density_red_mode, uint8_t pressure_red_mode,
+                      uint8_t light_exposure_red_mode,
+                      uint8_t water_use_red_mode, uint8_t soil_temp_red_mode,
+                      uint8_t env_temp_red_mode, uint8_t additive_red_mode);
 precision_info_t default_precision_info(void);
-precision_info_t create_precision_info(float soil_density_prec,
-									   float pressure_prec,
-									   float light_exposure_prec,
-									   float water_use_prec,
-									   float soil_temp_prec,
-									   float env_temp_prec,
-									   float additive_prec);
+precision_info_t
+create_precision_info(float soil_density_prec, float pressure_prec,
+                      float light_exposure_prec, float water_use_prec,
+                      float soil_temp_prec, float env_temp_prec,
+                      float additive_prec);
 adf_header_t create_header(uint8_t farming_tec, wavelength_info_t wave_info,
-						   soil_depth_info_t soil_info,
-						   reduction_info_t reduction_info,
-						   precision_info_t precision_info, uint32_t n_chunks);
+                           soil_depth_info_t soil_info,
+                           reduction_info_t reduction_info,
+                           precision_info_t precision_info, uint32_t n_chunks);
 series_t create_series(float *light_exposure, float *soil_temp_c,
-					   float *env_temp_c, float *water_use_ml, uint8_t pH,
-					   float p_bar, float soil_density_kg_m3,
-					   uint16_t n_soil_adds, uint16_t n_atm_adds,
-					   additive_t *soil_additives, additive_t *atm_additives,
-					   uint32_t repeated);
+                       float *env_temp_c, float *water_use_ml, uint8_t pH,
+                       float p_bar, float soil_density_kg_m3,
+                       uint16_t n_soil_adds, uint16_t n_atm_adds,
+                       additive_t *soil_additives, additive_t *atm_additives,
+                       uint32_t repeated);
 
 /*
  * Helper functions to create dynamically allocated adf structures. They are
@@ -738,38 +737,34 @@ series_t create_series(float *light_exposure, float *soil_temp_c,
  */
 additive_t *new_additive(uint32_t code, float concentration);
 wavelength_info_t *new_wavelength_info(uint16_t min_w_len_nm,
-									   uint16_t max_w_len_nm,
-									   uint16_t n_wavelength);
+                                       uint16_t max_w_len_nm,
+                                       uint16_t n_wavelength);
 soil_depth_info_t *new_soil_depth_info(uint16_t max_soil_depth_mm,
-									   uint16_t n_depth);
+                                       uint16_t n_depth);
 soil_depth_info_t *new_trans_soil_depth_info(uint16_t max_soil_depth_mm,
-											 uint16_t n_depth, uint16_t t_y);
+                                             uint16_t n_depth, uint16_t t_y);
 reduction_info_t *new_default_reduction_info(void);
-reduction_info_t *new_reduction_info(uint8_t soil_density_red_mode,
-									 uint8_t pressure_red_mode,
-									 uint8_t light_exposure_red_mode,
-									 uint8_t water_use_red_mode,
-									 uint8_t soil_temp_red_mode,
-									 uint8_t env_temp_red_mode,
-									 uint8_t additive_red_mode);
+reduction_info_t *
+new_reduction_info(uint8_t soil_density_red_mode, uint8_t pressure_red_mode,
+                   uint8_t light_exposure_red_mode, uint8_t water_use_red_mode,
+                   uint8_t soil_temp_red_mode, uint8_t env_temp_red_mode,
+                   uint8_t additive_red_mode);
 precision_info_t *new_default_precision_info(void);
 precision_info_t *new_precision_info(float soil_density_prec,
-									 float pressure_prec,
-									 float light_exposure_prec,
-									 float water_use_prec,
-									 float soil_temp_prec,
-									 float env_temp_prec,
-									 float additive_prec);
+                                     float pressure_prec,
+                                     float light_exposure_prec,
+                                     float water_use_prec, float soil_temp_prec,
+                                     float env_temp_prec, float additive_prec);
 adf_header_t *new_header(uint8_t farming_tec, wavelength_info_t wave_info,
-						 soil_depth_info_t soil_info,
-						 reduction_info_t reduction_info,
-						 precision_info_t precision_info, uint32_t n_chunks);
+                         soil_depth_info_t soil_info,
+                         reduction_info_t reduction_info,
+                         precision_info_t precision_info, uint32_t n_chunks);
 series_t *new_series(float *light_exposure, float *soil_temp_c,
-					 float *env_temp_c, float *water_use_ml, uint8_t pH,
-					 float p_bar, float soil_density_kg_m3,
-					 uint16_t n_soil_adds, uint16_t n_atm_adds,
-					 additive_t *soil_additives, additive_t *atm_additives,
-					 uint32_t repeated);
+                     float *env_temp_c, float *water_use_ml, uint8_t pH,
+                     float p_bar, float soil_density_kg_m3,
+                     uint16_t n_soil_adds, uint16_t n_atm_adds,
+                     additive_t *soil_additives, additive_t *atm_additives,
+                     uint32_t repeated);
 adf_t *new_adf(adf_header_t *, uint32_t);
 adf_t *new_empty_adf(void);
 
@@ -779,8 +774,8 @@ adf_t *new_empty_adf(void);
 void metadata_init(adf_meta_t *, uint32_t);
 void adf_init(adf_t *, adf_header_t, uint32_t);
 uint16_t init_empty_series(series_t *series, uint32_t n_chunks,
-						   uint16_t n_wavelenght, uint16_t n_depth,
-						   uint16_t n_soil_additives, uint16_t n_atm_additives);
+                           uint16_t n_wavelenght, uint16_t n_depth,
+                           uint16_t n_soil_additives, uint16_t n_atm_additives);
 
 /*
  * !!! Those functions does not free the parameter pointers !!!
@@ -813,7 +808,7 @@ uint16_t cpy_adf_series(series_t *, const series_t *, const adf_t *);
 uint16_t cpy_series_starting_at(series_t *, const adf_t *, uint32_t);
 
 /*
- * 
+ *
  */
 
 /* Status code */
@@ -889,7 +884,7 @@ adf_header_t *get_header(adf_t *adf);
 adf_meta_t *get_metadata(adf_t *adf);
 series_t *get_series_list(adf_t *adf);
 wavelength_info_t *get_w_info(adf_header_t *header);
-soil_depth_info_t*get_soil_info(adf_header_t *header);
+soil_depth_info_t *get_soil_info(adf_header_t *header);
 reduction_info_t *get_red_info(adf_header_t *header);
 precision_info_t *get_prec_info(adf_header_t *header);
 

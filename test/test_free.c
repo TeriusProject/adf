@@ -26,49 +26,49 @@
 
 void test_free_adf(void)
 {
-	uint16_t res;
-	adf_t adf;
-	adf_header_t header;
-	series_t series;
-	
-	header = get_default_header();
-	series = get_series();
+    uint16_t res;
+    adf_t adf;
+    adf_header_t header;
+    series_t series;
 
-	adf_init(&adf, header, 3600);
-	res = add_series(&adf, &series);
-	if (res != ADF_OK) {
-		printf("An error occurred while mocking the series [code: %x]\n", res);
-		exit(1);
-	}
-	adf_free(&adf);
-	series_free(&series);
+    header = get_default_header();
+    series = get_series();
 
-	assert_true(adf.metadata.additive_codes == NULL, 
-				"additive_codes is NULL after adf_free is called");
-	assert_true(adf.series == NULL, 
-				"series array is NULL after adf_free is called");
+    adf_init(&adf, header, 3600);
+    res = add_series(&adf, &series);
+    if (res != ADF_OK) {
+        printf("An error occurred while mocking the series [code: %x]\n", res);
+        exit(1);
+    }
+    adf_free(&adf);
+    series_free(&series);
+
+    assert_true(adf.metadata.additive_codes == NULL,
+                "additive_codes is NULL after adf_free is called");
+    assert_true(adf.series == NULL,
+                "series array is NULL after adf_free is called");
 }
 
 void test_free_series(void)
 {
-	series_t series = get_series();
+    series_t series = get_series();
 
-	series_free(&series);
+    series_free(&series);
 
-	assert_true(series.water_use_ml == NULL, 
-				"(series) water_use_ml is NULL after adf_free is called");
-	assert_true(series.env_temp_c == NULL, 
-				"(series) env_temp_c is NULL after adf_free is called");
-	assert_true(series.light_exposure == NULL, 
-				"(series) light_exposure is NULL after adf_free is called");
-	assert_true(series.soil_additives == NULL, 
-				"(series) soil_additives is NULL after adf_free is called");
-	assert_true(series.atm_additives == NULL, 
-				"(series) atm_additives is NULL after adf_free is called");
+    assert_true(series.water_use_ml == NULL,
+                "(series) water_use_ml is NULL after adf_free is called");
+    assert_true(series.env_temp_c == NULL,
+                "(series) env_temp_c is NULL after adf_free is called");
+    assert_true(series.light_exposure == NULL,
+                "(series) light_exposure is NULL after adf_free is called");
+    assert_true(series.soil_additives == NULL,
+                "(series) soil_additives is NULL after adf_free is called");
+    assert_true(series.atm_additives == NULL,
+                "(series) atm_additives is NULL after adf_free is called");
 }
 
 int main(void)
 {
-	test_free_adf();
-	test_free_series();
+    test_free_adf();
+    test_free_series();
 }

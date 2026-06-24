@@ -20,16 +20,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "../src/adf.h"
 #include "mock.h"
 #include "test.h"
-#include "../src/adf.h"
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 int main(void)
 {
-	uint64_t t = get_nanos();
-	printf("%llu\n", t);
+    uint64_t t = get_nanos();
+    printf("%llu\n", t);
 }

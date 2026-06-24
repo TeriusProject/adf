@@ -23,52 +23,52 @@
 #pragma once
 
 #include <adf.h>
+#include <format>
 #include <string>
-#include <format> 
 
 namespace adf {
 
 void throwAdfError(uint32_t errorCode)
 {
-	switch (errorCode) {
-		case ADF_HEADER_CORRUPTED:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_HEADER_CORRUPTED_STR);
-		case ADF_METADATA_CORRUPTED:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_METADATA_CORRUPTED_STR);
-		case ADF_SERIES_CORRUPTED:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_SERIES_CORRUPTED_STR);
-		case ADF_ZERO_REPEATED_SERIES:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_ZERO_REPEATED_SERIES_STR);
-		case ADF_EMPTY_SERIES:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_EMPTY_SERIES_STR);
-		case ADF_TIME_OUT_OF_BOUND:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_TIME_OUT_OF_BOUND_STR);
-		case ADF_ADDITIVE_OVERFLOW:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_ADDITIVE_OVERFLOW_STR);
-		case ADF_NULL_HEADER_SOURCE:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_HEADER_SOURCE_STR);
-		case ADF_NULL_HEADER_TARGET:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_HEADER_TARGET_STR);
-		case ADF_NULL_META_SOURCE:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_META_SOURCE_STR);
-		case ADF_NULL_META_TARGET:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_META_TARGET_STR);
-		case ADF_NULL_SERIES_SOURCE:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_SERIES_SOURCE_STR);
-		case ADF_NULL_SERIES_TARGET:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_SERIES_TARGET_STR);
-		case ADF_NULL_SOURCE:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_SOURCE_STR);
-		case ADF_NULL_TARGET:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_TARGET_STR);
-		case ADF_NULL_ADDITIVE_SOURCE:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_ADDITIVE_SOURCE_STR);
-		case ADF_NULL_ADDITIVE_TARGET:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_ADDITIVE_TARGET_STR);
-		case ADF_RUNTIME_ERROR:
-			throw std::runtime_error(ADF_ERROR_PREFIX ADF_RUNTIME_ERROR_STR);
-		default:
-			break;
-	}
+    switch (errorCode) {
+    case ADF_HEADER_CORRUPTED:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_HEADER_CORRUPTED_STR);
+    case ADF_METADATA_CORRUPTED:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_METADATA_CORRUPTED_STR);
+    case ADF_SERIES_CORRUPTED:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_SERIES_CORRUPTED_STR);
+    case ADF_ZERO_REPEATED_SERIES:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_ZERO_REPEATED_SERIES_STR);
+    case ADF_EMPTY_SERIES:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_EMPTY_SERIES_STR);
+    case ADF_TIME_OUT_OF_BOUND:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_TIME_OUT_OF_BOUND_STR);
+    case ADF_ADDITIVE_OVERFLOW:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_ADDITIVE_OVERFLOW_STR);
+    case ADF_NULL_HEADER_SOURCE:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_HEADER_SOURCE_STR);
+    case ADF_NULL_HEADER_TARGET:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_HEADER_TARGET_STR);
+    case ADF_NULL_META_SOURCE:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_META_SOURCE_STR);
+    case ADF_NULL_META_TARGET:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_META_TARGET_STR);
+    case ADF_NULL_SERIES_SOURCE:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_SERIES_SOURCE_STR);
+    case ADF_NULL_SERIES_TARGET:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_SERIES_TARGET_STR);
+    case ADF_NULL_SOURCE:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_SOURCE_STR);
+    case ADF_NULL_TARGET:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_TARGET_STR);
+    case ADF_NULL_ADDITIVE_SOURCE:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_ADDITIVE_SOURCE_STR);
+    case ADF_NULL_ADDITIVE_TARGET:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_NULL_ADDITIVE_TARGET_STR);
+    case ADF_RUNTIME_ERROR:
+        throw std::runtime_error(ADF_ERROR_PREFIX ADF_RUNTIME_ERROR_STR);
+    default:
+        break;
+    }
 }
 } /* namespace adf */

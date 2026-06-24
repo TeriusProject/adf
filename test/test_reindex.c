@@ -21,48 +21,41 @@
  */
 
 #include "../src/adf.h"
-#include "test.h"
 #include "mock.h"
+#include "test.h"
 
 void series_have_more_additives_than_metadata(void)
 {
-	uint_t *codes;
-	uint16_t res;
-	adf_t format;
-	series_t *series;
+    uint_t *codes;
+    uint16_t res;
+    adf_t format;
+    series_t *series;
 
-	series = malloc(sizeof(series_t));
-	*series = get_series_with_two_soil_additives();
+    series = malloc(sizeof(series_t));
+    *series = get_series_with_two_soil_additives();
 
-	codes = malloc(sizeof(uint_t));
-	*codes = (uint_t){ 2345 };
-	
-	format = (adf_t) { 
-		.header = get_default_header(),
-		.metadata = (adf_meta_t) {
-			.period_sec = { 1345 },
-			.n_additives = { 1 },
-			.size_series = { 1 },
-			.n_series = 2,
-			.additive_codes = codes 
-		},
-		.series = series
-	};
+    codes = malloc(sizeof(uint_t));
+    *codes = (uint_t){ 2345 };
 
-	res = reindex_additives(&format);
-	if (res != ADF_OK) {
-		printf("An error occured while reindexing additives [code:%x]\n", res);
-		exit(1);
-	}
+    format = (adf_t){ .header = get_default_header(),
+                      .metadata = (adf_meta_t){ .period_sec = { 1345 },
+                                                .n_additives = { 1 },
+                                                .size_series = { 1 },
+                                                .n_series = 2,
+                                                .additive_codes = codes },
+                      .series = series };
 
-	assert_true(format.metadata.n_additives.val == 2,
-				"there are two additives in the metadata section");
+    res = reindex_additives(&format);
+    if (res != ADF_OK) {
+        printf("An error occured while reindexing additives [code:%x]\n", res);
+        exit(1);
+    }
 
-	free(codes);
-	adf_free(&format);
+    assert_true(format.metadata.n_additives.val == 2,
+                "there are two additives in the metadata section");
+
+    free(codes);
+    adf_free(&format);
 }
 
-int main(void)
-{
-	series_have_more_additives_than_metadata();
-}
+int main(void) { series_have_more_additives_than_metadata(); }
