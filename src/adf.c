@@ -716,22 +716,77 @@ bool are_series_equal(const series_t *first, const series_t *second,
     return true;
 }
 
-static bool is_additive_new(uint_t *additives, uint16_t n_additives,
-                            additive_t target)
+/*
+ * Returns the i-th additive of the series, walking the soil additives first
+ * and the atmospheric ones after them.
+ */
+static additive_t *series_additive_at(const series_t *series, uint32_t idx)
 {
-    for (uint16_t i = 0; i < n_additives; i++) {
-        if (target.code.val == additives[i].val) return false;
+    uint16_t n_soil_adds = series->n_soil_adds.val;
+    return idx < n_soil_adds ? series->soil_additives + idx
+                             : series->atm_additives + (idx - n_soil_adds);
+}
+
+/*
+ * Counts the additive codes of `series` that metadata doesn't know about yet.
+ * A code repeated within the series itself is counted once.
+ */
+static uint32_t count_new_additive_codes(const adf_t *adf,
+                                         const series_t *series)
+{
+    uint32_t n_adds
+        = (uint32_t)series->n_soil_adds.val + series->n_atm_adds.val;
+    uint32_t new_codes = 0;
+
+    for (uint32_t i = 0; i < n_adds; i++) {
+        uint32_t code = series_additive_at(series, i)->code.val;
+        bool is_known = false;
+
+        for (uint16_t j = 0, l = adf->metadata.n_additives.val;
+             !is_known && j < l; j++)
+            is_known = adf->metadata.additive_codes[j].val == code;
+
+        for (uint32_t j = 0; !is_known && j < i; j++)
+            is_known = series_additive_at(series, j)->code.val == code;
+
+        if (!is_known) { new_codes++; }
     }
-    return true;
+    return new_codes;
+}
+
+/*
+ * Points every additive of `series` at the position its code takes in
+ * metadata.additive_codes, appending the codes that aren't there yet.
+ * additive_codes must already have room for the codes to append, i.e. for
+ * `count_new_additive_codes` more elements.
+ */
+static void index_series_additives(adf_t *adf, series_t *series)
+{
+    uint32_t n_adds
+        = (uint32_t)series->n_soil_adds.val + series->n_atm_adds.val;
+
+    for (uint32_t i = 0; i < n_adds; i++) {
+        additive_t *additive = series_additive_at(series, i);
+        uint16_t pos, n_additives = adf->metadata.n_additives.val;
+
+        for (pos = 0; pos < n_additives; pos++) {
+            if (adf->metadata.additive_codes[pos].val == additive->code.val)
+                break;
+        }
+        if (pos == n_additives) {
+            adf->metadata.additive_codes[pos] = additive->code;
+            adf->metadata.n_additives.val++;
+        }
+        additive->code_idx.val = pos;
+    }
 }
 
 uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 {
-    series_t *last;
+    series_t *last, *series;
     size_t new_size_series;
-    additive_t *soil_add, *atm_add;
-    uint16_t n_soil_add, n_atm_add, soil_addtocopy_idx, atm_addtocopy_idx, res;
-    uint32_t total_additives;
+    uint16_t res;
+    uint32_t new_codes;
     cpy_2_bytes_fn = is_big_endian() ? &from_to_big_endian_2_bytes
                                      : &from_to_little_endian_2_bytes;
 
@@ -758,8 +813,9 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
     /* If it's not equal to the last one, and if it's not zero-repeated,
        then we have to add it to the series array */
     new_size_series = (adf->metadata.size_series.val + 1) * sizeof(series_t);
-    adf->series = realloc(adf->series, new_size_series);
-    if (!adf->series) { return ADF_RUNTIME_ERROR; }
+    series = realloc(adf->series, new_size_series);
+    if (!series) { return ADF_RUNTIME_ERROR; }
+    adf->series = series;
 
     last = adf->series + adf->metadata.size_series.val;
     res = cpy_adf_series(last, series_to_add, adf);
@@ -767,84 +823,34 @@ uint16_t add_series(adf_t *adf, const series_t *series_to_add)
 
     DEBUG_LOG("New series has been copied into series array\n");
 
-    /* At this point, we don't know how many additives should be added to the
-       additive_codes array in the metadata, so we allocate  */
-    n_soil_add = last->n_soil_adds.val;
-    n_atm_add = last->n_atm_adds.val;
-    soil_addtocopy_idx = 0;
-    atm_addtocopy_idx = 0;
-
-    if (n_soil_add > 0) {
-        soil_add = malloc(n_soil_add * sizeof(additive_t));
-        for (uint16_t n_soil = 0; n_soil < n_soil_add; n_soil++) {
-            if (is_additive_new(adf->metadata.additive_codes,
-                                adf->metadata.n_additives.val,
-                                last->soil_additives[n_soil])) {
-                cpy_additive(soil_add + soil_addtocopy_idx,
-                             last->soil_additives + n_soil);
-                soil_addtocopy_idx++;
-            }
-        }
-    }
-
-    if (n_atm_add > 0) {
-        atm_add = malloc(n_atm_add * sizeof(additive_t));
-        for (uint16_t n_atm = 0; n_atm < n_atm_add; n_atm++) {
-            if (is_additive_new(adf->metadata.additive_codes,
-                                adf->metadata.n_additives.val,
-                                last->atm_additives[n_atm])) {
-                cpy_additive(atm_add + atm_addtocopy_idx,
-                             last->atm_additives + n_atm);
-                atm_addtocopy_idx++;
-            }
-        }
-    }
-
-    uint32_t items_to_add = soil_addtocopy_idx + atm_addtocopy_idx;
-    total_additives = adf->metadata.n_additives.val + items_to_add;
-    if (total_additives > 0xFFFF) {
+    /* The series may carry additives metadata doesn't know about yet: the
+       additive_codes array has to make room for them before every additive
+       of the series can be pointed at the position of its own code. */
+    new_codes = count_new_additive_codes(adf, last);
+    if (adf->metadata.n_additives.val + new_codes > 0xFFFF) {
         series_free(last);
-        if (n_soil_add > 0) { free(soil_add); }
-        if (n_atm_add > 0) { free(atm_add); }
         return ADF_ADDITIVE_OVERFLOW;
     }
-    size_t new_size_additives
-        = (adf->metadata.n_additives.val + items_to_add) * sizeof(uint_t);
-    adf->metadata.additive_codes
-        = realloc(adf->metadata.additive_codes, new_size_additives);
 
-    if (!adf->metadata.additive_codes) {
-        series_free(last);
-        if (n_soil_add > 0) { free(soil_add); }
-        if (n_atm_add > 0) { free(atm_add); }
-        return ADF_RUNTIME_ERROR;
+    if (new_codes > 0) {
+        size_t new_size_additives
+            = (adf->metadata.n_additives.val + new_codes) * sizeof(uint_t);
+        uint_t *additive_codes
+            = realloc(adf->metadata.additive_codes, new_size_additives);
+
+        if (!additive_codes) {
+            series_free(last);
+            return ADF_RUNTIME_ERROR;
+        }
+        adf->metadata.additive_codes = additive_codes;
     }
 
-    for (uint16_t i = adf->metadata.n_additives.val, j = 0;
-         i < adf->metadata.n_additives.val + soil_addtocopy_idx; i++, j++) {
-        adf->metadata.additive_codes[i] = soil_add[j].code;
-        soil_add[j].code_idx.val = i;
-    }
-    for (uint16_t i = adf->metadata.n_additives.val + soil_addtocopy_idx, j = 0;
-         i < adf->metadata.n_additives.val + atm_addtocopy_idx; i++, j++) {
-        adf->metadata.additive_codes[i] = atm_add[j].code;
-        atm_add[j].code_idx.val = i;
-    }
-    adf->metadata.n_additives.val += items_to_add;
+    index_series_additives(adf, last);
 
-    /* Update soil_add and atm_add of the new series to keep track of the
-       index of the just inserted additive_code */
-    for (uint16_t i = 0, l = last->n_soil_adds.val; i < l; i++)
-        last->soil_additives[i] = soil_add[i];
-
-    for (uint16_t i = 0, l = last->n_atm_adds.val; i < l; i++)
-        last->atm_additives[i] = atm_add[i];
+    DEBUG_LOG("%u new additive code(s) added to metadata\n", new_codes);
 
     adf->metadata.size_series.val++;
     adf->metadata.n_series += last->repeated.val;
-
-    if (n_soil_add > 0) { free(soil_add); }
-    if (n_atm_add > 0) { free(atm_add); }
 
     return ADF_OK;
 }
@@ -1034,12 +1040,23 @@ uint16_t set_harvest_time(adf_t *adf, uint64_t time_sec)
     return ADF_OK;
 }
 
-static uint_t *get_additive_codes(pair_t *pairs, size_t size)
+static uint_t *get_additive_codes(table_t *table, const pair_t *pairs,
+                                  size_t size)
 {
     uint_t *additives = malloc(size * sizeof(uint_t));
+
+    if (!additives) { return NULL; }
+
     for (size_t i = 0; i < size; i++) {
         additives[i].val = pairs[i].key;
-        pairs[i].value = i;
+        /* A series stores the additive *code*, so the table has to map that
+           code to the position its code takes in `additives`: that position
+           is the code_idx that ends up being serialized. Updating `pairs`
+           would be pointless, as it's just a copy of the table entries. */
+        if (table_update(table, pairs[i].key, (uint32_t)i) != LM_OK) {
+            free(additives);
+            return NULL;
+        }
     }
     return additives;
 }
@@ -1051,8 +1068,10 @@ uint16_t reindex_additives(adf_t *adf)
     table_t lookup_table;
     uint16_t table_code, add_idx, n_soil, n_atm;
     pair_t *additives_keys;
+    uint_t *additive_codes;
 
     if (adf->metadata.n_series == 0) {
+        free(adf->metadata.additive_codes);
         adf->metadata.additive_codes = NULL;
         adf->metadata.n_additives.val = 0;
         return ADF_OK;
@@ -1068,30 +1087,55 @@ uint16_t reindex_additives(adf_t *adf)
     for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
         n_soil = adf->series[i].n_soil_adds.val;
         n_atm = adf->series[i].n_atm_adds.val;
+        /* The value is irrelevant here: the table is only collecting the
+           distinct codes. Each one is mapped to its final index further
+           down, once the additive_codes array is laid out. */
         for (uint16_t j = 0; j < n_soil; j++) {
             table_code = table_put(
-                &lookup_table, adf->series[i].soil_additives[j].code.val, j);
-            if (table_code == LM_MAP_SIZE_OVERFLOW)
-                return ADF_ADDITIVE_OVERFLOW;
-            if (table_code != LM_OK) return ADF_RUNTIME_ERROR;
+                &lookup_table, adf->series[i].soil_additives[j].code.val, 0);
+            if (table_code != LM_OK) {
+                table_free(&lookup_table);
+                return table_code == LM_MAP_SIZE_OVERFLOW
+                           ? ADF_ADDITIVE_OVERFLOW
+                           : ADF_RUNTIME_ERROR;
+            }
         }
 
         for (uint16_t j = 0; j < n_atm; j++) {
             table_code = table_put(&lookup_table,
-                                   adf->series[i].atm_additives[j].code.val, j);
-            if (table_code == LM_MAP_SIZE_OVERFLOW)
-                return ADF_ADDITIVE_OVERFLOW;
-            if (table_code != LM_OK) return ADF_RUNTIME_ERROR;
+                                   adf->series[i].atm_additives[j].code.val, 0);
+            if (table_code != LM_OK) {
+                table_free(&lookup_table);
+                return table_code == LM_MAP_SIZE_OVERFLOW
+                           ? ADF_ADDITIVE_OVERFLOW
+                           : ADF_RUNTIME_ERROR;
+            }
         }
     }
 
+    if (lookup_table.size > 0xFFFF) {
+        table_free(&lookup_table);
+        return ADF_ADDITIVE_OVERFLOW;
+    }
+
     additives_keys = malloc(lookup_table.size * sizeof(pair_t));
-    if (table_get_pairs(&lookup_table, additives_keys) != LM_OK) {
+    if (!additives_keys
+        || table_get_pairs(&lookup_table, additives_keys) != LM_OK) {
+        free(additives_keys);
+        table_free(&lookup_table);
         return ADF_RUNTIME_ERROR;
     }
 
-    adf->metadata.additive_codes
-        = get_additive_codes(additives_keys, lookup_table.size);
+    additive_codes
+        = get_additive_codes(&lookup_table, additives_keys, lookup_table.size);
+    free(additives_keys);
+    if (!additive_codes) {
+        table_free(&lookup_table);
+        return ADF_RUNTIME_ERROR;
+    }
+
+    free(adf->metadata.additive_codes);
+    adf->metadata.additive_codes = additive_codes;
     adf->metadata.n_additives.val = (uint16_t)lookup_table.size;
 
     for (uint32_t i = 0, l = adf->metadata.size_series.val; i < l; i++) {
@@ -1113,7 +1157,6 @@ uint16_t reindex_additives(adf_t *adf)
     }
 
     table_free(&lookup_table);
-    free(additives_keys);
 
     return ADF_OK;
 }

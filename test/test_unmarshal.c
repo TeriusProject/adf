@@ -32,7 +32,7 @@
 void test_unmarshal_null_bytes(void)
 {
     adf_t data;
-    uint16_t result = unmarshal(NULL, &data);
+    uint16_t result = unmarshal(&data, NULL);
     assert_true(result == ADF_RUNTIME_ERROR,
                 "unmarshal should return error for NULL bytes");
 }
@@ -40,7 +40,7 @@ void test_unmarshal_null_bytes(void)
 void test_unmarshal_null_adf(void)
 {
     uint8_t buffer[256];
-    uint16_t result = unmarshal(buffer, NULL);
+    uint16_t result = unmarshal(NULL, buffer);
     assert_true(result == ADF_RUNTIME_ERROR,
                 "unmarshal should return error for NULL data");
 }

@@ -54,7 +54,8 @@ void series_have_more_additives_than_metadata(void)
     assert_true(format.metadata.n_additives.val == 2,
                 "there are two additives in the metadata section");
 
-    free(codes);
+    /* `codes` is owned by the metadata: reindex_additives has replaced it
+       with the freshly built array, and adf_free releases that one. */
     adf_free(&format);
 }
 

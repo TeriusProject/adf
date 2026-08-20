@@ -25,21 +25,72 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+/*
+ * Walks the probe sequence of `key` and returns the slot it's stored in, or
+ * the slot it should be inserted into. `*found` tells the two cases apart.
+ * It returns false when the sequence is exhausted without finding either,
+ * which can only happen on a completely full table.
+ */
+static bool probe(const table_t *table, uint32_t key, size_t *slot, bool *found)
+{
+    uint32_t hash = table->hash(&key);
+    size_t idx, free_slot = 0;
+    bool has_free_slot = false;
+
+    for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
+        idx = (hash + i) % max_size;
+        if (table->pairs[idx].state == LM_SLOT_BUSY) {
+            if (table->pairs[idx].key == key) {
+                *slot = idx;
+                *found = true;
+                return true;
+            }
+            continue;
+        }
+        /* A deleted slot can host the key, but the sequence has to go on:
+           the key may still be stored further down. A free slot ends it, as
+           an insertion would never have jumped over it. */
+        if (!has_free_slot) {
+            free_slot = idx;
+            has_free_slot = true;
+        }
+        if (table->pairs[idx].state == LM_SLOT_FREE) { break; }
+    }
+
+    *slot = free_slot;
+    *found = false;
+    return has_free_slot;
+}
+
 static uint16_t increase_table_size(table_t *table)
 {
     size_t old_size = table->max_size, new_size = old_size + table->increment;
+    pair_t *old_pairs = table->pairs, *new_pairs;
 
     if (new_size <= old_size) { return LM_MAP_SIZE_OVERFLOW; }
 
-    table->pairs = realloc(table->pairs, new_size * sizeof(pair_t));
-    if (!table->pairs) { return LM_FAILED_EXPANDING_MAP_SIZE; }
+    new_pairs = calloc(new_size, sizeof(pair_t));
+    if (!new_pairs) { return LM_FAILED_EXPANDING_MAP_SIZE; }
 
-    for (size_t i = old_size; i < new_size; i++) {
-        table->pairs[i].key = 0;
-        table->pairs[i].value = 0;
+    /* The slot of a key is a function of max_size, so growing the table
+       invalidates every position: each entry has to be probed into the new
+       array rather than copied over. */
+    table->pairs = new_pairs;
+    table->max_size = new_size;
+    for (size_t i = 0; i < old_size; i++) {
+        size_t slot;
+        bool found;
+        if (old_pairs[i].state != LM_SLOT_BUSY) { continue; }
+        if (!probe(table, old_pairs[i].key, &slot, &found)) {
+            table->pairs = old_pairs;
+            table->max_size = old_size;
+            free(new_pairs);
+            return LM_FAILED_EXPANDING_MAP_SIZE;
+        }
+        table->pairs[slot] = old_pairs[i];
     }
 
-    table->max_size = new_size;
+    free(old_pairs);
     return LM_OK;
 }
 
@@ -62,74 +113,61 @@ uint16_t table_init(table_t *table, size_t capacity, size_t increment,
 
 uint16_t table_put(table_t *table, uint32_t key, uint32_t val)
 {
-    uint32_t hash;
-    size_t idx;
+    size_t slot;
+    bool found;
 
     if (should_be_resized(table)) {
         uint16_t res = increase_table_size(table);
         if (res != LM_OK) { return res; }
     }
 
-    hash = table->hash(&key);
+    if (!probe(table, key, &slot, &found)) { return LM_CANNOT_INSERT_VALUE; }
 
-    for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
-        idx = (hash + i) % (max_size - 1);
-        if (!table->pairs[idx].value) {
-            table->pairs[idx] = (pair_t){ .key = idx, .value = val };
-            table->size++;
-            return LM_OK;
-        }
-    }
-    return LM_CANNOT_INSERT_VALUE;
+    /* A key already in the table gets its value overwritten: the table holds
+       one entry per key, never a duplicate. */
+    table->pairs[slot]
+        = (pair_t){ .key = key, .value = val, .state = LM_SLOT_BUSY };
+    if (!found) { table->size++; }
+
+    return LM_OK;
 }
 
 uint16_t table_update(table_t *table, uint32_t key, uint32_t val)
 {
-    uint32_t hash;
-    size_t idx;
+    size_t slot;
+    bool found;
 
-    hash = table->hash(&key);
-
-    for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
-        idx = (hash + i) % (max_size - 1);
-        if (table->pairs[idx].key == key) {
-            table->pairs[idx].value = val;
-            return LM_OK;
-        }
+    if (!probe(table, key, &slot, &found) || !found) {
+        return LM_CANNOT_INSERT_VALUE;
     }
-    return LM_CANNOT_INSERT_VALUE;
+
+    table->pairs[slot].value = val;
+    return LM_OK;
 }
 
 uint32_t table_get(const table_t *table, uint32_t key)
 {
-    uint16_t hash;
-    size_t idx;
+    size_t slot;
+    bool found;
 
-    hash = table->hash(&key);
-    for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
-        idx = (hash + i) % (max_size - 1);
-        if (table->pairs[idx].key == key) { return table->pairs[idx].value; }
-    }
-    return 0;
+    if (!probe(table, key, &slot, &found) || !found) { return 0; }
+
+    return table->pairs[slot].value;
 }
 
 uint16_t table_remove(table_t *table, uint32_t key)
 {
-    uint32_t hash;
-    size_t idx;
+    size_t slot;
+    bool found;
 
-    hash = table->hash(&key);
-
-    for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
-        idx = (hash + i) % (max_size - 1);
-        if (table->pairs[idx].key == key) {
-            table->pairs[idx].value = 0;
-            table->pairs[idx].key = 0;
-            table->size--;
-            return LM_OK;
-        }
+    if (!probe(table, key, &slot, &found) || !found) {
+        return LM_CANNOT_REMOVE_NONEXISTENT_VALUE;
     }
-    return LM_CANNOT_REMOVE_NONEXISTENT_VALUE;
+
+    table->pairs[slot]
+        = (pair_t){ .key = 0, .value = 0, .state = LM_SLOT_DELETED };
+    table->size--;
+    return LM_OK;
 }
 
 uint16_t table_get_pairs(const table_t *table, pair_t *keys)
@@ -139,11 +177,9 @@ uint16_t table_get_pairs(const table_t *table, pair_t *keys)
     if (!keys) { return LM_NULL_KEY_ARRAY; }
 
     for (size_t i = 0, max_size = table->max_size; i < max_size; i++) {
-        if (table->pairs[i].value) {
-            keys[counter].key = table->pairs[i].key;
-            keys[counter].value = table->pairs[i].value;
-            counter++;
-        }
+        if (table->pairs[i].state != LM_SLOT_BUSY) { continue; }
+        keys[counter] = table->pairs[i];
+        counter++;
     }
 
     return LM_OK;

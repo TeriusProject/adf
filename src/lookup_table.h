@@ -43,9 +43,27 @@ typedef enum {
 
 typedef uint32_t (*hash_fn_t)(void *);
 
+/*
+ * The state of a slot of the table. A removed slot cannot be marked as free:
+ * doing so would cut the probe sequence of every key that collided with the
+ * one just removed. It's marked as deleted instead, so that lookups keep
+ * walking through it while insertions can recycle it.
+ */
+typedef enum {
+    LM_SLOT_FREE = 0x00u,
+    LM_SLOT_BUSY = 0x01u,
+    LM_SLOT_DELETED = 0x02u
+} slot_state_t;
+
 typedef struct {
     uint32_t key;
     uint32_t value;
+
+    /*
+     * One of `slot_state_t`. The state is what tells an occupied slot from a
+     * free one: any key and any value, zero included, are legal contents.
+     */
+    uint8_t state;
 } pair_t;
 
 typedef struct {

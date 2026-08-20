@@ -166,7 +166,7 @@ series_t get_series_with_two_soil_additives(void)
     additive_t add_1 = { .code = { 2345 }, .concentration = { 1.234 } };
     additive_t add_2 = { .code = { 6789 }, .concentration = { 6.789 } };
     *add_code = add_1;
-    *add_code = add_2;
+    *(add_code + 1) = add_2;
     return (series_t){ .light_exposure = get_real_inline_matrix(10, 20),
                        .soil_temp_c = get_real_inline_matrix(10, 2),
                        .env_temp_c = get_real_array(10),

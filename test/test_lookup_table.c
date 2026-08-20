@@ -198,7 +198,7 @@ void test_free_lookup_table(void)
         }
     }
 
-    assert_true(t.size == 250, "table has size equal to 250");
+    assert_true(t.size == 1, "the same key is stored once, whatever the value");
     table_free(&t);
     assert_true(t.size == 0, "After free table has size equal to 0");
     assert_true(t.max_size == 0, "After free table has max_size equal to 0");
