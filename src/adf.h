@@ -71,6 +71,34 @@ extern "C" {
 #define ADD_T_SIZE 6
 
 /*
+ * ADF_SYNCRONOUS
+ * --------------
+ * When this macro is defined (e.g. by compiling with -DADF_SYNCRONOUS), the
+ * sub-structures of adf_t that are meant to be consumed concurrently are no
+ * longer byte-packed but laid out with a 64-byte (cache line / AVX-512
+ * register) alignment. This serves two purposes:
+ *
+ *     1. Each instance sits on its own cache line, so several threads can read
+ *        different instances at the same time without false sharing.
+ *     2. The aligned layout is suitable to be read with (wide) SIMD loads or
+ *        to be transferred to / loaded into a GPU device.
+ *
+ * The on-disk format is *not* affected: marshalling and unmarshalling are
+ * performed field by field, so the serialized layout is identical regardless
+ * of whether ADF_SYNCRONOUS is defined. Only the in-memory layout changes.
+ *
+ * The macro __adf_struct_layout expands to the attribute applied to the
+ * structures involved: byte-packing by default, 64-byte alignment when
+ * ADF_SYNCRONOUS is enabled.
+ */
+#ifdef ADF_SYNCRONOUS
+#define ADF_SYNC_ALIGNMENT 64
+#define __adf_struct_layout __attribute__((aligned(ADF_SYNC_ALIGNMENT)))
+#else
+#define __adf_struct_layout __attribute__((packed))
+#endif
+
+/*
  * Some constants to represent some of the most frequently used standard
  * duration of the series.
  * All numbers are expressed in seconds.
@@ -294,7 +322,7 @@ typedef struct {
      * It's expressed in mg/kg.
      */
     real_t concentration;
-} __attribute__((packed)) additive_t;
+} __adf_struct_layout additive_t;
 
 /*
  * The structure that contains the data series.
@@ -367,7 +395,7 @@ typedef struct {
      * be returned.
      */
     uint_t repeated;
-} __attribute__((packed)) series_t;
+} __adf_struct_layout series_t;
 
 /*
  * It contains all mutable metadata of an adf struct. This metadata
@@ -561,7 +589,7 @@ typedef struct {
      * The number of chunks in which each data series is (equally) divided.
      */
     uint_t n_chunks;
-} __attribute__((packed)) adf_header_t;
+} __adf_struct_layout adf_header_t;
 
 /*
  * The structure that contains all the ADF data.
@@ -576,7 +604,7 @@ typedef struct {
      * If size_series == 0, then this array is set to NULL.
      */
     series_t *series;
-} __attribute__((packed)) adf_t;
+} __adf_struct_layout adf_t;
 
 /*
  * Returns the constant __ADF_VERSION__.
@@ -806,6 +834,22 @@ uint16_t cpy_adf_series(series_t *, const series_t *, const adf_t *);
 
 /* */
 uint16_t cpy_series_starting_at(series_t *, const adf_t *, uint32_t);
+
+#ifdef ADF_SYNCRONOUS
+/*
+ * Concurrent-read helpers, available only when ADF_SYNCRONOUS is defined.
+ *
+ * They stage a structure for concurrent consumption (a SIMD kernel or a
+ * host-to-device GPU transfer) by performing an aligned, vectorized *shallow*
+ * copy of its raw bytes using the widest SIMD register available on the target
+ * architecture. Being a shallow copy, the pointer fields of series_t (the data
+ * arrays) are copied verbatim and keep pointing to the same buffers as the
+ * source; only the fixed-size struct body is moved through the SIMD path.
+ */
+void cpy_adf_header_sync(adf_header_t *, const adf_header_t *);
+void cpy_series_sync(series_t *, const series_t *);
+void cpy_additive_sync(additive_t *, const additive_t *);
+#endif /* ADF_SYNCRONOUS */
 
 /*
  *

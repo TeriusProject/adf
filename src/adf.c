@@ -1568,6 +1568,63 @@ uint16_t cpy_adf(adf_t *target, const adf_t *source)
     return ADF_OK;
 }
 
+#ifdef ADF_SYNCRONOUS
+#if defined(__AVX512F__) || defined(__AVX__)
+#include <immintrin.h>
+#elif defined(__SSE2__)
+#include <emmintrin.h>
+#elif defined(__ARM_NEON)
+#include <arm_neon.h>
+#endif
+
+/*
+ * Copies `size` bytes from `source` to `target` using the widest SIMD register
+ * available on the target architecture, falling back to a scalar copy for the
+ * trailing bytes (and acting as the sole copy path on architectures without a
+ * supported SIMD ISA).
+ *
+ * Unaligned load/store intrinsics are used so the routine stays correct even
+ * when the buffers are not 64-byte aligned (e.g. when obtained from malloc).
+ * On the cache-line-isolated instances produced when ADF_SYNCRONOUS is enabled
+ * these still run at full speed.
+ */
+static void adf_simd_copy(void *restrict target, const void *restrict source,
+                          size_t size)
+{
+    uint8_t *dst = (uint8_t *)target;
+    const uint8_t *src = (const uint8_t *)source;
+    size_t i = 0;
+
+#if defined(__AVX512F__)
+    for (; i + 64 <= size; i += 64)
+        _mm512_storeu_si512(dst + i, _mm512_loadu_si512(src + i));
+#elif defined(__AVX__)
+    for (; i + 32 <= size; i += 32)
+        _mm256_storeu_si256((__m256i *)(dst + i),
+                            _mm256_loadu_si256((const __m256i *)(src + i)));
+#elif defined(__SSE2__)
+    for (; i + 16 <= size; i += 16)
+        _mm_storeu_si128((__m128i *)(dst + i),
+                         _mm_loadu_si128((const __m128i *)(src + i)));
+#elif defined(__ARM_NEON)
+    for (; i + 16 <= size; i += 16)
+        vst1q_u8(dst + i, vld1q_u8(src + i));
+#endif
+
+    for (; i < size; i++)
+        dst[i] = src[i];
+}
+
+void cpy_adf_header_sync(adf_header_t *target, const adf_header_t *source)
+{ adf_simd_copy(target, source, sizeof *source); }
+
+void cpy_series_sync(series_t *target, const series_t *source)
+{ adf_simd_copy(target, source, sizeof *source); }
+
+void cpy_additive_sync(additive_t *target, const additive_t *source)
+{ adf_simd_copy(target, source, sizeof *source); }
+#endif /* ADF_SYNCRONOUS */
+
 uint16_t get_status_code_OK(void) { return ADF_OK; }
 
 uint16_t get_status_code_HEADER_CORRUPTED(void) { return ADF_HEADER_CORRUPTED; }
